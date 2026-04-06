@@ -17,6 +17,7 @@ import EditPlanLoader from "../pages/EditPlanLoader";
 import StripeIntegrationView from "../integrations/pages/StripeIntegrationView";
 import NetsuiteIntegrationView from "../integrations/pages/NetsuiteIntegrationView";
 import BraintreeIntegrationView from "../integrations/pages/BraintreeIntegrationView";
+import MunimIntegrationView from "../integrations/pages/MunimIntegrationView";
 import SalesforceIntegrationView from "../integrations/pages/SalesforceIntegrationView";
 import ViewAddOns from "../pages/ViewAddOns";
 import CreateAddOns from "../pages/CreateAddOns";
@@ -110,6 +111,10 @@ const AppRoutes: FC = () => {
             <Route
               path="settings/integrations/braintree"
               element={getSettingsTab(<BraintreeIntegrationView />)}
+            />
+            <Route
+              path="settings/integrations/munim"
+              element={getSettingsTab(<MunimIntegrationView />)}
             />
             <Route
               path="settings/integrations/netsuite"

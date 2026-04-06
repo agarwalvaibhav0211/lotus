@@ -237,6 +237,13 @@ class Organization(models.Model):
         null=True,
         blank=True,
     )
+    munim_integration = models.ForeignKey(
+        "MunimOrganizationIntegration",
+        on_delete=models.SET_NULL,
+        related_name="organizations",
+        null=True,
+        blank=True,
+    )
     address = models.ForeignKey(
         "Address",
         on_delete=models.SET_NULL,
@@ -287,6 +294,7 @@ class Organization(models.Model):
     # settings
     gen_cust_in_stripe_after_lotus = models.BooleanField(default=False)
     gen_cust_in_braintree_after_lotus = models.BooleanField(default=False)
+    gen_cust_in_munim_after_lotus = models.BooleanField(default=False)
     payment_grace_period = models.IntegerField(null=True, default=None)
     lotus_is_customer_source_for_salesforce = models.BooleanField(default=False)
 
@@ -684,6 +692,13 @@ class Customer(models.Model):
     )
     braintree_integration = models.ForeignKey(
         "BraintreeCustomerIntegration",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="customers",
+    )
+    munim_integration = models.ForeignKey(
+        "MunimCustomerIntegration",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -4019,6 +4034,31 @@ class BraintreeOrganizationIntegration(models.Model):
                 name="unique_braintree_merchant_id",
             ),
         ]
+
+
+class MunimCustomerIntegration(models.Model):
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="munim_customer_links"
+    )
+    munim_customer_id = models.TextField()
+    created = models.DateTimeField(default=now_utc)
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["organization", "munim_customer_id"],
+                name="unique_munim_customer_id",
+            ),
+        ]
+
+
+class MunimOrganizationIntegration(models.Model):
+    organization = models.OneToOneField(
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="munim_organization_links",
+    )
+    created = models.DateTimeField(default=now_utc)
 
 
 class UnifiedCRMOrganizationIntegration(models.Model):

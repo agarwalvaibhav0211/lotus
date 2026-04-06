@@ -1,0 +1,743 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Munim Payment Service API",
+    "description": "REST API that the **Munim** payment service must implement to integrate with Lotus.\n\nLotus acts as the caller \u2014 it will make HTTP requests to these endpoints to manage\ncustomers, create invoices, and check payment statuses on behalf of your Lotus\norganisations.\n\n## Authentication\nEvery request carries an API key issued by Munim in an `Authorization: Bearer <api_key>`\nheader.\n\n## Connection flow\n1. The Lotus server operator sets `MUNIM_API_KEY` and `MUNIM_BASE_URL` as environment\n   variables (e.g. in `.env`).\n2. On startup, Lotus calls `GET /account` to validate the API key and retrieve the\n   merchant `account_id` and `name`. If this call fails, Lotus treats the Munim\n   integration as non-functional.\n3. Inside the Lotus web UI, an organisation administrator navigates to\n   **Settings \u2192 Integrations \u2192 Munim** and clicks **Connect**. No additional credentials\n   are required \u2014 all authentication is handled server-side via the API key.\n\n## Identifiers\n* **account_id** \u2014 the Munim merchant/organisation identifier, retrieved automatically\n  via `GET /account` at Lotus startup.\n* **customer_id** \u2014 Munim's unique identifier for a customer record.\n* **invoice_id** \u2014 Munim's unique identifier for an invoice / charge record.\n",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Munim API Support",
+      "email": "api@munim.io"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.munim.io/v1",
+      "description": "Production"
+    },
+    {
+      "url": "https://api.sandbox.munim.io/v1",
+      "description": "Sandbox / Test"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Account",
+      "description": "Merchant account information"
+    },
+    {
+      "name": "Customers",
+      "description": "Customer lifecycle management"
+    },
+    {
+      "name": "Invoices",
+      "description": "Invoice and charge management"
+    }
+  ],
+  "paths": {
+    "/account": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "getAccount",
+        "summary": "Retrieve merchant account details",
+        "description": "Returns the Munim account details for the authenticated API key.\nLotus calls this endpoint at startup to validate the API key and cache\nthe merchant `account_id` and `name`.\n",
+        "responses": {
+          "200": {
+            "description": "Account details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/customers": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "operationId": "listCustomers",
+        "summary": "List all customers",
+        "description": "Returns a paginated list of all customers in the Munim account.\nLotus calls this during a bulk import to sync customers into its own database.\n",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "maximum": 500
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Filter customers by exact email address",
+            "schema": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of customers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Customers"
+        ],
+        "operationId": "createCustomer",
+        "summary": "Create a new customer",
+        "description": "Creates a customer in Munim. Lotus calls this when a new Lotus customer is\ncreated and the \"auto-create in Munim\" setting is enabled. Lotus stores the\nreturned `customer_id` to link the records.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "A customer with this email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{customer_id}": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "operationId": "getCustomer",
+        "summary": "Retrieve a customer by ID",
+        "description": "Returns a single customer record. Lotus calls this when it needs to refresh\ncached customer data (e.g. to check the billing address or payment methods).\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/customer_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/customers/{customer_id}/payment-methods": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "operationId": "listCustomerPaymentMethods",
+        "summary": "List payment methods for a customer",
+        "description": "Returns the payment methods attached to a customer. Lotus uses this to decide\nwhether it can automatically charge the customer.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/customer_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of payment methods",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentMethodList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/invoices": {
+      "post": {
+        "tags": [
+          "Invoices"
+        ],
+        "operationId": "createInvoice",
+        "summary": "Create an invoice / initiate a charge",
+        "description": "Creates an invoice in Munim and submits it for collection. Lotus calls this\nwhen it finalises a billing period for a customer.\n\nThe returned `invoice_id` is stored by Lotus and used in subsequent\n`GET /invoices/{invoice_id}` calls to track payment status.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invoice created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "description": "Referenced customer does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invoices/{invoice_id}": {
+      "get": {
+        "tags": [
+          "Invoices"
+        ],
+        "operationId": "getInvoice",
+        "summary": "Retrieve invoice status",
+        "description": "Returns an invoice record including its current payment status. Lotus polls\nthis endpoint periodically to detect when an invoice has been paid.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invoice_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API Key",
+        "description": "Munim API key obtained from the Munim merchant dashboard"
+      }
+    },
+    "parameters": {
+      "customer_id": {
+        "name": "customer_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Munim customer identifier"
+      },
+      "invoice_id": {
+        "name": "invoice_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Munim invoice identifier"
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The requested resource does not exist",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "The request body is invalid",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "not_found"
+          },
+          "message": {
+            "type": "string",
+            "example": "Customer not found"
+          }
+        }
+      },
+      "Account": {
+        "type": "object",
+        "required": [
+          "account_id",
+          "name"
+        ],
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "Unique Munim merchant account identifier",
+            "example": "munim_acct_01HXYZ"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the merchant account",
+            "example": "Acme Corp"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "billing@acme.com"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "line1": {
+            "type": "string",
+            "example": "123 Main Street"
+          },
+          "line2": {
+            "type": "string",
+            "nullable": true,
+            "example": "Suite 400"
+          },
+          "city": {
+            "type": "string",
+            "example": "Karachi"
+          },
+          "state": {
+            "type": "string",
+            "example": "Sindh"
+          },
+          "postal_code": {
+            "type": "string",
+            "example": "75500"
+          },
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2 country code",
+            "example": "PK"
+          }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "required": [
+          "customer_id",
+          "name"
+        ],
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Unique Munim customer identifier",
+            "example": "munim_cust_01HABC"
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "jane@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "+92-300-1234567"
+          },
+          "billing_address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "shipping_address": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00Z"
+          }
+        }
+      },
+      "CustomerCreateRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Jane Doe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true,
+            "example": "jane@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "+92-300-1234567"
+          },
+          "billing_address": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "CustomerList": {
+        "type": "object",
+        "required": [
+          "data",
+          "total",
+          "page",
+          "page_size"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Customer"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total number of customers across all pages",
+            "example": 42
+          },
+          "page": {
+            "type": "integer",
+            "example": 1
+          },
+          "page_size": {
+            "type": "integer",
+            "example": 100
+          }
+        }
+      },
+      "PaymentMethod": {
+        "type": "object",
+        "required": [
+          "payment_method_id",
+          "type"
+        ],
+        "properties": {
+          "payment_method_id": {
+            "type": "string",
+            "example": "munim_pm_01HDEF"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "card",
+              "bank_transfer",
+              "wallet"
+            ],
+            "example": "card"
+          },
+          "last_four": {
+            "type": "string",
+            "nullable": true,
+            "description": "Last four digits (cards only)",
+            "example": "4242"
+          },
+          "is_default": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "PaymentMethodList": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentMethod"
+            }
+          }
+        }
+      },
+      "InvoiceCreateRequest": {
+        "type": "object",
+        "required": [
+          "customer_id",
+          "amount",
+          "currency",
+          "line_items"
+        ],
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "description": "Munim customer ID to charge",
+            "example": "munim_cust_01HABC"
+          },
+          "amount": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Total invoice amount (must equal sum of line items)",
+            "example": 250.0
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO 4217 three-letter currency code",
+            "example": "USD"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Subscription \u2014 April 2024"
+          },
+          "line_items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineItem"
+            }
+          }
+        }
+      },
+      "InvoiceLineItem": {
+        "type": "object",
+        "required": [
+          "name",
+          "quantity",
+          "unit_amount",
+          "total_amount",
+          "kind"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "Pro Plan usage"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "Usage charges for March"
+          },
+          "quantity": {
+            "type": "number",
+            "format": "decimal",
+            "example": 1.0
+          },
+          "unit_amount": {
+            "type": "number",
+            "format": "decimal",
+            "example": 250.0
+          },
+          "total_amount": {
+            "type": "number",
+            "format": "decimal",
+            "example": 250.0
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "debit",
+              "credit"
+            ],
+            "description": "`debit` for charges, `credit` for discounts/refunds",
+            "example": "debit"
+          }
+        }
+      },
+      "Invoice": {
+        "type": "object",
+        "required": [
+          "invoice_id",
+          "customer_id",
+          "amount",
+          "currency",
+          "status"
+        ],
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "description": "Unique Munim invoice identifier",
+            "example": "munim_inv_01HGHI"
+          },
+          "customer_id": {
+            "type": "string",
+            "example": "munim_cust_01HABC"
+          },
+          "amount": {
+            "type": "number",
+            "format": "decimal",
+            "example": 250.0
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "paid",
+              "failed",
+              "voided"
+            ],
+            "description": "* `pending` \u2014 created but not yet submitted for collection\n* `processing` \u2014 submitted; awaiting payment confirmation\n* `paid` \u2014 successfully collected\n* `failed` \u2014 collection attempt failed\n* `voided` \u2014 cancelled before collection\n",
+            "example": "paid"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "line_items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineItem"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-04-01T00:00:00Z"
+          },
+          "paid_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2024-04-02T08:15:00Z"
+          }
+        }
+      }
+    }
+  }
+}

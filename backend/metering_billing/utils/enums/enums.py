@@ -40,6 +40,7 @@ class PRICE_ADJUSTMENT_TYPE(models.TextChoices):
 class PAYMENT_PROCESSORS(models.TextChoices):
     STRIPE = ("stripe", _("Stripe"))
     BRAINTREE = ("braintree", _("Braintree"))
+    MUNIM = ("munim", _("Munim"))
 
 
 class METRIC_TYPE(models.TextChoices):
@@ -273,6 +274,10 @@ class ORGANIZATION_SETTING_NAMES(models.TextChoices):
         "gen_cust_in_braintree_after_lotus",
         _("Generate in Braintree after Lotus"),
     )
+    GENERATE_CUSTOMER_IN_MUNIM_AFTER_LOTUS = (
+        "gen_cust_in_munim_after_lotus",
+        _("Generate in Munim after Lotus"),
+    )
     PAYMENT_GRACE_PERIOD = ("payment_grace_period", _("Payment Grace Period"))
     CRM_CUSTOMER_SOURCE = ("crm_customer_source", _("CRM Customer Source"))
 
@@ -284,6 +289,7 @@ class TAG_GROUP(models.TextChoices):
 class ORGANIZATION_SETTING_GROUPS(models.TextChoices):
     STRIPE = ("stripe", _("Stripe"))
     BRAINTREE = ("braintree", _("Braintree"))
+    MUNIM = ("munim", _("Munim"))
     BILLING = ("billing", _("Billing"))
     CRM = ("crm", _("CRM"))
 

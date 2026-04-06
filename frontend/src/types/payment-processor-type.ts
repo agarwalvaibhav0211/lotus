@@ -1,4 +1,4 @@
-const PaymentProcessors = ["stripe", "braintree"] as const;
+const PaymentProcessors = ["stripe", "braintree", "munim"] as const;
 export type PaymentProcessorType = (typeof PaymentProcessors)[number];
 
 export interface PaymentProcessorStatusType {
@@ -19,7 +19,7 @@ export interface PaymentProcessorConnectionResponseType {
 
 export interface PaymentProcessorConnectionRequestType {
   payment_processor: PaymentProcessorType;
-  data: StripeConnectionRequestType | BraintreeConnectionRequestType;
+  data: StripeConnectionRequestType | BraintreeConnectionRequestType | Record<string, never>;
 }
 
 export interface StripeConnectionRequestType {
@@ -30,6 +30,7 @@ export interface BraintreeConnectionRequestType {
   merchant_id?: string;
   nango_connected: boolean;
 }
+
 
 export interface PaymentProcessorImportCustomerResponse {
   status: string;
@@ -75,6 +76,13 @@ export const integrationsMap = {
     description:
       "Charge and invoice your customers through your Braintree account",
     account_id_name: "Merchant ID",
+  },
+  munim: {
+    name: "Munim",
+    icon: "https://cdn-icons-png.flaticon.com/512/2331/2331970.png",
+    description:
+      "Charge and invoice your customers through your Munim account",
+    account_id_name: "Account ID",
   },
   snowflake: {
     name: "Snowflake",

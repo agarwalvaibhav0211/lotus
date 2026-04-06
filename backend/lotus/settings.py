@@ -100,6 +100,11 @@ if BRAINTREE_TEST_PUBLIC_KEY == "change_me":
 if BRAINTREE_TEST_SECRET_KEY == "change_me":
     BRAINTREE_TEST_SECRET_KEY = None
 BRAINTREE_WEBHOOK_SECRET = config("BRAINTREE_WEBHOOK_SECRET", default="")
+# Munim
+MUNIM_API_KEY = config("MUNIM_API_KEY", default=None)
+MUNIM_BASE_URL = config("MUNIM_BASE_URL", default="https://api.munim.io/v1")
+if MUNIM_API_KEY == "change_me":
+    MUNIM_API_KEY = None
 # taxjar
 TAXJAR_API_KEY = config("TAXJAR_API_KEY", default=None)
 # Webhooks for Svix
@@ -284,6 +289,9 @@ else:
             "PASSWORD": POSTGRES_PASSWORD,
             "HOST": "db" if DOCKERIZED else "localhost",
             "PORT": 5432,
+            "TEST": {
+                "TEMPLATE": "template_timescale",
+            },
         }
     }
 
