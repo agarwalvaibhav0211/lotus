@@ -368,7 +368,7 @@ const QuickstartPage: FC = () => {
             icon: "ri-star-line",
             time: "1 min",
             userAction: "star_cta_clicked",
-            link: "https://github.com/uselotus/lotus",
+            link: "https://github.com/agarwalvaibhav0211/lotus",
           })}
         </div>
       </div>

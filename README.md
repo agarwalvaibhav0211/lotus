@@ -22,10 +22,10 @@
 <p align="center">
    <a href='http://makeapullrequest.com'><img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-43AF11.svg?style=shields'/></a>
    <a href="#contributors"><img src="https://img.shields.io/github/contributors/uselotus/lotus.svg?color=c0c8d0"></a>
-   <a href="https://github.com/uselotus/lotus/stargazers"><img src="https://img.shields.io/github/stars/uselotus/lotus?color=e4b442" alt="Github Stars"></a>
+   <a href="https://github.com/agarwalvaibhav0211/lotus/stargazers"><img src="https://img.shields.io/github/stars/uselotus/lotus?color=e4b442" alt="Github Stars"></a>
    <a href="https://join.slack.com/t/lotus-community/shared_invite/zt-1ghi61p9j-ADYbp3tEL~N16AxQr2mlzA"><img src="https://img.shields.io/badge/slack-lotus-E01E5A.svg?logo=slack&labelColor=2EB67D" alt="Join Lotus on Slack"></a>
-   <a href="https://github.com/uselotus/lotus/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-9d2235" alt="License"></a>
-   <a href="https://github.com/uselotus/lotus/commits/main"><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/uselotus/lotus?color=8b55e3"/></a>
+   <a href="https://github.com/agarwalvaibhav0211/lotus/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-9d2235" alt="License"></a>
+   <a href="https://github.com/agarwalvaibhav0211/lotus/commits/main"><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/uselotus/lotus?color=8b55e3"/></a>
 </p>
 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
@@ -65,7 +65,7 @@ Lotus provides a flexible and modular control panel on top of your existing quot
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and start Docker
 2. Clone the repo and navigate to the project
    ```sh
-   git clone https://github.com/uselotus/lotus.git && cd lotus
+   git clone https://github.com/agarwalvaibhav0211/lotus.git && cd lotus
    ```
 3. Run the self-hosting script:
    ```sh
@@ -80,7 +80,7 @@ Lotus provides a flexible and modular control panel on top of your existing quot
 
 Optionally:
 
-- Change the environment variables located in `env/.env.prod` to suit your needs. For more details, check out [this guide in our docs](https://docs.uselotus.io/docs/overview/self-hosting).
+- Change the environment variables located in `env/.env.prod` to suit your needs. For more details, check out [this guide in our docs](https://livanatechnologiespvtltd.mintlify.app/overview/self-hosting).
 
 <p align="right">(<a href="#lotus-pricing--packaging-infrastructure-for-any-business-model">back to top</a>)</p>
 
@@ -90,13 +90,13 @@ Optionally:
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-If you have a suggestion that would make this better, please [fork the repo](https://github.com/uselotus/lotus) and [create a pull request](https://makeapullrequest.com/). You can also simply [request a feature](https://github.com/uselotus/lotus/issues/new?assignees=&labels=&template=feature_request.md&title=).
+If you have a suggestion that would make this better, please [fork the repo](https://github.com/agarwalvaibhav0211/lotus) and [create a pull request](https://makeapullrequest.com/). You can also simply [request a feature](https://github.com/agarwalvaibhav0211/lotus/issues/new?assignees=&labels=&template=feature_request.md&title=).
 
 Don't forget to give the project a star! Thanks again!
 
 ### :construction_worker: Local Development
 
-To set up Lotus for development locally, please refer to our guide [here](https://docs.uselotus.io/docs/contributing). Whether you want to contribute something for the whole community to use, or you want to personalize Lotus for your own needs, our developer-friendly codebase makes it easy to get started.
+To set up Lotus for development locally, please refer to our guide [here](https://livanatechnologiespvtltd.mintlify.app/contributing). Whether you want to contribute something for the whole community to use, or you want to personalize Lotus for your own needs, our developer-friendly codebase makes it easy to get started.
 
 <!-- ABOUT THE PROJECT -->
 
@@ -136,7 +136,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <p align="right">(<a href="#lotus-pricing--packaging-infrastructure-for-any-business-model">back to top</a>)</p>
 
 
-<a href="https://github.com/uselotus/lotus/graphs/contributors">
+<a href="https://github.com/agarwalvaibhav0211/lotus/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=uselotus/lotus" />
 </a>
 

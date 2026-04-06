@@ -30,20 +30,20 @@ To create your own integration, you have to do the following:
 
 1. Create a concrete class that implements the `PaymentProvider` interface. This
    interface is defined in
-   [metering_billing/payment_providers.py](https://github.com/uselotus/lotus/blob/027f9c456093b53b8d331f8c0cf6df2e6a96a58c/backend/metering%5Fbilling/payment%5Fproviders.py#L1)).
+   [metering_billing/payment_providers.py](https://github.com/agarwalvaibhav0211/lotus/blob/027f9c456093b53b8d331f8c0cf6df2e6a96a58c/backend/metering%5Fbilling/payment%5Fproviders.py#L1)).
    You can see the implementation of the Stripe version (`StripeConnector`
    class) in the file. The type hints should be relatively self-explanatory, but
    if you have any doubts, don't be afraid to reach out in the
    [Lotus Community Slack](https://lotus-community.slack.com).
 2. Add your payment provider to the
-   [Payment Providers enum](https://github.com/uselotus/lotus/blob/027f9c456093b53b8d331f8c0cf6df2e6a96a58c/backend/metering%5Fbilling/utils.py#L35).
+   [Payment Providers enum](https://github.com/agarwalvaibhav0211/lotus/blob/027f9c456093b53b8d331f8c0cf6df2e6a96a58c/backend/metering%5Fbilling/utils.py#L35).
    This will allow it to be a field in the models and be used throughout Lotus.
 3. To let the Lotus app access the functionality provided by your
    implementation, go to the `metering_billing/invoice.py` file, and add an
    instance of your connector to the `PAYMENT_PROCESSOR_MAP` dictionary. From
    here, the boilerplate will take care of using the methods you defined to
    execute Lotus' billing logic. To see how we did it with Stripe,
-   [check out this line](https://github.com/uselotus/lotus/blob/027f9c456093b53b8d331f8c0cf6df2e6a96a58c/backend/metering%5Fbilling/payment%5Fproviders.py#L249).
+   [check out this line](https://github.com/agarwalvaibhav0211/lotus/blob/027f9c456093b53b8d331f8c0cf6df2e6a96a58c/backend/metering%5Fbilling/payment%5Fproviders.py#L249).
 
 ## Frontend
 
