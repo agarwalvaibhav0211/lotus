@@ -1424,7 +1424,7 @@ class MunimConnector(PaymentProcesor):
         if self.api_key:
             try:
                 resp = requests.get(
-                    f"{self.base_url}/account",
+                    f"{self.base_url}/v1/account",
                     headers={"Authorization": f"Bearer {self.api_key}"},
                     timeout=5,
                 )
@@ -1477,7 +1477,7 @@ class MunimConnector(PaymentProcesor):
         while True:
             try:
                 data = self._get(
-                    "/customers",
+                    "/v1/customers",
                     organization=organization,
                     params={"page": page, "page_size": 100},
                 )
@@ -1541,7 +1541,7 @@ class MunimConnector(PaymentProcesor):
         from metering_billing.models import Invoice
 
         try:
-            data = self._get(f"/invoices/{payment_object_id}", organization=organization)
+            data = self._get(f"/v1/invoices/{payment_object_id}", organization=organization)
             if data.get("status") == "paid":
                 return Invoice.PaymentStatus.PAID
         except Exception as e:
@@ -1550,7 +1550,7 @@ class MunimConnector(PaymentProcesor):
 
     def retrieve_customer_by_external_id(self, organization, external_id: str):
         try:
-            return self._get(f"/customers/{external_id}", organization=organization)
+            return self._get(f"/v1/customers/{external_id}", organization=organization)
         except Exception as e:
             logger.error("Munim retrieve_customer_by_external_id error: %s", e)
             return None
@@ -1561,7 +1561,7 @@ class MunimConnector(PaymentProcesor):
         if cached is None:
             try:
                 cached = self._get(
-                    f"/customers/{munim_id}/payment-methods",
+                    f"/v1/customers/{munim_id}/payment-methods",
                     organization=customer.organization,
                 )
                 cache.set(f"munim_customer_{munim_id}", cached, 60 * 60 * 24)
@@ -1592,7 +1592,7 @@ class MunimConnector(PaymentProcesor):
         munim_id = customer.munim_integration.munim_customer_id
         try:
             cust_data = self._get(
-                f"/customers/{munim_id}", organization=customer.organization
+                f"/v1/customers/{munim_id}", organization=customer.organization
             )
         except Exception as e:
             logger.error("Munim get_customer_address error: %s", e)
@@ -1613,7 +1613,7 @@ class MunimConnector(PaymentProcesor):
         from metering_billing.models import Address
 
         try:
-            acct_data = self._get("/account", organization=organization)
+            acct_data = self._get("/v1/account", organization=organization)
         except Exception as e:
             logger.error("Munim get_organization_address error: %s", e)
             return Address()
@@ -1645,7 +1645,7 @@ class MunimConnector(PaymentProcesor):
                 "email": customer.email,
             }
             result = self._post(
-                "/customers", organization=customer.organization, payload=payload
+                "/v1/customers", organization=customer.organization, payload=payload
             )
             integration = MunimCustomerIntegration.objects.create(
                 munim_customer_id=result["customer_id"],
@@ -1693,7 +1693,7 @@ class MunimConnector(PaymentProcesor):
 
         try:
             result = self._post(
-                "/invoices", organization=invoice.organization, payload=payload
+                "/v1/invoices", organization=invoice.organization, payload=payload
             )
             invoice_id = result["invoice_id"]
             invoice_status = result["status"]

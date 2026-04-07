@@ -38,7 +38,7 @@ def _make_connector(api_key="test-munim-key", account_id=MUNIM_ACCOUNT_ID):
     """Return a MunimConnector with a known API key (bypasses startup HTTP call)."""
     connector = MunimConnector.__new__(MunimConnector)
     connector.api_key = api_key
-    connector.base_url = "https://api.munim.io/v1"
+    connector.base_url = "https://api.munim.io"
     connector.account_id = account_id
     connector.account_name = "Test Org"
     return connector

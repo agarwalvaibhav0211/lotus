@@ -102,7 +102,7 @@ if BRAINTREE_TEST_SECRET_KEY == "change_me":
 BRAINTREE_WEBHOOK_SECRET = config("BRAINTREE_WEBHOOK_SECRET", default="")
 # Munim
 MUNIM_API_KEY = config("MUNIM_API_KEY", default=None)
-MUNIM_BASE_URL = config("MUNIM_BASE_URL", default="https://api.munim.io/v1")
+MUNIM_BASE_URL = config("MUNIM_BASE_URL", default="https://api.munim.io")
 if MUNIM_API_KEY == "change_me":
     MUNIM_API_KEY = None
 # taxjar

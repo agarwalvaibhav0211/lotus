@@ -11,11 +11,11 @@
   },
   "servers": [
     {
-      "url": "https://api.munim.io/v1",
+      "url": "https://api.munim.io",
       "description": "Production"
     },
     {
-      "url": "https://api.sandbox.munim.io/v1",
+      "url": "https://api.sandbox.munim.io",
       "description": "Sandbox / Test"
     }
   ],
@@ -36,15 +36,19 @@
     {
       "name": "Invoices",
       "description": "Invoice and charge management"
+    },
+    {
+      "name": "Internal",
+      "description": "Internal management APIs — callable only by the Munim backend team using a service-level internal token. Not exposed to merchants or Lotus."
     }
   ],
   "paths": {
-    "/account": {
+    "/v1/account": {
       "get": {
         "tags": [
           "Account"
         ],
-        "operationId": "getAccount",
+        "operationId": "getAccountV1",
         "summary": "Retrieve merchant account details",
         "description": "Returns the Munim account details for the authenticated API key.\nLotus calls this endpoint at startup to validate the API key and cache\nthe merchant `account_id` and `name`.\n",
         "responses": {
@@ -64,12 +68,12 @@
         }
       }
     },
-    "/customers": {
+    "/v1/customers": {
       "get": {
         "tags": [
           "Customers"
         ],
-        "operationId": "listCustomers",
+        "operationId": "listCustomersV1",
         "summary": "List all customers",
         "description": "Returns a paginated list of all customers in the Munim account.\nLotus calls this during a bulk import to sync customers into its own database.\n",
         "parameters": [
@@ -120,7 +124,7 @@
         "tags": [
           "Customers"
         ],
-        "operationId": "createCustomer",
+        "operationId": "createCustomerV1",
         "summary": "Create a new customer",
         "description": "Creates a customer in Munim. Lotus calls this when a new Lotus customer is\ncreated and the \"auto-create in Munim\" setting is enabled. Lotus stores the\nreturned `customer_id` to link the records.\n",
         "requestBody": {
@@ -163,12 +167,12 @@
         }
       }
     },
-    "/customers/{customer_id}": {
+    "/v1/customers/{customer_id}": {
       "get": {
         "tags": [
           "Customers"
         ],
-        "operationId": "getCustomer",
+        "operationId": "getCustomerV1",
         "summary": "Retrieve a customer by ID",
         "description": "Returns a single customer record. Lotus calls this when it needs to refresh\ncached customer data (e.g. to check the billing address or payment methods).\n",
         "parameters": [
@@ -196,12 +200,12 @@
         }
       }
     },
-    "/customers/{customer_id}/payment-methods": {
+    "/v1/customers/{customer_id}/payment-methods": {
       "get": {
         "tags": [
           "Customers"
         ],
-        "operationId": "listCustomerPaymentMethods",
+        "operationId": "listCustomerPaymentMethodsV1",
         "summary": "List payment methods for a customer",
         "description": "Returns the payment methods attached to a customer. Lotus uses this to decide\nwhether it can automatically charge the customer.\n",
         "parameters": [
@@ -229,12 +233,12 @@
         }
       }
     },
-    "/invoices": {
+    "/v1/invoices": {
       "post": {
         "tags": [
           "Invoices"
         ],
-        "operationId": "createInvoice",
+        "operationId": "createInvoiceV1",
         "summary": "Create an invoice / initiate a charge",
         "description": "Creates an invoice in Munim and submits it for collection. Lotus calls this\nwhen it finalises a billing period for a customer.\n\nThe returned `invoice_id` is stored by Lotus and used in subsequent\n`GET /invoices/{invoice_id}` calls to track payment status.\n",
         "requestBody": {
@@ -277,12 +281,116 @@
         }
       }
     },
-    "/invoices/{invoice_id}": {
+    "/v1/internal/accounts": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "operationId": "createAccountV1Internal",
+        "summary": "Create a new merchant account",
+        "description": "Provisions a new Munim merchant account. Called by the internal backend team\nwhen onboarding a new merchant — for example, when a MyBazaar seller completes\nregistration and Munim account creation is triggered automatically.\n\nThe caller receives the new `account_id` which should be stored in the\nplatform's merchant record to link the two systems.\n\n**Auth:** Requires an internal service token (`X-Internal-Token` header), not a\nmerchant API key.\n",
+        "security": [
+          {
+            "internalAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "description": "An account with this email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/internal/accounts/{account_id}/api-keys": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "operationId": "createApiKeyV1Internal",
+        "summary": "Issue a new API key for an account",
+        "description": "Generates and returns a new API key scoped to the given merchant account.\nThe plaintext key value is returned **only in this response** — Munim stores\nonly a hashed copy afterwards. The caller must securely deliver the key to\nthe merchant or store it in the platform's secrets vault.\n\nTypical use cases:\n- Initial onboarding: issue the first key after account creation.\n- Key rotation: issue a new key before revoking the old one.\n\n**Auth:** Requires an internal service token (`X-Internal-Token` header).\n",
+        "security": [
+          {
+            "internalAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/account_id"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiKeyCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key created. The `key` field contains the plaintext secret — store it immediately, it will not be retrievable again.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyCreateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/invoices/{invoice_id}": {
       "get": {
         "tags": [
           "Invoices"
         ],
-        "operationId": "getInvoice",
+        "operationId": "getInvoiceV1",
         "summary": "Retrieve invoice status",
         "description": "Returns an invoice record including its current payment status. Lotus polls\nthis endpoint periodically to detect when an invoice has been paid.\n",
         "parameters": [
@@ -318,9 +426,24 @@
         "scheme": "bearer",
         "bearerFormat": "API Key",
         "description": "Munim API key obtained from the Munim merchant dashboard"
+      },
+      "internalAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Internal-Token",
+        "description": "Internal service token issued to Munim backend services. Not the same as a merchant API key. Must be rotated via the secrets vault."
       }
     },
     "parameters": {
+      "account_id": {
+        "name": "account_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Munim merchant account identifier"
+      },
       "customer_id": {
         "name": "customer_id",
         "in": "path",
@@ -394,6 +517,88 @@
             "type": "string",
             "description": "Machine-readable error category",
             "example": "not_found"
+          }
+        }
+      },
+      "AccountCreateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "email"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Display name of the merchant or business",
+            "example": "Acme Corp"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Primary contact email — must be unique across all Munim accounts",
+            "example": "billing@acme.com"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true,
+            "example": "+91-98200-00000"
+          },
+          "gstin": {
+            "type": "string",
+            "nullable": true,
+            "description": "GST Identification Number (15-character alphanumeric, Indian merchants only)",
+            "pattern": "^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$",
+            "example": "27AAPFU0939F1ZV"
+          },
+          "address": {
+            "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "ApiKeyCreateRequest": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Human-readable label to identify the key's purpose (e.g. 'Lotus production', 'Test integration'). Stored alongside the key for auditing.",
+            "maxLength": 128,
+            "example": "Lotus production"
+          }
+        }
+      },
+      "ApiKeyCreateResponse": {
+        "type": "object",
+        "required": [
+          "key_id",
+          "key",
+          "account_id",
+          "created_at"
+        ],
+        "properties": {
+          "key_id": {
+            "type": "string",
+            "description": "Stable identifier for this API key. This is the prefix embedded in the `key` value before the `.` separator — stored in plaintext in the DB to allow O(1) hash lookup on each authenticated request. Use this to reference or revoke the key later.",
+            "example": "munim_kid_01JXYZ"
+          },
+          "key": {
+            "type": "string",
+            "description": "The plaintext API key in the format `<key_id>.<secret>` (dot-separated). The `key_id` prefix is stored in plaintext in the DB and used to look up the correct hash on each request; only the secret portion is hashed. **Shown only once** — Munim does not store the plaintext after this response. Deliver it to the merchant or store it in a secrets vault immediately.",
+            "example": "munim_kid_01JXYZ.a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
+          },
+          "account_id": {
+            "type": "string",
+            "description": "The merchant account this key belongs to",
+            "example": "munim_acct_01HXYZ"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "example": "Lotus production"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-04-07T12:00:00Z"
           }
         }
       },

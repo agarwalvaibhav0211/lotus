@@ -33,9 +33,9 @@ info:
     email: api@munim.io
 
 servers:
-  - url: https://api.munim.io/v1
+  - url: https://api.munim.io
     description: Production
-  - url: https://api.sandbox.munim.io/v1
+  - url: https://api.sandbox.munim.io
     description: Sandbox / Test
 
 security:
@@ -55,10 +55,10 @@ paths:
   # ACCOUNT
   # ──────────────────────────────────────────────────────────────────────────────
 
-  /account:
+  /v1/account:
     get:
       tags: [Account]
-      operationId: getAccount
+      operationId: getAccountV1
       summary: Retrieve merchant account details
       description: |
         Returns the Munim account details for the authenticated API key.
@@ -78,10 +78,10 @@ paths:
   # CUSTOMERS
   # ──────────────────────────────────────────────────────────────────────────────
 
-  /customers:
+  /v1/customers:
     get:
       tags: [Customers]
-      operationId: listCustomers
+      operationId: listCustomersV1
       summary: List all customers
       description: |
         Returns a paginated list of all customers in the Munim account.
@@ -116,7 +116,7 @@ paths:
 
     post:
       tags: [Customers]
-      operationId: createCustomer
+      operationId: createCustomerV1
       summary: Create a new customer
       description: |
         Creates a customer in Munim. Lotus calls this when a new Lotus customer is
@@ -146,10 +146,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /customers/{customer_id}:
+  /v1/customers/{customer_id}:
     get:
       tags: [Customers]
-      operationId: getCustomer
+      operationId: getCustomerV1
       summary: Retrieve a customer by ID
       description: |
         Returns a single customer record. Lotus calls this when it needs to refresh
@@ -168,10 +168,10 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /customers/{customer_id}/payment-methods:
+  /v1/customers/{customer_id}/payment-methods:
     get:
       tags: [Customers]
-      operationId: listCustomerPaymentMethods
+      operationId: listCustomerPaymentMethodsV1
       summary: List payment methods for a customer
       description: |
         Returns the payment methods attached to a customer. Lotus uses this to decide
@@ -194,10 +194,10 @@ paths:
   # INVOICES
   # ──────────────────────────────────────────────────────────────────────────────
 
-  /invoices:
+  /v1/invoices:
     post:
       tags: [Invoices]
-      operationId: createInvoice
+      operationId: createInvoiceV1
       summary: Create an invoice / initiate a charge
       description: |
         Creates an invoice in Munim and submits it for collection. Lotus calls this
@@ -229,10 +229,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /invoices/{invoice_id}:
+  /v1/invoices/{invoice_id}:
     get:
       tags: [Invoices]
-      operationId: getInvoice
+      operationId: getInvoiceV1
       summary: Retrieve invoice status
       description: |
         Returns an invoice record including its current payment status. Lotus polls
