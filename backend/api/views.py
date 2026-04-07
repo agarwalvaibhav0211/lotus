@@ -102,6 +102,7 @@ from metering_billing.exceptions import (
 )
 from metering_billing.exceptions.exceptions import InvalidOperation, NotFoundException
 from metering_billing.invoice import generate_invoice
+from metering_billing.payment_processors import PAYMENT_PROCESSOR_MAP
 from metering_billing.invoice_pdf import get_invoice_presigned_url
 from metering_billing.kafka.producer import Producer
 from metering_billing.models import (
@@ -1622,6 +1623,28 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    def _refresh_payment_status(self, invoice):
+        if (
+            invoice.payment_status == Invoice.PaymentStatus.UNPAID
+            and invoice.external_payment_obj_id
+        ):
+            pp = invoice.external_payment_obj_type
+            connector = PAYMENT_PROCESSOR_MAP.get(pp)
+            if connector and connector.working():
+                try:
+                    new_status = connector.update_payment_object_status(
+                        invoice.organization, invoice.external_payment_obj_id
+                    )
+                    if new_status == Invoice.PaymentStatus.PAID:
+                        invoice.payment_status = Invoice.PaymentStatus.PAID
+                        invoice.save(update_fields=["payment_status"])
+                except Exception as e:
+                    logger.error(
+                        "Error refreshing invoice %s status: %s",
+                        invoice.invoice_id,
+                        e,
+                    )
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         organization = self.request.organization
@@ -1652,10 +1675,19 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 pass
         return response
 
+    def retrieve(self, request, *args, **kwargs):
+        self._refresh_payment_status(self.get_object())
+        return super().retrieve(request, *args, **kwargs)
+
     @extend_schema(
         parameters=[InvoiceListFilterSerializer],
     )
     def list(self, request):
+        for invoice in self.get_queryset().filter(
+            payment_status=Invoice.PaymentStatus.UNPAID,
+            external_payment_obj_id__isnull=False,
+        ):
+            self._refresh_payment_status(invoice)
         return super().list(request)
 
     @extend_schema(

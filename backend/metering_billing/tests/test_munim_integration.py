@@ -212,7 +212,7 @@ class TestMunimImportCustomers:
         Customer.objects.filter(organization=org).delete()
 
         list_response = {
-            "data": [_make_munim_customer_response()],
+            "customers": [_make_munim_customer_response()],
             "total": 1,
             "page": 1,
             "page_size": 100,
@@ -242,7 +242,7 @@ class TestMunimImportCustomers:
         customer.save()
 
         list_response = {
-            "data": [_make_munim_customer_response(email="test@example.com")],
+            "customers": [_make_munim_customer_response(email="test@example.com")],
             "total": 1,
             "page": 1,
             "page_size": 100,
@@ -272,7 +272,7 @@ class TestMunimImportCustomers:
 
         # total=150 > page_size=100, so connector must fetch a second page
         page1 = {
-            "data": [
+            "customers": [
                 _make_munim_customer_response(
                     customer_id="munim_cust_p1",
                     email="p1@example.com",
@@ -283,7 +283,7 @@ class TestMunimImportCustomers:
             "page_size": 100,
         }
         page2 = {
-            "data": [
+            "customers": [
                 _make_munim_customer_response(
                     customer_id="munim_cust_p2",
                     email="p2@example.com",
@@ -603,82 +603,11 @@ class TestMunimRetrieveCustomer:
 
 @pytest.mark.django_db
 class TestMunimHasPaymentMethod:
-    def _attach_integration(self, org, customer):
-        integration = MunimCustomerIntegration.objects.create(
-            organization=org, munim_customer_id=MUNIM_CUSTOMER_ID
-        )
-        customer.munim_integration = integration
-        customer.save()
-        return integration
-
-    def test_returns_true_when_payment_methods_present(self, munim_setup):
+    def test_always_returns_false(self, munim_setup):
+        # Munim does not support auto-charge
         connector = munim_setup["connector"]
-        org = munim_setup["org"]
         customer = munim_setup["customer"]
-        self._attach_integration(org, customer)
-
-        pm_response = {
-            "data": [
-                {"payment_method_id": "munim_pm_1", "type": "card", "is_default": True}
-            ]
-        }
-
-        with patch.object(connector, "_get", return_value=pm_response):
-            result = connector.has_payment_method(customer)
-
-        assert result is True
-
-    def test_returns_false_when_no_payment_methods(self, munim_setup):
-        connector = munim_setup["connector"]
-        org = munim_setup["org"]
-        customer = munim_setup["customer"]
-        self._attach_integration(org, customer)
-
-        with patch.object(connector, "_get", return_value={"data": []}):
-            result = connector.has_payment_method(customer)
-
-        assert result is False
-
-    def test_returns_false_on_api_error(self, munim_setup):
-        connector = munim_setup["connector"]
-        org = munim_setup["org"]
-        customer = munim_setup["customer"]
-        self._attach_integration(org, customer)
-
-        with patch.object(connector, "_get", side_effect=Exception("api error")):
-            result = connector.has_payment_method(customer)
-
-        assert result is False
-
-    def test_uses_cache_on_second_call(self, munim_setup, settings):
-        # Override the dummy cache (set by conftest) with a real in-memory cache
-        # so we can verify the connector actually stores and reads from cache.
-        settings.CACHES = {
-            "default": {
-                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            }
-        }
-        from django.core.cache import cache as django_cache
-
-        django_cache.clear()
-
-        connector = munim_setup["connector"]
-        org = munim_setup["org"]
-        customer = munim_setup["customer"]
-        self._attach_integration(org, customer)
-
-        pm_response = {
-            "data": [{"payment_method_id": "munim_pm_1", "type": "card"}]
-        }
-
-        with patch.object(connector, "_get", return_value=pm_response) as mock_get:
-            connector.has_payment_method(customer)
-            connector.has_payment_method(customer)
-
-        # Second call must use cache — _get should only be called once
-        assert mock_get.call_count == 1
-
-        django_cache.clear()
+        assert connector.has_payment_method(customer) is False
 
 
 # ─────────────────────────────────────────────────────────────────────────────

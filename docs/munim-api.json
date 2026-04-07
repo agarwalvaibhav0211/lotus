@@ -39,7 +39,7 @@
     },
     {
       "name": "Internal",
-      "description": "Internal management APIs — callable only by the Munim backend team using a service-level internal token. Not exposed to merchants or Lotus."
+      "description": "Internal management APIs \u2014 callable only by the Munim backend team using a service-level internal token. Not exposed to merchants or Lotus."
     }
   ],
   "paths": {
@@ -49,6 +49,9 @@
           "Account"
         ],
         "operationId": "getAccountV1",
+        "x-kalki-server-middlewares": [
+          "authenticateAPIKeyMiddleware"
+        ],
         "summary": "Retrieve merchant account details",
         "description": "Returns the Munim account details for the authenticated API key.\nLotus calls this endpoint at startup to validate the API key and cache\nthe merchant `account_id` and `name`.\n",
         "responses": {
@@ -74,6 +77,9 @@
           "Customers"
         ],
         "operationId": "listCustomersV1",
+        "x-kalki-server-middlewares": [
+          "authenticateAPIKeyMiddleware"
+        ],
         "summary": "List all customers",
         "description": "Returns a paginated list of all customers in the Munim account.\nLotus calls this during a bulk import to sync customers into its own database.\n",
         "parameters": [
@@ -92,15 +98,6 @@
               "type": "integer",
               "default": 100,
               "maximum": 500
-            }
-          },
-          {
-            "name": "email",
-            "in": "query",
-            "description": "Filter customers by exact email address",
-            "schema": {
-              "type": "string",
-              "format": "email"
             }
           }
         ],
@@ -125,6 +122,9 @@
           "Customers"
         ],
         "operationId": "createCustomerV1",
+        "x-kalki-server-middlewares": [
+          "authenticateAPIKeyMiddleware"
+        ],
         "summary": "Create a new customer",
         "description": "Creates a customer in Munim. Lotus calls this when a new Lotus customer is\ncreated and the \"auto-create in Munim\" setting is enabled. Lotus stores the\nreturned `customer_id` to link the records.\n",
         "requestBody": {
@@ -138,7 +138,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Customer created",
             "content": {
               "application/json": {
@@ -173,6 +173,9 @@
           "Customers"
         ],
         "operationId": "getCustomerV1",
+        "x-kalki-server-middlewares": [
+          "authenticateAPIKeyMiddleware"
+        ],
         "summary": "Retrieve a customer by ID",
         "description": "Returns a single customer record. Lotus calls this when it needs to refresh\ncached customer data (e.g. to check the billing address or payment methods).\n",
         "parameters": [
@@ -200,45 +203,15 @@
         }
       }
     },
-    "/v1/customers/{customer_id}/payment-methods": {
-      "get": {
-        "tags": [
-          "Customers"
-        ],
-        "operationId": "listCustomerPaymentMethodsV1",
-        "summary": "List payment methods for a customer",
-        "description": "Returns the payment methods attached to a customer. Lotus uses this to decide\nwhether it can automatically charge the customer.\n",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/customer_id"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of payment methods",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaymentMethodList"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "404": {
-            "$ref": "#/components/responses/NotFound"
-          }
-        }
-      }
-    },
     "/v1/invoices": {
       "post": {
         "tags": [
           "Invoices"
         ],
         "operationId": "createInvoiceV1",
+        "x-kalki-server-middlewares": [
+          "authenticateAPIKeyMiddleware"
+        ],
         "summary": "Create an invoice / initiate a charge",
         "description": "Creates an invoice in Munim and submits it for collection. Lotus calls this\nwhen it finalises a billing period for a customer.\n\nThe returned `invoice_id` is stored by Lotus and used in subsequent\n`GET /invoices/{invoice_id}` calls to track payment status.\n",
         "requestBody": {
@@ -252,7 +225,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Invoice created",
             "content": {
               "application/json": {
@@ -287,8 +260,11 @@
           "Internal"
         ],
         "operationId": "createAccountV1Internal",
+        "x-kalki-server-middlewares": [
+          "authenticateInternalMiddleware"
+        ],
         "summary": "Create a new merchant account",
-        "description": "Provisions a new Munim merchant account. Called by the internal backend team\nwhen onboarding a new merchant — for example, when a MyBazaar seller completes\nregistration and Munim account creation is triggered automatically.\n\nThe caller receives the new `account_id` which should be stored in the\nplatform's merchant record to link the two systems.\n\n**Auth:** Requires an internal service token (`X-Internal-Token` header), not a\nmerchant API key.\n",
+        "description": "Provisions a new Munim merchant account. Called by the internal backend team\nwhen onboarding a new merchant \u2014 for example, when a MyBazaar seller completes\nregistration and Munim account creation is triggered automatically.\n\nThe caller receives the new `account_id` which should be stored in the\nplatform's merchant record to link the two systems.\n\n**Auth:** Requires an internal service token (`X-Internal-Token` header), not a\nmerchant API key.\n",
         "security": [
           {
             "internalAuth": []
@@ -305,7 +281,7 @@
           }
         },
         "responses": {
-          "201": {
+          "200": {
             "description": "Account created successfully",
             "content": {
               "application/json": {
@@ -335,13 +311,55 @@
       }
     },
     "/v1/internal/accounts/{account_id}/api-keys": {
+      "get": {
+        "tags": [
+          "Internal"
+        ],
+        "operationId": "listApiKeysV1Internal",
+        "x-kalki-server-middlewares": [
+          "authenticateInternalMiddleware"
+        ],
+        "summary": "List API keys for an account",
+        "description": "Returns metadata for all API keys belonging to the given merchant account.\nThe plaintext key and hash are never returned \u2014 only auditing fields\n(`key_id`, `label`, `status`, `created_at`, `last_used_at`, `revoke_at`).\n\nUseful for auditing active keys before rotation, or confirming a key has\nbeen revoked.\n\n**Auth:** Requires an internal service token (`X-Internal-Token` header).\n",
+        "security": [
+          {
+            "internalAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/account_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of API key metadata for the account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
       "post": {
         "tags": [
           "Internal"
         ],
         "operationId": "createApiKeyV1Internal",
+        "x-kalki-server-middlewares": [
+          "authenticateInternalMiddleware"
+        ],
         "summary": "Issue a new API key for an account",
-        "description": "Generates and returns a new API key scoped to the given merchant account.\nThe plaintext key value is returned **only in this response** — Munim stores\nonly a hashed copy afterwards. The caller must securely deliver the key to\nthe merchant or store it in the platform's secrets vault.\n\nTypical use cases:\n- Initial onboarding: issue the first key after account creation.\n- Key rotation: issue a new key before revoking the old one.\n\n**Auth:** Requires an internal service token (`X-Internal-Token` header).\n",
+        "description": "Generates and returns a new API key scoped to the given merchant account.\nThe plaintext key value is returned **only in this response** \u2014 Munim stores\nonly a hashed copy afterwards. The caller must securely deliver the key to\nthe merchant or store it in the platform's secrets vault.\n\nTypical use cases:\n- Initial onboarding: issue the first key after account creation.\n- Key rotation: issue a new key before revoking the old one.\n\n**Auth:** Requires an internal service token (`X-Internal-Token` header).\n",
         "security": [
           {
             "internalAuth": []
@@ -363,8 +381,8 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "API key created. The `key` field contains the plaintext secret — store it immediately, it will not be retrievable again.",
+          "200": {
+            "description": "API key created. The `key` field contains the plaintext secret \u2014 store it immediately, it will not be retrievable again.",
             "content": {
               "application/json": {
                 "schema": {
@@ -385,12 +403,82 @@
         }
       }
     },
+    "/v1/internal/accounts/{account_id}/api-keys/{key_id}/revoke": {
+      "post": {
+        "tags": [
+          "Internal"
+        ],
+        "operationId": "revokeApiKeyV1Internal",
+        "x-kalki-server-middlewares": [
+          "authenticateInternalMiddleware"
+        ],
+        "summary": "Revoke or schedule revocation of an API key",
+        "description": "Revokes an API key immediately or schedules it for revocation at a future\ntime. Use scheduled revocation to give a merchant a grace period during\nkey rotation \u2014 the old key stays valid until `revoke_at`, while the new\nkey (issued via `POST /api-keys`) is already active.\n\n- Omit `revoke_at` (or set it to `null`) for **immediate** revocation.\n- Supply a future ISO 8601 timestamp in `revoke_at` for **scheduled** revocation.\n\nOnce revoked (either immediately or after the scheduled time), the key\ncannot be un-revoked \u2014 issue a new key instead.\n\n**Auth:** Requires an internal service token (`X-Internal-Token` header).\n",
+        "security": [
+          {
+            "internalAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/account_id"
+          },
+          {
+            "$ref": "#/components/parameters/key_id"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiKeyRevokeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Key revoked or scheduled for revocation. Returns the updated key metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKey"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "The key is already revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/invoices/{invoice_id}": {
       "get": {
         "tags": [
           "Invoices"
         ],
         "operationId": "getInvoiceV1",
+        "x-kalki-server-middlewares": [
+          "authenticateAPIKeyMiddleware"
+        ],
         "summary": "Retrieve invoice status",
         "description": "Returns an invoice record including its current payment status. Lotus polls\nthis endpoint periodically to detect when an invoice has been paid.\n",
         "parameters": [
@@ -440,6 +528,7 @@
         "in": "path",
         "required": true,
         "schema": {
+          "format": "ObjectId",
           "type": "string"
         },
         "description": "Munim merchant account identifier"
@@ -449,9 +538,19 @@
         "in": "path",
         "required": true,
         "schema": {
-          "type": "string"
+          "type": "string",
+          "format": "ObjectId"
         },
         "description": "Munim customer identifier"
+      },
+      "key_id": {
+        "name": "key_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Munim API key identifier (the prefix portion of the key, before the `.` separator)"
       },
       "invoice_id": {
         "name": "invoice_id",
@@ -530,18 +629,18 @@
           "name": {
             "type": "string",
             "description": "Display name of the merchant or business",
-            "example": "Acme Corp"
+            "example": "Lotus Retail Pvt Ltd"
           },
           "email": {
             "type": "string",
             "format": "email",
-            "description": "Primary contact email — must be unique across all Munim accounts",
-            "example": "billing@acme.com"
+            "description": "Primary contact email \u2014 must be unique across all Munim accounts",
+            "example": "billing@lotusretail.in"
           },
           "phone": {
             "type": "string",
             "nullable": true,
-            "example": "+91-98200-00000"
+            "example": "+91-98765-43210"
           },
           "gstin": {
             "type": "string",
@@ -552,6 +651,94 @@
           },
           "address": {
             "$ref": "#/components/schemas/Address"
+          }
+        }
+      },
+      "ApiKey": {
+        "type": "object",
+        "required": [
+          "key_id",
+          "account_id",
+          "status",
+          "created_at"
+        ],
+        "properties": {
+          "key_id": {
+            "type": "string",
+            "description": "Stable identifier for this API key (plaintext prefix of the full key)",
+            "example": "munim_kid_01JXYZ"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "ObjectId",
+            "example": "66b1f0c8e1f4a2c3d4e5f678"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "example": "Lotus production"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "scheduled_revocation",
+              "revoked"
+            ],
+            "description": "* `active` \u2014 key is valid and can authenticate requests\n* `scheduled_revocation` \u2014 key is still valid but will be revoked at `revoke_at`\n* `revoked` \u2014 key is invalid and all requests using it will be rejected\n",
+            "example": "active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-04-07T12:00:00Z"
+          },
+          "last_used_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp of the most recent authenticated request using this key. Null if the key has never been used.",
+            "example": "2024-04-07T15:30:00Z"
+          },
+          "revoke_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "For `scheduled_revocation` keys: the UTC datetime at which the key will be automatically revoked. Null for `active` and `revoked` keys.",
+            "example": "2024-04-14T00:00:00Z"
+          },
+          "revoked_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Timestamp when the key was actually revoked. Null until revocation occurs.",
+            "example": null
+          }
+        }
+      },
+      "ApiKeyList": {
+        "type": "object",
+        "required": [
+          "keys"
+        ],
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiKey"
+            }
+          }
+        }
+      },
+      "ApiKeyRevokeRequest": {
+        "type": "object",
+        "properties": {
+          "revoke_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "UTC datetime to schedule revocation. Omit or set to `null` for immediate revocation. Must be a future timestamp if provided.",
+            "example": "2024-04-14T00:00:00Z"
           }
         }
       },
@@ -577,18 +764,19 @@
         "properties": {
           "key_id": {
             "type": "string",
-            "description": "Stable identifier for this API key. This is the prefix embedded in the `key` value before the `.` separator — stored in plaintext in the DB to allow O(1) hash lookup on each authenticated request. Use this to reference or revoke the key later.",
+            "description": "Stable identifier for this API key. This is the prefix embedded in the `key` value before the `.` separator \u2014 stored in plaintext in the DB to allow O(1) hash lookup on each authenticated request. Use this to reference or revoke the key later.",
             "example": "munim_kid_01JXYZ"
           },
           "key": {
             "type": "string",
-            "description": "The plaintext API key in the format `<key_id>.<secret>` (dot-separated). The `key_id` prefix is stored in plaintext in the DB and used to look up the correct hash on each request; only the secret portion is hashed. **Shown only once** — Munim does not store the plaintext after this response. Deliver it to the merchant or store it in a secrets vault immediately.",
+            "description": "The plaintext API key in the format `<key_id>.<secret>` (dot-separated). The `key_id` prefix is stored in plaintext in the DB and used to look up the correct hash on each request; only the secret portion is hashed. **Shown only once** \u2014 Munim does not store the plaintext after this response. Deliver it to the merchant or store it in a secrets vault immediately.",
             "example": "munim_kid_01JXYZ.a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
           },
           "account_id": {
             "type": "string",
+            "format": "ObjectId",
             "description": "The merchant account this key belongs to",
-            "example": "munim_acct_01HXYZ"
+            "example": "66b1f0c8e1f4a2c3d4e5f678"
           },
           "label": {
             "type": "string",
@@ -611,18 +799,14 @@
         "properties": {
           "account_id": {
             "type": "string",
+            "format": "ObjectId",
             "description": "Unique Munim merchant account identifier",
-            "example": "munim_acct_01HXYZ"
+            "example": "66b1f0c8e1f4a2c3d4e5f678"
           },
           "name": {
             "type": "string",
             "description": "Display name of the merchant account",
-            "example": "Acme Corp"
-          },
-          "email": {
-            "type": "string",
-            "format": "email",
-            "example": "billing@acme.com"
+            "example": "Lotus Retail Pvt Ltd"
           },
           "address": {
             "$ref": "#/components/schemas/Address"
@@ -634,7 +818,7 @@
         "properties": {
           "line1": {
             "type": "string",
-            "example": "123 Main Street"
+            "example": "14 MG Road"
           },
           "line2": {
             "type": "string",
@@ -643,20 +827,20 @@
           },
           "city": {
             "type": "string",
-            "example": "Karachi"
+            "example": "Mumbai"
           },
           "state": {
             "type": "string",
-            "example": "Sindh"
+            "example": "Maharashtra"
           },
           "postal_code": {
             "type": "string",
-            "example": "75500"
+            "example": "400001"
           },
           "country": {
             "type": "string",
             "description": "ISO 3166-1 alpha-2 country code",
-            "example": "PK"
+            "example": "IN"
           }
         }
       },
@@ -670,33 +854,23 @@
           "customer_id": {
             "type": "string",
             "description": "Unique Munim customer identifier",
-            "example": "munim_cust_01HABC"
+            "example": "66b1f0c8e1f4a2c3d4e5f679"
           },
           "name": {
             "type": "string",
-            "example": "Jane Doe"
+            "example": "Asha Mehta"
           },
           "email": {
             "type": "string",
             "format": "email",
             "nullable": true,
-            "example": "jane@example.com"
-          },
-          "phone": {
-            "type": "string",
-            "nullable": true,
-            "example": "+92-300-1234567"
+            "example": "asha.mehta@lotusretail.in"
           },
           "billing_address": {
             "$ref": "#/components/schemas/Address"
           },
           "shipping_address": {
             "$ref": "#/components/schemas/Address"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2024-01-15T10:30:00Z"
           }
         }
       },
@@ -708,34 +882,24 @@
         "properties": {
           "name": {
             "type": "string",
-            "example": "Jane Doe"
+            "example": "Asha Mehta"
           },
           "email": {
             "type": "string",
             "format": "email",
             "nullable": true,
-            "example": "jane@example.com"
-          },
-          "phone": {
-            "type": "string",
-            "nullable": true,
-            "example": "+92-300-1234567"
-          },
-          "billing_address": {
-            "$ref": "#/components/schemas/Address"
+            "example": "asha.mehta@lotusretail.in"
           }
         }
       },
       "CustomerList": {
         "type": "object",
         "required": [
-          "data",
-          "total",
-          "page",
-          "page_size"
+          "customers",
+          "total"
         ],
         "properties": {
-          "data": {
+          "customers": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Customer"
@@ -745,60 +909,6 @@
             "type": "integer",
             "description": "Total number of customers across all pages",
             "example": 42
-          },
-          "page": {
-            "type": "integer",
-            "example": 1
-          },
-          "page_size": {
-            "type": "integer",
-            "example": 100
-          }
-        }
-      },
-      "PaymentMethod": {
-        "type": "object",
-        "required": [
-          "payment_method_id",
-          "type"
-        ],
-        "properties": {
-          "payment_method_id": {
-            "type": "string",
-            "example": "munim_pm_01HDEF"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "card",
-              "bank_transfer",
-              "wallet"
-            ],
-            "example": "card"
-          },
-          "last_four": {
-            "type": "string",
-            "nullable": true,
-            "description": "Last four digits (cards only)",
-            "example": "4242"
-          },
-          "is_default": {
-            "type": "boolean",
-            "example": true
-          }
-        }
-      },
-      "PaymentMethodList": {
-        "type": "object",
-        "required": [
-          "data"
-        ],
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PaymentMethod"
-            }
           }
         }
       },
@@ -814,7 +924,7 @@
           "customer_id": {
             "type": "string",
             "description": "Munim customer ID to charge",
-            "example": "munim_cust_01HABC"
+            "example": "66b1f0c8e1f4a2c3d4e5f679"
           },
           "amount": {
             "type": "number",
@@ -825,12 +935,7 @@
           "currency": {
             "type": "string",
             "description": "ISO 4217 three-letter currency code",
-            "example": "USD"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true,
-            "example": "Subscription \u2014 April 2024"
+            "example": "INR"
           },
           "line_items": {
             "type": "array",
@@ -854,7 +959,7 @@
           "name": {
             "type": "string",
             "maxLength": 255,
-            "example": "Pro Plan usage"
+            "example": "Monthly subscription fee"
           },
           "description": {
             "type": "string",
@@ -891,9 +996,6 @@
         "type": "object",
         "required": [
           "invoice_id",
-          "customer_id",
-          "amount",
-          "currency",
           "status"
         ],
         "properties": {
@@ -901,19 +1003,6 @@
             "type": "string",
             "description": "Unique Munim invoice identifier",
             "example": "munim_inv_01HGHI"
-          },
-          "customer_id": {
-            "type": "string",
-            "example": "munim_cust_01HABC"
-          },
-          "amount": {
-            "type": "number",
-            "format": "decimal",
-            "example": 250.0
-          },
-          "currency": {
-            "type": "string",
-            "example": "USD"
           },
           "status": {
             "type": "string",
@@ -926,27 +1015,6 @@
             ],
             "description": "* `pending` \u2014 created but not yet submitted for collection\n* `processing` \u2014 submitted; awaiting payment confirmation\n* `paid` \u2014 successfully collected\n* `failed` \u2014 collection attempt failed\n* `voided` \u2014 cancelled before collection\n",
             "example": "paid"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "line_items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/InvoiceLineItem"
-            }
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2024-04-01T00:00:00Z"
-          },
-          "paid_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "2024-04-02T08:15:00Z"
           }
         }
       }

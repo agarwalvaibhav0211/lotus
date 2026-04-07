@@ -189,10 +189,12 @@ class OrganizationSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
             "timezone",
             "stripe_account_id",
             "braintree_merchant_id",
+            "munim_account_id",
             "tax_providers",
             "crm_integration_allowed",
             "gen_cust_in_stripe_after_lotus",
             "gen_cust_in_braintree_after_lotus",
+            "gen_cust_in_munim_after_lotus",
             "lotus_is_customer_source_for_salesforce",
         )
 
@@ -208,6 +210,7 @@ class OrganizationSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
     timezone = TimeZoneSerializerField(use_pytz=True)
     stripe_account_id = serializers.SerializerMethodField()
     braintree_merchant_id = serializers.SerializerMethodField()
+    munim_account_id = serializers.SerializerMethodField()
     tax_providers = serializers.SerializerMethodField()
     crm_integration_allowed = serializers.BooleanField(
         source="team.crm_integration_allowed"
@@ -232,6 +235,18 @@ class OrganizationSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
     ) -> serializers.CharField(required=True, allow_null=True):
         if obj.braintree_integration:
             return obj.braintree_integration.braintree_merchant_id
+        return None
+
+    def get_munim_account_id(
+        self, obj
+    ) -> serializers.CharField(required=True, allow_null=True):
+        from metering_billing.payment_processors import PAYMENT_PROCESSOR_MAP
+        from metering_billing.utils.enums import PAYMENT_PROCESSORS
+
+        if obj.munim_integration:
+            connector = PAYMENT_PROCESSOR_MAP.get(PAYMENT_PROCESSORS.MUNIM)
+            if connector:
+                return connector.get_account_id(obj)
         return None
 
     def get_team_name(self, obj) -> str:
@@ -372,6 +387,7 @@ class OrganizationUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializ
             "tax_providers",
             "gen_cust_in_stripe_after_lotus",
             "gen_cust_in_braintree_after_lotus",
+            "gen_cust_in_munim_after_lotus",
             "lotus_is_customer_source_for_salesforce",
         )
         extra_kwargs = {
@@ -391,6 +407,7 @@ class OrganizationUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializ
                 "required": False,
                 "write_only": True,
             },
+            "gen_cust_in_munim_after_lotus": {"required": False, "write_only": True},
             "lotus_is_customer_source_for_salesforce": {
                 "required": False,
                 "write_only": True,
@@ -489,6 +506,10 @@ class OrganizationUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializ
         instance.gen_cust_in_braintree_after_lotus = validated_data.get(
             "gen_cust_in_braintree_after_lotus",
             instance.gen_cust_in_braintree_after_lotus,
+        )
+        instance.gen_cust_in_munim_after_lotus = validated_data.get(
+            "gen_cust_in_munim_after_lotus",
+            instance.gen_cust_in_munim_after_lotus,
         )
         instance.lotus_is_customer_source_for_salesforce = validated_data.get(
             "lotus_is_customer_source_for_salesforce",

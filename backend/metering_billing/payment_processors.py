@@ -1485,7 +1485,7 @@ class MunimConnector(PaymentProcesor):
                 logger.error("Munim import_customers error: %s", e)
                 break
 
-            customers = data.get("data", [])
+            customers = data.get("customers", [])
             if not customers:
                 break
 
@@ -1556,19 +1556,8 @@ class MunimConnector(PaymentProcesor):
             return None
 
     def has_payment_method(self, customer) -> bool:
-        munim_id = customer.munim_integration.munim_customer_id
-        cached = cache.get(f"munim_customer_{munim_id}")
-        if cached is None:
-            try:
-                cached = self._get(
-                    f"/v1/customers/{munim_id}/payment-methods",
-                    organization=customer.organization,
-                )
-                cache.set(f"munim_customer_{munim_id}", cached, 60 * 60 * 24)
-            except Exception as e:
-                logger.error("Munim has_payment_method error: %s", e)
-                return False
-        return len(cached.get("data", [])) > 0
+        # Munim does not support auto-charge — always return False
+        return False
 
     def connect_customer(self, customer, external_id: str) -> bool:
         from metering_billing.models import MunimCustomerIntegration

@@ -588,9 +588,15 @@ class CustomerBraintreeIntegrationSerializer(serializers.Serializer):
     has_payment_method = serializers.BooleanField()
 
 
+class CustomerMunimIntegrationSerializer(serializers.Serializer):
+    munim_id = serializers.CharField()
+    has_payment_method = serializers.BooleanField()
+
+
 class CustomerIntegrationsSerializer(serializers.Serializer):
     stripe = CustomerStripeIntegrationSerializer(required=False, allow_null=True)
     braintree = CustomerBraintreeIntegrationSerializer(required=False, allow_null=True)
+    munim = CustomerMunimIntegrationSerializer(required=False, allow_null=True)
 
 
 @extend_schema_serializer(deprecate_fields=["address"])
@@ -705,6 +711,10 @@ class CustomerSerializer(
             braintree_dict = d.get(PAYMENT_PROCESSORS.BRAINTREE)
             if braintree_dict:
                 return braintree_dict["paypal_id"]
+        elif obj.payment_provider == PAYMENT_PROCESSORS.MUNIM:
+            munim_dict = d.get(PAYMENT_PROCESSORS.MUNIM)
+            if munim_dict:
+                return munim_dict["munim_id"]
         return None
 
     def get_address(self, obj) -> AddressSerializer(allow_null=True, required=True):
@@ -723,6 +733,8 @@ class CustomerSerializer(
             braintree_dict = d.get(PAYMENT_PROCESSORS.BRAINTREE)
             if braintree_dict:
                 return braintree_dict["has_payment_method"]
+        elif obj.payment_provider == PAYMENT_PROCESSORS.MUNIM:
+            return False
         return False
 
     def _format_stripe_integration(
@@ -767,6 +779,13 @@ class CustomerSerializer(
             }
         else:
             d[PAYMENT_PROCESSORS.BRAINTREE] = None
+        if customer.munim_integration:
+            d[PAYMENT_PROCESSORS.MUNIM] = {
+                "munim_id": customer.munim_integration.munim_customer_id,
+                "has_payment_method": False,
+            }
+        else:
+            d[PAYMENT_PROCESSORS.MUNIM] = None
         return d
 
     def get_subscriptions(self, obj) -> SubscriptionRecordSerializer(many=True):
