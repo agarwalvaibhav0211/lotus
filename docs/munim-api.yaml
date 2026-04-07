@@ -307,14 +307,18 @@ components:
 
     Error:
       type: object
-      required: [code, message]
+      required: [errors, errorType]
       properties:
-        code:
+        errors:
+          type: array
+          items:
+            type: string
+          description: One or more human-readable error messages
+          example: ["Customer not found"]
+        errorType:
           type: string
+          description: Machine-readable error category
           example: not_found
-        message:
-          type: string
-          example: Customer not found
 
     # ── Account ────────────────────────────────────────────────────────────────
 

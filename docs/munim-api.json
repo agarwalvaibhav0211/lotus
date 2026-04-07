@@ -376,17 +376,24 @@
       "Error": {
         "type": "object",
         "required": [
-          "code",
-          "message"
+          "errors",
+          "errorType"
         ],
         "properties": {
-          "code": {
-            "type": "string",
-            "example": "not_found"
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "One or more human-readable error messages",
+            "example": [
+              "Customer not found"
+            ]
           },
-          "message": {
+          "errorType": {
             "type": "string",
-            "example": "Customer not found"
+            "description": "Machine-readable error category",
+            "example": "not_found"
           }
         }
       },
