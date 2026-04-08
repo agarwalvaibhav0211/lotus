@@ -61,6 +61,7 @@ from metering_billing.utils.enums import (
     TAX_PROVIDER,
     WEBHOOK_TRIGGER_EVENTS,
 )
+from drf_spectacular.utils import extend_schema_field, extend_schema_serializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -1406,6 +1407,7 @@ class PlanVersionCreateSerializer(TimezoneFieldMixin, serializers.ModelSerialize
         return billing_plan
 
 
+@extend_schema_serializer(component_name="AppLightweightPlanVersion")
 class LightweightPlanVersionSerializer(
     api_serializers.LightweightPlanVersionSerializer
 ):
@@ -1418,6 +1420,7 @@ class LightweightPlanSerializer(api_serializers.LightweightPlanSerializer):
         fields = api_serializers.LightweightPlanSerializer.Meta.fields
 
 
+@extend_schema_serializer(component_name="AppUsageAlert")
 class UsageAlertSerializer(api_serializers.UsageAlertSerializer):
     class Meta(api_serializers.UsageAlertSerializer.Meta):
         fields = api_serializers.UsageAlertSerializer.Meta.fields
@@ -1646,6 +1649,7 @@ class AddOnUpdateSerializer(PlanUpdateSerializer):
     addon_name = serializers.CharField(source="plan_name", required=False)
 
 
+@extend_schema_serializer(component_name="AppSubscriptionRecord")
 class SubscriptionRecordSerializer(api_serializers.SubscriptionRecordSerializer):
     class Meta(api_serializers.SubscriptionRecordSerializer.Meta):
         fields = api_serializers.SubscriptionRecordSerializer.Meta.fields
@@ -2416,6 +2420,7 @@ GFK_MODEL_SERIALIZER_MAPPING = {
 }
 
 
+@extend_schema_field(serializers.JSONField())
 class ActivityGenericRelatedField(serializers.Field):
     """
     DRF Serializer field that serializers GenericForeignKey fields on the :class:`~activity.models.Action`

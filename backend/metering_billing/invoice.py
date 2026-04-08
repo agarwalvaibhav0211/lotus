@@ -50,7 +50,6 @@ def generate_invoice(
     IMPORTANT: addons must be passed explicitly as part of subscription_records, otherwise they will not be charged.
     """
     from metering_billing.models import Invoice, PricingUnit
-    from metering_billing.tasks import generate_invoice_pdf_async
 
     if not issue_date:
         issue_date = now_utc()
@@ -150,11 +149,6 @@ def generate_invoice(
                 if subscription_record.end_date <= now_utc():
                     subscription_record.fully_billed = True
                     subscription_record.save()
-            try:
-                generate_invoice_pdf_async.delay(invoice.pk)
-            except Exception as e:
-                sentry_sdk.capture_exception(e)
-
             invoice_created_webhook(invoice, organization)
             if kafka_producer:
                 kafka_producer.produce_invoice(invoice)
@@ -696,7 +690,6 @@ def generate_balance_adjustment_invoice(balance_adjustment, draft=False):
     Generate an invoice for a subscription.
     """
     from metering_billing.models import Invoice, InvoiceLineItem
-    from metering_billing.tasks import generate_invoice_pdf_async
 
     issue_date = balance_adjustment.created
     customer = balance_adjustment.customer
@@ -733,10 +726,6 @@ def generate_balance_adjustment_invoice(balance_adjustment, draft=False):
 
     if not draft:
         generate_external_payment_obj(invoice)
-        try:
-            generate_invoice_pdf_async.delay(invoice.pk)
-        except Exception as e:
-            sentry_sdk.capture_exception(e)
         invoice_created_webhook(invoice, organization)
         if kafka_producer:
             kafka_producer.produce_invoice(invoice)

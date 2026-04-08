@@ -242,7 +242,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeleteAddOn'
+                $ref: '#/components/schemas/DeleteAddOnResponse'
           description: ''
   /app/addons/{addon_id}/features/add/:
     post:
@@ -571,8 +571,8 @@ paths:
               * `active` - Active
               * `inactive` - Inactive
           default:
-          - active
           - inactive
+          - active
         description: Filter to a specific set of adjustment statuses. Defaults to
           both active and inactive.
       tags:
@@ -1126,6 +1126,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventProperties'
           description: ''
+  /app/events/search/:
+    get:
+      operationId: app_events_search_list
+      description: API endpoint that allows events to be viewed.
+      parameters:
+      - in: query
+        name: c
+        schema:
+          type: string
+        description: The pagination cursor value.
+      - in: query
+        name: customer_id
+        schema:
+          type: string
+      - in: query
+        name: idempotency_id
+        schema:
+          type: string
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - app
+      security:
+      - knoxTokenAuth: []
+      - OrganizationApiKeyAuth: []
+        TokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEventDetailList'
+          description: ''
   /app/external_plan_links/:
     post:
       operationId: app_external_plan_links_create
@@ -1169,11 +1206,13 @@ paths:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           minLength: 1
         description: |-
           * `stripe` - Stripe
           * `braintree` - Braintree
+          * `munim` - Munim
         required: true
       tags:
       - app
@@ -1454,30 +1493,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InvoicePayment'
-          description: ''
-  /app/invoices/{invoice_id}/pdf_url/:
-    get:
-      operationId: app_invoices_pdf_url_retrieve
-      parameters:
-      - in: path
-        name: invoice_id
-        schema:
-          type: string
-        description: Either an invoice ID (in the format `invoice_<uuid>`) or an invoice
-          number (in the format `YYMMDD-000001`)
-        required: true
-      tags:
-      - app
-      security:
-      - knoxTokenAuth: []
-      - OrganizationApiKeyAuth: []
-        TokenAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InvoiceDetail'
           description: ''
   /app/invoices/{invoice_id}/send/:
     post:
@@ -1860,7 +1875,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeleteAddOn'
+                $ref: '#/components/schemas/SyncCRMResponse'
           description: ''
   /app/payment_providers/:
     get:
@@ -2495,9 +2510,9 @@ paths:
               * `ended` - Ended
               * `not_started` - Not Started
           default:
-          - active
           - not_started
           - ended
+          - active
         description: Filter to versions that have this status. Ended means it has
           an active_to date in the past. Not started means it has an active_from date
           in the future or null.
@@ -2593,9 +2608,9 @@ paths:
               * `ended` - Ended
               * `not_started` - Not Started
           default:
-          - active
           - not_started
           - ended
+          - active
         description: Filter to versions that have this status. Ended means it has
           an active_to date in the past. Not started means it has an active_from date
           in the future or null.
@@ -2908,7 +2923,8 @@ paths:
       - in: path
         name: version_number
         schema:
-          type: string
+          type: integer
+        description: The version number to update.
         required: true
       tags:
       - app
@@ -2949,7 +2965,8 @@ paths:
       - in: path
         name: version_number
         schema:
-          type: string
+          type: integer
+        description: The version number to update.
         required: true
       tags:
       - app
@@ -3291,6 +3308,7 @@ paths:
         name: subscription_id
         schema:
           type: string
+        description: The subscription's ID in the format `subscription_<uuid>`
         required: true
       tags:
       - app
@@ -3383,7 +3401,7 @@ paths:
           description: ''
   /app/subscriptions/{subscription_id}/cancel/:
     post:
-      operationId: app_subscriptions_cancel_create_2
+      operationId: app_subscriptions_cancel_create
       parameters:
       - in: path
         name: subscription_id
@@ -3492,7 +3510,7 @@ paths:
           description: ''
   /app/subscriptions/{subscription_id}/update/:
     post:
-      operationId: app_subscriptions_update_create_2
+      operationId: app_subscriptions_update_create
       parameters:
       - in: path
         name: subscription_id
@@ -3555,7 +3573,7 @@ paths:
           description: ''
   /app/subscriptions/cancel/:
     post:
-      operationId: app_subscriptions_cancel_create
+      operationId: app_subscriptions_cancel_multi
       parameters:
       - in: query
         name: customer_id
@@ -3612,7 +3630,7 @@ paths:
           description: ''
   /app/subscriptions/update/:
     post:
-      operationId: app_subscriptions_update_create
+      operationId: app_subscriptions_update_multi
       parameters:
       - in: query
         name: customer_id
@@ -3760,7 +3778,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UsageAlert'
+                  $ref: '#/components/schemas/AppUsageAlert'
           description: ''
     post:
       operationId: app_usage_alerts_create
@@ -3812,7 +3830,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UsageAlert'
+                $ref: '#/components/schemas/AppUsageAlert'
           description: ''
     delete:
       operationId: app_usage_alerts_destroy
@@ -3987,90 +4005,106 @@ paths:
           '{$request.body#/webhook_url}':
             post:
               description: Customer created webhook
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/CustomerCreated'
+                required: true
               responses:
                 '200':
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/CustomerCreatedRequest'
-                  description: ''
+                  description: No response body
         invoice.created:
           '{$request.body#/webhook_url}':
             post:
               description: Invoice created webhook
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/InvoiceCreated'
+                required: true
               responses:
                 '200':
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/InvoiceCreatedRequest'
-                  description: ''
+                  description: No response body
         invoice.paid:
           '{$request.body#/webhook_url}':
             post:
               description: Invoice paid webhook
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/InvoicePaid'
+                required: true
               responses:
                 '200':
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/InvoicePaidRequest'
-                  description: ''
+                  description: No response body
         usage_alert.triggered:
           '{$request.body#/webhook_url}':
             post:
               description: Usage alert triggered webhook
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/UsageAlertTriggered'
+                required: true
               responses:
                 '200':
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/UsageAlertTriggeredRequest'
-                  description: ''
+                  description: No response body
         subscription.cancelled:
           '{$request.body#/webhook_url}':
             post:
               description: Subscription cancelled webhook
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/SubscriptionCancelled'
+                required: true
               responses:
                 '200':
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/SubscriptionCancelledRequest'
-                  description: ''
+                  description: No response body
         invoice.past_due:
           '{$request.body#/webhook_url}':
             post:
-              description: Usage alert triggered webhook
+              description: Invoice past due webhook
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/InvoicePastDue'
+                required: true
               responses:
                 '200':
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/InvoicePastDueRequest'
-                  description: ''
+                  description: No response body
         subscription.created:
           '{$request.body#/webhook_url}':
             post:
               description: Subscription created webhook
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/SubscriptionCreated'
+                required: true
               responses:
                 '200':
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/SubscriptionCreatedRequest'
-                  description: ''
+                  description: No response body
         subscription.renewed:
           '{$request.body#/webhook_url}':
             post:
               description: Subscription renewed webhook
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      $ref: '#/components/schemas/SubscriptionRenewed'
+                required: true
               responses:
                 '200':
-                  content:
-                    application/json:
-                      schema:
-                        $ref: '#/components/schemas/SubscriptionRenewedRequest'
-                  description: ''
+                  description: No response body
   /app/webhooks/{webhook_endpoint_id}/:
     get:
       operationId: app_webhooks_retrieve
@@ -4080,7 +4114,7 @@ paths:
         name: webhook_endpoint_id
         schema:
           type: string
-          format: uuid
+        description: Webhook endpoint ID in the format `webhook_<uuid>`
         required: true
       tags:
       - app
@@ -4103,7 +4137,7 @@ paths:
         name: webhook_endpoint_id
         schema:
           type: string
-          format: uuid
+        description: Webhook endpoint ID in the format `webhook_<uuid>`
         required: true
       tags:
       - app
@@ -4113,17 +4147,6 @@ paths:
         TokenAuth: []
       responses:
         '204':
-          description: No response body
-  /stripe/webhook/:
-    post:
-      operationId: stripe_webhook_create
-      tags:
-      - stripe
-      security:
-      - OrganizationApiKeyAuth: []
-        TokenAuth: []
-      responses:
-        '200':
           description: No response body
 components:
   schemas:
@@ -4220,16 +4243,19 @@ components:
           type: integer
           readOnly: true
         actor:
-          type: string
+          type: object
+          additionalProperties: {}
           readOnly: true
         verb:
           type: string
           maxLength: 255
         action_object:
-          type: string
+          type: object
+          additionalProperties: {}
           readOnly: true
         target:
-          type: string
+          type: object
+          additionalProperties: {}
           readOnly: true
         public:
           type: boolean
@@ -4354,20 +4380,20 @@ components:
     AddOnDetail:
       type: object
       properties:
-        versions:
-          type: array
-          items:
-            $ref: '#/components/schemas/AddOnVersion'
-          description: This addon's versions.
-        addon_name:
-          type: string
-          description: The name of the add-on plan.
         addon_description:
           type: string
           description: The description of the add-on plan.
         addon_id:
           type: string
           description: The ID of the add-on plan.
+        addon_name:
+          type: string
+          description: The name of the add-on plan.
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/AddOnVersion'
+          description: This addon's versions.
       required:
       - addon_description
       - addon_id
@@ -5776,19 +5802,6 @@ components:
     AnalysisDetail:
       type: object
       properties:
-        end_date:
-          type: string
-          format: date
-        status:
-          enum:
-          - running
-          - completed
-          - failed
-          type: string
-          description: |-
-            * `running` - Running
-            * `completed` - Completed
-            * `failed` - Failed
         analysis_results:
           allOf:
           - $ref: '#/components/schemas/AnalysisResults'
@@ -5816,11 +5829,24 @@ components:
           format: date-time
         analysis_id:
           type: string
-        analysis_name:
+        end_date:
           type: string
+          format: date
+        status:
+          enum:
+          - running
+          - completed
+          - failed
+          type: string
+          description: |-
+            * `running` - Running
+            * `completed` - Completed
+            * `failed` - Failed
         start_date:
           type: string
           format: date
+        analysis_name:
+          type: string
       required:
       - analysis_id
       - analysis_name
@@ -5900,6 +5926,104 @@ components:
       - analysis_name
       - end_date
       - start_date
+    AppLightweightPlanVersion:
+      type: object
+      properties:
+        plan_name:
+          type: string
+          readOnly: true
+        plan_id:
+          type: string
+        version_id:
+          type: string
+          readOnly: true
+        version:
+          oneOf:
+          - type: integer
+          - enum:
+            - custom_version
+            type: string
+          readOnly: true
+      required:
+      - plan_id
+      - plan_name
+      - version
+      - version_id
+    AppSubscriptionRecord:
+      type: object
+      properties:
+        subscription_id:
+          type: string
+        start_date:
+          type: string
+          format: date-time
+          description: The time the subscription starts. This will be a string in
+            yyyy-mm-dd HH:mm:ss format in UTC time.
+        end_date:
+          type: string
+          format: date-time
+          description: The time the subscription starts. This will be a string in
+            yyyy-mm-dd HH:mm:ss format in UTC time.
+        auto_renew:
+          type: boolean
+          description: Whether the subscription automatically renews. Defaults to
+            true.
+        is_new:
+          type: boolean
+          description: Whether this subscription came from a renewal or from a first-time.
+            Defaults to true on creation.
+        subscription_filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionFilter'
+        customer:
+          $ref: '#/components/schemas/LightweightCustomer'
+        billing_plan:
+          $ref: '#/components/schemas/LightweightPlanVersion'
+        fully_billed:
+          type: boolean
+          readOnly: true
+        addons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LightweightAddOnSubscriptionRecord'
+        metadata:
+          type: object
+          additionalProperties: {}
+      required:
+      - addons
+      - auto_renew
+      - billing_plan
+      - customer
+      - end_date
+      - fully_billed
+      - is_new
+      - metadata
+      - start_date
+      - subscription_filters
+      - subscription_id
+    AppUsageAlert:
+      type: object
+      properties:
+        usage_alert_id:
+          type: string
+          readOnly: true
+        metric:
+          $ref: '#/components/schemas/Metric'
+        plan_version:
+          $ref: '#/components/schemas/LightweightPlanVersion'
+        threshold:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+      required:
+      - metric
+      - plan_version
+      - threshold
+      - usage_alert_id
     BacktestCreate:
       type: object
       properties:
@@ -5918,7 +6042,6 @@ components:
             description: '* `total_revenue` - Total Revenue'
         backtest_name:
           type: string
-          maxLength: 100
       required:
       - backtest_name
       - end_date
@@ -5948,7 +6071,6 @@ components:
         backtest_name:
           type: string
           minLength: 1
-          maxLength: 100
       required:
       - backtest_name
       - end_date
@@ -5958,26 +6080,13 @@ components:
     BacktestDetail:
       type: object
       properties:
+        kpis:
+          type: object
+          additionalProperties: {}
         backtest_substitutions:
           type: array
           items:
             $ref: '#/components/schemas/BacktestSubstitution'
-        time_created:
-          type: string
-          format: date-time
-        backtest_results:
-          $ref: '#/components/schemas/AllSubstitutionResults'
-        backtest_id:
-          type: string
-        backtest_name:
-          type: string
-          maxLength: 100
-        start_date:
-          type: string
-          format: date
-        kpis:
-          type: object
-          additionalProperties: {}
         end_date:
           type: string
           format: date
@@ -5991,6 +6100,18 @@ components:
             * `running` - Running
             * `completed` - Completed
             * `failed` - Failed
+        start_date:
+          type: string
+          format: date
+        backtest_name:
+          type: string
+        time_created:
+          type: string
+          format: date-time
+        backtest_results:
+          $ref: '#/components/schemas/AllSubstitutionResults'
+        backtest_id:
+          type: string
       required:
       - backtest_id
       - backtest_name
@@ -6041,7 +6162,6 @@ components:
       properties:
         backtest_name:
           type: string
-          maxLength: 100
         start_date:
           type: string
           format: date
@@ -6104,30 +6224,6 @@ components:
       - operator
       - property_name
     CategoricalFilterDetailRequest:
-      type: object
-      properties:
-        property_name:
-          type: string
-          minLength: 1
-          maxLength: 100
-        operator:
-          enum:
-          - isin
-          - isnotin
-          type: string
-          description: |-
-            * `isin` - Is in
-            * `isnotin` - Is not in
-        comparison_value:
-          type: array
-          items:
-            type: string
-            minLength: 1
-      required:
-      - comparison_value
-      - operator
-      - property_name
-    CategoricalFilterRequest:
       type: object
       properties:
         property_name:
@@ -6472,11 +6568,13 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           - 
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
           nullable: true
         payment_provider_id:
           type: string
@@ -6708,7 +6806,6 @@ components:
           - America/Whitehorse
           - America/Winnipeg
           - America/Yakutat
-          - America/Yellowknife
           - Antarctica/Casey
           - Antarctica/Davis
           - Antarctica/DumontDUrville
@@ -7144,7 +7241,6 @@ components:
             * `America/Whitehorse` - America/Whitehorse
             * `America/Winnipeg` - America/Winnipeg
             * `America/Yakutat` - America/Yakutat
-            * `America/Yellowknife` - America/Yellowknife
             * `Antarctica/Casey` - Antarctica/Casey
             * `Antarctica/Davis` - Antarctica/Davis
             * `Antarctica/DumontDUrville` - Antarctica/DumontDUrville
@@ -7564,7 +7660,6 @@ components:
           type: string
           nullable: true
           description: The display name of the customer
-          maxLength: 100
         customer_id:
           type: string
           nullable: true
@@ -7581,12 +7676,14 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             The payment provider this customer is associated with. Currently, only Stripe is supported.
 
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
         payment_provider_id:
           type: string
           writeOnly: true
@@ -7628,12 +7725,17 @@ components:
       required:
       - customer_id
       - email
-    CustomerCreatedRequest:
+    CustomerCreated:
       type: object
       properties:
         payload:
-          $ref: '#/components/schemas/CustomerRequest'
+          $ref: '#/components/schemas/Customer'
+        eventType:
+          type: string
+          readOnly: true
+          default: customer.created
       required:
+      - eventType
       - payload
     CustomerDeleteResponse:
       type: object
@@ -7660,6 +7762,83 @@ components:
     CustomerDetail:
       type: object
       properties:
+        integrations:
+          allOf:
+          - $ref: '#/components/schemas/CustomerIntegrations'
+          readOnly: true
+          description: A dictionary containing the customer's integrations. Keys are
+            the integration type, and the value is a dictionary containing the integration's
+            properties, which can vary by integration.
+        billing_address:
+          allOf:
+          - $ref: '#/components/schemas/Address'
+          nullable: true
+          readOnly: true
+        customer_id:
+          type: string
+        crm_provider_url:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        payment_provider:
+          enum:
+          - stripe
+          - braintree
+          - munim
+          - 
+          type: string
+          description: |-
+            * `stripe` - Stripe
+            * `braintree` - Braintree
+            * `munim` - Munim
+          nullable: true
+        crm_provider:
+          enum:
+          - salesforce
+          type: string
+          description: '* `salesforce` - salesforce'
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+          nullable: true
+          description: The display name of the customer
+        payment_provider_url:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionRecord'
+          readOnly: true
+        default_currency:
+          $ref: '#/components/schemas/PricingUnit'
+        total_amount_due:
+          type: number
+          format: double
+          readOnly: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        tax_providers:
+          type: array
+          items:
+            enum:
+            - taxjar
+            - lotus
+            - netsuite
+            description: |-
+              * `taxjar` - taxjar
+              * `lotus` - lotus
+              * `netsuite` - netsuite
+          readOnly: true
+          description: A list of tax providers that are enabled for this customer.
+            The list is ordered, meaning we will succesively try to calculate taxes
+            using each provider until we find one that works.
         timezone:
           enum:
           - Africa/Abidjan
@@ -7857,7 +8036,6 @@ components:
           - America/Whitehorse
           - America/Winnipeg
           - America/Yakutat
-          - America/Yellowknife
           - Antarctica/Casey
           - Antarctica/Davis
           - Antarctica/DumontDUrville
@@ -8293,7 +8471,6 @@ components:
             * `America/Whitehorse` - America/Whitehorse
             * `America/Winnipeg` - America/Winnipeg
             * `America/Yakutat` - America/Yakutat
-            * `America/Yellowknife` - America/Yellowknife
             * `Antarctica/Casey` - Antarctica/Casey
             * `Antarctica/Davis` - Antarctica/Davis
             * `Antarctica/DumontDUrville` - Antarctica/DumontDUrville
@@ -8532,118 +8709,15 @@ components:
             * `US/Mountain` - US/Mountain
             * `US/Pacific` - US/Pacific
             * `UTC` - UTC
-        address:
-          allOf:
-          - $ref: '#/components/schemas/Address'
-          nullable: true
-          readOnly: true
-          deprecated: true
-        default_currency:
-          $ref: '#/components/schemas/PricingUnit'
-        shipping_address:
-          allOf:
-          - $ref: '#/components/schemas/Address'
-          nullable: true
-          readOnly: true
-        crm_provider_url:
-          type: string
-          format: uri
-          nullable: true
-          readOnly: true
-        invoices:
-          type: array
-          items:
-            $ref: '#/components/schemas/LightweightInvoiceDetail'
-          readOnly: true
-        email:
-          type: string
-          format: email
-          nullable: true
-        payment_provider_id:
-          type: string
-          nullable: true
-          readOnly: true
-        has_payment_method:
-          type: boolean
-          readOnly: true
         upcoming_subscriptions:
           type: array
           items:
-            $ref: '#/components/schemas/SubscriptionRecord'
+            $ref: '#/components/schemas/AppSubscriptionRecord'
           readOnly: true
         crm_provider_id:
           type: string
           nullable: true
           readOnly: true
-        billing_address:
-          allOf:
-          - $ref: '#/components/schemas/Address'
-          nullable: true
-          readOnly: true
-        total_amount_due:
-          type: number
-          format: double
-          readOnly: true
-        integrations:
-          allOf:
-          - $ref: '#/components/schemas/CustomerIntegrations'
-          readOnly: true
-          description: A dictionary containing the customer's integrations. Keys are
-            the integration type, and the value is a dictionary containing the integration's
-            properties, which can vary by integration.
-        stripe_subscriptions:
-          type: array
-          items:
-            $ref: '#/components/schemas/StripeSubscriptionRecord'
-          readOnly: true
-        crm_provider:
-          enum:
-          - salesforce
-          type: string
-          description: '* `salesforce` - salesforce'
-          readOnly: true
-        payment_provider:
-          enum:
-          - stripe
-          - braintree
-          - 
-          type: string
-          description: |-
-            * `stripe` - Stripe
-            * `braintree` - Braintree
-          nullable: true
-        payment_provider_url:
-          type: string
-          format: uri
-          nullable: true
-          readOnly: true
-        customer_name:
-          type: string
-          readOnly: true
-          nullable: true
-          description: The display name of the customer
-        subscriptions:
-          type: array
-          items:
-            $ref: '#/components/schemas/SubscriptionRecord'
-          readOnly: true
-        tax_providers:
-          type: array
-          items:
-            enum:
-            - taxjar
-            - lotus
-            - netsuite
-            description: |-
-              * `taxjar` - taxjar
-              * `lotus` - lotus
-              * `netsuite` - netsuite
-          readOnly: true
-          description: A list of tax providers that are enabled for this customer.
-            The list is ordered, meaning we will succesively try to calculate taxes
-            using each provider until we find one that works.
-        customer_id:
-          type: string
         tax_rate:
           type: number
           format: double
@@ -8654,6 +8728,34 @@ components:
           readOnly: true
           nullable: true
           description: Tax rate as percentage. For example, 10.5 for 10.5%
+        payment_provider_id:
+          type: string
+          nullable: true
+          readOnly: true
+        has_payment_method:
+          type: boolean
+          readOnly: true
+        invoices:
+          type: array
+          items:
+            $ref: '#/components/schemas/LightweightInvoiceDetail'
+          readOnly: true
+        stripe_subscriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/StripeSubscriptionRecord'
+          readOnly: true
+        address:
+          allOf:
+          - $ref: '#/components/schemas/Address'
+          nullable: true
+          readOnly: true
+          deprecated: true
+        shipping_address:
+          allOf:
+          - $ref: '#/components/schemas/Address'
+          nullable: true
+          readOnly: true
       required:
       - address
       - billing_address
@@ -8689,907 +8791,20 @@ components:
           allOf:
           - $ref: '#/components/schemas/CustomerBraintreeIntegration'
           nullable: true
-    CustomerRequest:
+        munim:
+          allOf:
+          - $ref: '#/components/schemas/CustomerMunimIntegration'
+          nullable: true
+    CustomerMunimIntegration:
       type: object
       properties:
-        customer_id:
+        munim_id:
           type: string
-          minLength: 1
-        email:
-          type: string
-          format: email
-          nullable: true
-          minLength: 1
-        default_currency:
-          $ref: '#/components/schemas/PricingUnitRequest'
-        payment_provider:
-          enum:
-          - stripe
-          - braintree
-          - 
-          type: string
-          description: |-
-            * `stripe` - Stripe
-            * `braintree` - Braintree
-          nullable: true
-        timezone:
-          enum:
-          - Africa/Abidjan
-          - Africa/Accra
-          - Africa/Addis_Ababa
-          - Africa/Algiers
-          - Africa/Asmara
-          - Africa/Bamako
-          - Africa/Bangui
-          - Africa/Banjul
-          - Africa/Bissau
-          - Africa/Blantyre
-          - Africa/Brazzaville
-          - Africa/Bujumbura
-          - Africa/Cairo
-          - Africa/Casablanca
-          - Africa/Ceuta
-          - Africa/Conakry
-          - Africa/Dakar
-          - Africa/Dar_es_Salaam
-          - Africa/Djibouti
-          - Africa/Douala
-          - Africa/El_Aaiun
-          - Africa/Freetown
-          - Africa/Gaborone
-          - Africa/Harare
-          - Africa/Johannesburg
-          - Africa/Juba
-          - Africa/Kampala
-          - Africa/Khartoum
-          - Africa/Kigali
-          - Africa/Kinshasa
-          - Africa/Lagos
-          - Africa/Libreville
-          - Africa/Lome
-          - Africa/Luanda
-          - Africa/Lubumbashi
-          - Africa/Lusaka
-          - Africa/Malabo
-          - Africa/Maputo
-          - Africa/Maseru
-          - Africa/Mbabane
-          - Africa/Mogadishu
-          - Africa/Monrovia
-          - Africa/Nairobi
-          - Africa/Ndjamena
-          - Africa/Niamey
-          - Africa/Nouakchott
-          - Africa/Ouagadougou
-          - Africa/Porto-Novo
-          - Africa/Sao_Tome
-          - Africa/Tripoli
-          - Africa/Tunis
-          - Africa/Windhoek
-          - America/Adak
-          - America/Anchorage
-          - America/Anguilla
-          - America/Antigua
-          - America/Araguaina
-          - America/Argentina/Buenos_Aires
-          - America/Argentina/Catamarca
-          - America/Argentina/Cordoba
-          - America/Argentina/Jujuy
-          - America/Argentina/La_Rioja
-          - America/Argentina/Mendoza
-          - America/Argentina/Rio_Gallegos
-          - America/Argentina/Salta
-          - America/Argentina/San_Juan
-          - America/Argentina/San_Luis
-          - America/Argentina/Tucuman
-          - America/Argentina/Ushuaia
-          - America/Aruba
-          - America/Asuncion
-          - America/Atikokan
-          - America/Bahia
-          - America/Bahia_Banderas
-          - America/Barbados
-          - America/Belem
-          - America/Belize
-          - America/Blanc-Sablon
-          - America/Boa_Vista
-          - America/Bogota
-          - America/Boise
-          - America/Cambridge_Bay
-          - America/Campo_Grande
-          - America/Cancun
-          - America/Caracas
-          - America/Cayenne
-          - America/Cayman
-          - America/Chicago
-          - America/Chihuahua
-          - America/Ciudad_Juarez
-          - America/Costa_Rica
-          - America/Creston
-          - America/Cuiaba
-          - America/Curacao
-          - America/Danmarkshavn
-          - America/Dawson
-          - America/Dawson_Creek
-          - America/Denver
-          - America/Detroit
-          - America/Dominica
-          - America/Edmonton
-          - America/Eirunepe
-          - America/El_Salvador
-          - America/Fort_Nelson
-          - America/Fortaleza
-          - America/Glace_Bay
-          - America/Goose_Bay
-          - America/Grand_Turk
-          - America/Grenada
-          - America/Guadeloupe
-          - America/Guatemala
-          - America/Guayaquil
-          - America/Guyana
-          - America/Halifax
-          - America/Havana
-          - America/Hermosillo
-          - America/Indiana/Indianapolis
-          - America/Indiana/Knox
-          - America/Indiana/Marengo
-          - America/Indiana/Petersburg
-          - America/Indiana/Tell_City
-          - America/Indiana/Vevay
-          - America/Indiana/Vincennes
-          - America/Indiana/Winamac
-          - America/Inuvik
-          - America/Iqaluit
-          - America/Jamaica
-          - America/Juneau
-          - America/Kentucky/Louisville
-          - America/Kentucky/Monticello
-          - America/Kralendijk
-          - America/La_Paz
-          - America/Lima
-          - America/Los_Angeles
-          - America/Lower_Princes
-          - America/Maceio
-          - America/Managua
-          - America/Manaus
-          - America/Marigot
-          - America/Martinique
-          - America/Matamoros
-          - America/Mazatlan
-          - America/Menominee
-          - America/Merida
-          - America/Metlakatla
-          - America/Mexico_City
-          - America/Miquelon
-          - America/Moncton
-          - America/Monterrey
-          - America/Montevideo
-          - America/Montserrat
-          - America/Nassau
-          - America/New_York
-          - America/Nome
-          - America/Noronha
-          - America/North_Dakota/Beulah
-          - America/North_Dakota/Center
-          - America/North_Dakota/New_Salem
-          - America/Nuuk
-          - America/Ojinaga
-          - America/Panama
-          - America/Paramaribo
-          - America/Phoenix
-          - America/Port-au-Prince
-          - America/Port_of_Spain
-          - America/Porto_Velho
-          - America/Puerto_Rico
-          - America/Punta_Arenas
-          - America/Rankin_Inlet
-          - America/Recife
-          - America/Regina
-          - America/Resolute
-          - America/Rio_Branco
-          - America/Santarem
-          - America/Santiago
-          - America/Santo_Domingo
-          - America/Sao_Paulo
-          - America/Scoresbysund
-          - America/Sitka
-          - America/St_Barthelemy
-          - America/St_Johns
-          - America/St_Kitts
-          - America/St_Lucia
-          - America/St_Thomas
-          - America/St_Vincent
-          - America/Swift_Current
-          - America/Tegucigalpa
-          - America/Thule
-          - America/Tijuana
-          - America/Toronto
-          - America/Tortola
-          - America/Vancouver
-          - America/Whitehorse
-          - America/Winnipeg
-          - America/Yakutat
-          - America/Yellowknife
-          - Antarctica/Casey
-          - Antarctica/Davis
-          - Antarctica/DumontDUrville
-          - Antarctica/Macquarie
-          - Antarctica/Mawson
-          - Antarctica/McMurdo
-          - Antarctica/Palmer
-          - Antarctica/Rothera
-          - Antarctica/Syowa
-          - Antarctica/Troll
-          - Antarctica/Vostok
-          - Arctic/Longyearbyen
-          - Asia/Aden
-          - Asia/Almaty
-          - Asia/Amman
-          - Asia/Anadyr
-          - Asia/Aqtau
-          - Asia/Aqtobe
-          - Asia/Ashgabat
-          - Asia/Atyrau
-          - Asia/Baghdad
-          - Asia/Bahrain
-          - Asia/Baku
-          - Asia/Bangkok
-          - Asia/Barnaul
-          - Asia/Beirut
-          - Asia/Bishkek
-          - Asia/Brunei
-          - Asia/Chita
-          - Asia/Choibalsan
-          - Asia/Colombo
-          - Asia/Damascus
-          - Asia/Dhaka
-          - Asia/Dili
-          - Asia/Dubai
-          - Asia/Dushanbe
-          - Asia/Famagusta
-          - Asia/Gaza
-          - Asia/Hebron
-          - Asia/Ho_Chi_Minh
-          - Asia/Hong_Kong
-          - Asia/Hovd
-          - Asia/Irkutsk
-          - Asia/Jakarta
-          - Asia/Jayapura
-          - Asia/Jerusalem
-          - Asia/Kabul
-          - Asia/Kamchatka
-          - Asia/Karachi
-          - Asia/Kathmandu
-          - Asia/Khandyga
-          - Asia/Kolkata
-          - Asia/Krasnoyarsk
-          - Asia/Kuala_Lumpur
-          - Asia/Kuching
-          - Asia/Kuwait
-          - Asia/Macau
-          - Asia/Magadan
-          - Asia/Makassar
-          - Asia/Manila
-          - Asia/Muscat
-          - Asia/Nicosia
-          - Asia/Novokuznetsk
-          - Asia/Novosibirsk
-          - Asia/Omsk
-          - Asia/Oral
-          - Asia/Phnom_Penh
-          - Asia/Pontianak
-          - Asia/Pyongyang
-          - Asia/Qatar
-          - Asia/Qostanay
-          - Asia/Qyzylorda
-          - Asia/Riyadh
-          - Asia/Sakhalin
-          - Asia/Samarkand
-          - Asia/Seoul
-          - Asia/Shanghai
-          - Asia/Singapore
-          - Asia/Srednekolymsk
-          - Asia/Taipei
-          - Asia/Tashkent
-          - Asia/Tbilisi
-          - Asia/Tehran
-          - Asia/Thimphu
-          - Asia/Tokyo
-          - Asia/Tomsk
-          - Asia/Ulaanbaatar
-          - Asia/Urumqi
-          - Asia/Ust-Nera
-          - Asia/Vientiane
-          - Asia/Vladivostok
-          - Asia/Yakutsk
-          - Asia/Yangon
-          - Asia/Yekaterinburg
-          - Asia/Yerevan
-          - Atlantic/Azores
-          - Atlantic/Bermuda
-          - Atlantic/Canary
-          - Atlantic/Cape_Verde
-          - Atlantic/Faroe
-          - Atlantic/Madeira
-          - Atlantic/Reykjavik
-          - Atlantic/South_Georgia
-          - Atlantic/St_Helena
-          - Atlantic/Stanley
-          - Australia/Adelaide
-          - Australia/Brisbane
-          - Australia/Broken_Hill
-          - Australia/Darwin
-          - Australia/Eucla
-          - Australia/Hobart
-          - Australia/Lindeman
-          - Australia/Lord_Howe
-          - Australia/Melbourne
-          - Australia/Perth
-          - Australia/Sydney
-          - Canada/Atlantic
-          - Canada/Central
-          - Canada/Eastern
-          - Canada/Mountain
-          - Canada/Newfoundland
-          - Canada/Pacific
-          - Europe/Amsterdam
-          - Europe/Andorra
-          - Europe/Astrakhan
-          - Europe/Athens
-          - Europe/Belgrade
-          - Europe/Berlin
-          - Europe/Bratislava
-          - Europe/Brussels
-          - Europe/Bucharest
-          - Europe/Budapest
-          - Europe/Busingen
-          - Europe/Chisinau
-          - Europe/Copenhagen
-          - Europe/Dublin
-          - Europe/Gibraltar
-          - Europe/Guernsey
-          - Europe/Helsinki
-          - Europe/Isle_of_Man
-          - Europe/Istanbul
-          - Europe/Jersey
-          - Europe/Kaliningrad
-          - Europe/Kirov
-          - Europe/Kyiv
-          - Europe/Lisbon
-          - Europe/Ljubljana
-          - Europe/London
-          - Europe/Luxembourg
-          - Europe/Madrid
-          - Europe/Malta
-          - Europe/Mariehamn
-          - Europe/Minsk
-          - Europe/Monaco
-          - Europe/Moscow
-          - Europe/Oslo
-          - Europe/Paris
-          - Europe/Podgorica
-          - Europe/Prague
-          - Europe/Riga
-          - Europe/Rome
-          - Europe/Samara
-          - Europe/San_Marino
-          - Europe/Sarajevo
-          - Europe/Saratov
-          - Europe/Simferopol
-          - Europe/Skopje
-          - Europe/Sofia
-          - Europe/Stockholm
-          - Europe/Tallinn
-          - Europe/Tirane
-          - Europe/Ulyanovsk
-          - Europe/Vaduz
-          - Europe/Vatican
-          - Europe/Vienna
-          - Europe/Vilnius
-          - Europe/Volgograd
-          - Europe/Warsaw
-          - Europe/Zagreb
-          - Europe/Zurich
-          - GMT
-          - Indian/Antananarivo
-          - Indian/Chagos
-          - Indian/Christmas
-          - Indian/Cocos
-          - Indian/Comoro
-          - Indian/Kerguelen
-          - Indian/Mahe
-          - Indian/Maldives
-          - Indian/Mauritius
-          - Indian/Mayotte
-          - Indian/Reunion
-          - Pacific/Apia
-          - Pacific/Auckland
-          - Pacific/Bougainville
-          - Pacific/Chatham
-          - Pacific/Chuuk
-          - Pacific/Easter
-          - Pacific/Efate
-          - Pacific/Fakaofo
-          - Pacific/Fiji
-          - Pacific/Funafuti
-          - Pacific/Galapagos
-          - Pacific/Gambier
-          - Pacific/Guadalcanal
-          - Pacific/Guam
-          - Pacific/Honolulu
-          - Pacific/Kanton
-          - Pacific/Kiritimati
-          - Pacific/Kosrae
-          - Pacific/Kwajalein
-          - Pacific/Majuro
-          - Pacific/Marquesas
-          - Pacific/Midway
-          - Pacific/Nauru
-          - Pacific/Niue
-          - Pacific/Norfolk
-          - Pacific/Noumea
-          - Pacific/Pago_Pago
-          - Pacific/Palau
-          - Pacific/Pitcairn
-          - Pacific/Pohnpei
-          - Pacific/Port_Moresby
-          - Pacific/Rarotonga
-          - Pacific/Saipan
-          - Pacific/Tahiti
-          - Pacific/Tarawa
-          - Pacific/Tongatapu
-          - Pacific/Wake
-          - Pacific/Wallis
-          - US/Alaska
-          - US/Arizona
-          - US/Central
-          - US/Eastern
-          - US/Hawaii
-          - US/Mountain
-          - US/Pacific
-          - UTC
-          type: string
-          description: |-
-            * `Africa/Abidjan` - Africa/Abidjan
-            * `Africa/Accra` - Africa/Accra
-            * `Africa/Addis_Ababa` - Africa/Addis_Ababa
-            * `Africa/Algiers` - Africa/Algiers
-            * `Africa/Asmara` - Africa/Asmara
-            * `Africa/Bamako` - Africa/Bamako
-            * `Africa/Bangui` - Africa/Bangui
-            * `Africa/Banjul` - Africa/Banjul
-            * `Africa/Bissau` - Africa/Bissau
-            * `Africa/Blantyre` - Africa/Blantyre
-            * `Africa/Brazzaville` - Africa/Brazzaville
-            * `Africa/Bujumbura` - Africa/Bujumbura
-            * `Africa/Cairo` - Africa/Cairo
-            * `Africa/Casablanca` - Africa/Casablanca
-            * `Africa/Ceuta` - Africa/Ceuta
-            * `Africa/Conakry` - Africa/Conakry
-            * `Africa/Dakar` - Africa/Dakar
-            * `Africa/Dar_es_Salaam` - Africa/Dar_es_Salaam
-            * `Africa/Djibouti` - Africa/Djibouti
-            * `Africa/Douala` - Africa/Douala
-            * `Africa/El_Aaiun` - Africa/El_Aaiun
-            * `Africa/Freetown` - Africa/Freetown
-            * `Africa/Gaborone` - Africa/Gaborone
-            * `Africa/Harare` - Africa/Harare
-            * `Africa/Johannesburg` - Africa/Johannesburg
-            * `Africa/Juba` - Africa/Juba
-            * `Africa/Kampala` - Africa/Kampala
-            * `Africa/Khartoum` - Africa/Khartoum
-            * `Africa/Kigali` - Africa/Kigali
-            * `Africa/Kinshasa` - Africa/Kinshasa
-            * `Africa/Lagos` - Africa/Lagos
-            * `Africa/Libreville` - Africa/Libreville
-            * `Africa/Lome` - Africa/Lome
-            * `Africa/Luanda` - Africa/Luanda
-            * `Africa/Lubumbashi` - Africa/Lubumbashi
-            * `Africa/Lusaka` - Africa/Lusaka
-            * `Africa/Malabo` - Africa/Malabo
-            * `Africa/Maputo` - Africa/Maputo
-            * `Africa/Maseru` - Africa/Maseru
-            * `Africa/Mbabane` - Africa/Mbabane
-            * `Africa/Mogadishu` - Africa/Mogadishu
-            * `Africa/Monrovia` - Africa/Monrovia
-            * `Africa/Nairobi` - Africa/Nairobi
-            * `Africa/Ndjamena` - Africa/Ndjamena
-            * `Africa/Niamey` - Africa/Niamey
-            * `Africa/Nouakchott` - Africa/Nouakchott
-            * `Africa/Ouagadougou` - Africa/Ouagadougou
-            * `Africa/Porto-Novo` - Africa/Porto-Novo
-            * `Africa/Sao_Tome` - Africa/Sao_Tome
-            * `Africa/Tripoli` - Africa/Tripoli
-            * `Africa/Tunis` - Africa/Tunis
-            * `Africa/Windhoek` - Africa/Windhoek
-            * `America/Adak` - America/Adak
-            * `America/Anchorage` - America/Anchorage
-            * `America/Anguilla` - America/Anguilla
-            * `America/Antigua` - America/Antigua
-            * `America/Araguaina` - America/Araguaina
-            * `America/Argentina/Buenos_Aires` - America/Argentina/Buenos_Aires
-            * `America/Argentina/Catamarca` - America/Argentina/Catamarca
-            * `America/Argentina/Cordoba` - America/Argentina/Cordoba
-            * `America/Argentina/Jujuy` - America/Argentina/Jujuy
-            * `America/Argentina/La_Rioja` - America/Argentina/La_Rioja
-            * `America/Argentina/Mendoza` - America/Argentina/Mendoza
-            * `America/Argentina/Rio_Gallegos` - America/Argentina/Rio_Gallegos
-            * `America/Argentina/Salta` - America/Argentina/Salta
-            * `America/Argentina/San_Juan` - America/Argentina/San_Juan
-            * `America/Argentina/San_Luis` - America/Argentina/San_Luis
-            * `America/Argentina/Tucuman` - America/Argentina/Tucuman
-            * `America/Argentina/Ushuaia` - America/Argentina/Ushuaia
-            * `America/Aruba` - America/Aruba
-            * `America/Asuncion` - America/Asuncion
-            * `America/Atikokan` - America/Atikokan
-            * `America/Bahia` - America/Bahia
-            * `America/Bahia_Banderas` - America/Bahia_Banderas
-            * `America/Barbados` - America/Barbados
-            * `America/Belem` - America/Belem
-            * `America/Belize` - America/Belize
-            * `America/Blanc-Sablon` - America/Blanc-Sablon
-            * `America/Boa_Vista` - America/Boa_Vista
-            * `America/Bogota` - America/Bogota
-            * `America/Boise` - America/Boise
-            * `America/Cambridge_Bay` - America/Cambridge_Bay
-            * `America/Campo_Grande` - America/Campo_Grande
-            * `America/Cancun` - America/Cancun
-            * `America/Caracas` - America/Caracas
-            * `America/Cayenne` - America/Cayenne
-            * `America/Cayman` - America/Cayman
-            * `America/Chicago` - America/Chicago
-            * `America/Chihuahua` - America/Chihuahua
-            * `America/Ciudad_Juarez` - America/Ciudad_Juarez
-            * `America/Costa_Rica` - America/Costa_Rica
-            * `America/Creston` - America/Creston
-            * `America/Cuiaba` - America/Cuiaba
-            * `America/Curacao` - America/Curacao
-            * `America/Danmarkshavn` - America/Danmarkshavn
-            * `America/Dawson` - America/Dawson
-            * `America/Dawson_Creek` - America/Dawson_Creek
-            * `America/Denver` - America/Denver
-            * `America/Detroit` - America/Detroit
-            * `America/Dominica` - America/Dominica
-            * `America/Edmonton` - America/Edmonton
-            * `America/Eirunepe` - America/Eirunepe
-            * `America/El_Salvador` - America/El_Salvador
-            * `America/Fort_Nelson` - America/Fort_Nelson
-            * `America/Fortaleza` - America/Fortaleza
-            * `America/Glace_Bay` - America/Glace_Bay
-            * `America/Goose_Bay` - America/Goose_Bay
-            * `America/Grand_Turk` - America/Grand_Turk
-            * `America/Grenada` - America/Grenada
-            * `America/Guadeloupe` - America/Guadeloupe
-            * `America/Guatemala` - America/Guatemala
-            * `America/Guayaquil` - America/Guayaquil
-            * `America/Guyana` - America/Guyana
-            * `America/Halifax` - America/Halifax
-            * `America/Havana` - America/Havana
-            * `America/Hermosillo` - America/Hermosillo
-            * `America/Indiana/Indianapolis` - America/Indiana/Indianapolis
-            * `America/Indiana/Knox` - America/Indiana/Knox
-            * `America/Indiana/Marengo` - America/Indiana/Marengo
-            * `America/Indiana/Petersburg` - America/Indiana/Petersburg
-            * `America/Indiana/Tell_City` - America/Indiana/Tell_City
-            * `America/Indiana/Vevay` - America/Indiana/Vevay
-            * `America/Indiana/Vincennes` - America/Indiana/Vincennes
-            * `America/Indiana/Winamac` - America/Indiana/Winamac
-            * `America/Inuvik` - America/Inuvik
-            * `America/Iqaluit` - America/Iqaluit
-            * `America/Jamaica` - America/Jamaica
-            * `America/Juneau` - America/Juneau
-            * `America/Kentucky/Louisville` - America/Kentucky/Louisville
-            * `America/Kentucky/Monticello` - America/Kentucky/Monticello
-            * `America/Kralendijk` - America/Kralendijk
-            * `America/La_Paz` - America/La_Paz
-            * `America/Lima` - America/Lima
-            * `America/Los_Angeles` - America/Los_Angeles
-            * `America/Lower_Princes` - America/Lower_Princes
-            * `America/Maceio` - America/Maceio
-            * `America/Managua` - America/Managua
-            * `America/Manaus` - America/Manaus
-            * `America/Marigot` - America/Marigot
-            * `America/Martinique` - America/Martinique
-            * `America/Matamoros` - America/Matamoros
-            * `America/Mazatlan` - America/Mazatlan
-            * `America/Menominee` - America/Menominee
-            * `America/Merida` - America/Merida
-            * `America/Metlakatla` - America/Metlakatla
-            * `America/Mexico_City` - America/Mexico_City
-            * `America/Miquelon` - America/Miquelon
-            * `America/Moncton` - America/Moncton
-            * `America/Monterrey` - America/Monterrey
-            * `America/Montevideo` - America/Montevideo
-            * `America/Montserrat` - America/Montserrat
-            * `America/Nassau` - America/Nassau
-            * `America/New_York` - America/New_York
-            * `America/Nome` - America/Nome
-            * `America/Noronha` - America/Noronha
-            * `America/North_Dakota/Beulah` - America/North_Dakota/Beulah
-            * `America/North_Dakota/Center` - America/North_Dakota/Center
-            * `America/North_Dakota/New_Salem` - America/North_Dakota/New_Salem
-            * `America/Nuuk` - America/Nuuk
-            * `America/Ojinaga` - America/Ojinaga
-            * `America/Panama` - America/Panama
-            * `America/Paramaribo` - America/Paramaribo
-            * `America/Phoenix` - America/Phoenix
-            * `America/Port-au-Prince` - America/Port-au-Prince
-            * `America/Port_of_Spain` - America/Port_of_Spain
-            * `America/Porto_Velho` - America/Porto_Velho
-            * `America/Puerto_Rico` - America/Puerto_Rico
-            * `America/Punta_Arenas` - America/Punta_Arenas
-            * `America/Rankin_Inlet` - America/Rankin_Inlet
-            * `America/Recife` - America/Recife
-            * `America/Regina` - America/Regina
-            * `America/Resolute` - America/Resolute
-            * `America/Rio_Branco` - America/Rio_Branco
-            * `America/Santarem` - America/Santarem
-            * `America/Santiago` - America/Santiago
-            * `America/Santo_Domingo` - America/Santo_Domingo
-            * `America/Sao_Paulo` - America/Sao_Paulo
-            * `America/Scoresbysund` - America/Scoresbysund
-            * `America/Sitka` - America/Sitka
-            * `America/St_Barthelemy` - America/St_Barthelemy
-            * `America/St_Johns` - America/St_Johns
-            * `America/St_Kitts` - America/St_Kitts
-            * `America/St_Lucia` - America/St_Lucia
-            * `America/St_Thomas` - America/St_Thomas
-            * `America/St_Vincent` - America/St_Vincent
-            * `America/Swift_Current` - America/Swift_Current
-            * `America/Tegucigalpa` - America/Tegucigalpa
-            * `America/Thule` - America/Thule
-            * `America/Tijuana` - America/Tijuana
-            * `America/Toronto` - America/Toronto
-            * `America/Tortola` - America/Tortola
-            * `America/Vancouver` - America/Vancouver
-            * `America/Whitehorse` - America/Whitehorse
-            * `America/Winnipeg` - America/Winnipeg
-            * `America/Yakutat` - America/Yakutat
-            * `America/Yellowknife` - America/Yellowknife
-            * `Antarctica/Casey` - Antarctica/Casey
-            * `Antarctica/Davis` - Antarctica/Davis
-            * `Antarctica/DumontDUrville` - Antarctica/DumontDUrville
-            * `Antarctica/Macquarie` - Antarctica/Macquarie
-            * `Antarctica/Mawson` - Antarctica/Mawson
-            * `Antarctica/McMurdo` - Antarctica/McMurdo
-            * `Antarctica/Palmer` - Antarctica/Palmer
-            * `Antarctica/Rothera` - Antarctica/Rothera
-            * `Antarctica/Syowa` - Antarctica/Syowa
-            * `Antarctica/Troll` - Antarctica/Troll
-            * `Antarctica/Vostok` - Antarctica/Vostok
-            * `Arctic/Longyearbyen` - Arctic/Longyearbyen
-            * `Asia/Aden` - Asia/Aden
-            * `Asia/Almaty` - Asia/Almaty
-            * `Asia/Amman` - Asia/Amman
-            * `Asia/Anadyr` - Asia/Anadyr
-            * `Asia/Aqtau` - Asia/Aqtau
-            * `Asia/Aqtobe` - Asia/Aqtobe
-            * `Asia/Ashgabat` - Asia/Ashgabat
-            * `Asia/Atyrau` - Asia/Atyrau
-            * `Asia/Baghdad` - Asia/Baghdad
-            * `Asia/Bahrain` - Asia/Bahrain
-            * `Asia/Baku` - Asia/Baku
-            * `Asia/Bangkok` - Asia/Bangkok
-            * `Asia/Barnaul` - Asia/Barnaul
-            * `Asia/Beirut` - Asia/Beirut
-            * `Asia/Bishkek` - Asia/Bishkek
-            * `Asia/Brunei` - Asia/Brunei
-            * `Asia/Chita` - Asia/Chita
-            * `Asia/Choibalsan` - Asia/Choibalsan
-            * `Asia/Colombo` - Asia/Colombo
-            * `Asia/Damascus` - Asia/Damascus
-            * `Asia/Dhaka` - Asia/Dhaka
-            * `Asia/Dili` - Asia/Dili
-            * `Asia/Dubai` - Asia/Dubai
-            * `Asia/Dushanbe` - Asia/Dushanbe
-            * `Asia/Famagusta` - Asia/Famagusta
-            * `Asia/Gaza` - Asia/Gaza
-            * `Asia/Hebron` - Asia/Hebron
-            * `Asia/Ho_Chi_Minh` - Asia/Ho_Chi_Minh
-            * `Asia/Hong_Kong` - Asia/Hong_Kong
-            * `Asia/Hovd` - Asia/Hovd
-            * `Asia/Irkutsk` - Asia/Irkutsk
-            * `Asia/Jakarta` - Asia/Jakarta
-            * `Asia/Jayapura` - Asia/Jayapura
-            * `Asia/Jerusalem` - Asia/Jerusalem
-            * `Asia/Kabul` - Asia/Kabul
-            * `Asia/Kamchatka` - Asia/Kamchatka
-            * `Asia/Karachi` - Asia/Karachi
-            * `Asia/Kathmandu` - Asia/Kathmandu
-            * `Asia/Khandyga` - Asia/Khandyga
-            * `Asia/Kolkata` - Asia/Kolkata
-            * `Asia/Krasnoyarsk` - Asia/Krasnoyarsk
-            * `Asia/Kuala_Lumpur` - Asia/Kuala_Lumpur
-            * `Asia/Kuching` - Asia/Kuching
-            * `Asia/Kuwait` - Asia/Kuwait
-            * `Asia/Macau` - Asia/Macau
-            * `Asia/Magadan` - Asia/Magadan
-            * `Asia/Makassar` - Asia/Makassar
-            * `Asia/Manila` - Asia/Manila
-            * `Asia/Muscat` - Asia/Muscat
-            * `Asia/Nicosia` - Asia/Nicosia
-            * `Asia/Novokuznetsk` - Asia/Novokuznetsk
-            * `Asia/Novosibirsk` - Asia/Novosibirsk
-            * `Asia/Omsk` - Asia/Omsk
-            * `Asia/Oral` - Asia/Oral
-            * `Asia/Phnom_Penh` - Asia/Phnom_Penh
-            * `Asia/Pontianak` - Asia/Pontianak
-            * `Asia/Pyongyang` - Asia/Pyongyang
-            * `Asia/Qatar` - Asia/Qatar
-            * `Asia/Qostanay` - Asia/Qostanay
-            * `Asia/Qyzylorda` - Asia/Qyzylorda
-            * `Asia/Riyadh` - Asia/Riyadh
-            * `Asia/Sakhalin` - Asia/Sakhalin
-            * `Asia/Samarkand` - Asia/Samarkand
-            * `Asia/Seoul` - Asia/Seoul
-            * `Asia/Shanghai` - Asia/Shanghai
-            * `Asia/Singapore` - Asia/Singapore
-            * `Asia/Srednekolymsk` - Asia/Srednekolymsk
-            * `Asia/Taipei` - Asia/Taipei
-            * `Asia/Tashkent` - Asia/Tashkent
-            * `Asia/Tbilisi` - Asia/Tbilisi
-            * `Asia/Tehran` - Asia/Tehran
-            * `Asia/Thimphu` - Asia/Thimphu
-            * `Asia/Tokyo` - Asia/Tokyo
-            * `Asia/Tomsk` - Asia/Tomsk
-            * `Asia/Ulaanbaatar` - Asia/Ulaanbaatar
-            * `Asia/Urumqi` - Asia/Urumqi
-            * `Asia/Ust-Nera` - Asia/Ust-Nera
-            * `Asia/Vientiane` - Asia/Vientiane
-            * `Asia/Vladivostok` - Asia/Vladivostok
-            * `Asia/Yakutsk` - Asia/Yakutsk
-            * `Asia/Yangon` - Asia/Yangon
-            * `Asia/Yekaterinburg` - Asia/Yekaterinburg
-            * `Asia/Yerevan` - Asia/Yerevan
-            * `Atlantic/Azores` - Atlantic/Azores
-            * `Atlantic/Bermuda` - Atlantic/Bermuda
-            * `Atlantic/Canary` - Atlantic/Canary
-            * `Atlantic/Cape_Verde` - Atlantic/Cape_Verde
-            * `Atlantic/Faroe` - Atlantic/Faroe
-            * `Atlantic/Madeira` - Atlantic/Madeira
-            * `Atlantic/Reykjavik` - Atlantic/Reykjavik
-            * `Atlantic/South_Georgia` - Atlantic/South_Georgia
-            * `Atlantic/St_Helena` - Atlantic/St_Helena
-            * `Atlantic/Stanley` - Atlantic/Stanley
-            * `Australia/Adelaide` - Australia/Adelaide
-            * `Australia/Brisbane` - Australia/Brisbane
-            * `Australia/Broken_Hill` - Australia/Broken_Hill
-            * `Australia/Darwin` - Australia/Darwin
-            * `Australia/Eucla` - Australia/Eucla
-            * `Australia/Hobart` - Australia/Hobart
-            * `Australia/Lindeman` - Australia/Lindeman
-            * `Australia/Lord_Howe` - Australia/Lord_Howe
-            * `Australia/Melbourne` - Australia/Melbourne
-            * `Australia/Perth` - Australia/Perth
-            * `Australia/Sydney` - Australia/Sydney
-            * `Canada/Atlantic` - Canada/Atlantic
-            * `Canada/Central` - Canada/Central
-            * `Canada/Eastern` - Canada/Eastern
-            * `Canada/Mountain` - Canada/Mountain
-            * `Canada/Newfoundland` - Canada/Newfoundland
-            * `Canada/Pacific` - Canada/Pacific
-            * `Europe/Amsterdam` - Europe/Amsterdam
-            * `Europe/Andorra` - Europe/Andorra
-            * `Europe/Astrakhan` - Europe/Astrakhan
-            * `Europe/Athens` - Europe/Athens
-            * `Europe/Belgrade` - Europe/Belgrade
-            * `Europe/Berlin` - Europe/Berlin
-            * `Europe/Bratislava` - Europe/Bratislava
-            * `Europe/Brussels` - Europe/Brussels
-            * `Europe/Bucharest` - Europe/Bucharest
-            * `Europe/Budapest` - Europe/Budapest
-            * `Europe/Busingen` - Europe/Busingen
-            * `Europe/Chisinau` - Europe/Chisinau
-            * `Europe/Copenhagen` - Europe/Copenhagen
-            * `Europe/Dublin` - Europe/Dublin
-            * `Europe/Gibraltar` - Europe/Gibraltar
-            * `Europe/Guernsey` - Europe/Guernsey
-            * `Europe/Helsinki` - Europe/Helsinki
-            * `Europe/Isle_of_Man` - Europe/Isle_of_Man
-            * `Europe/Istanbul` - Europe/Istanbul
-            * `Europe/Jersey` - Europe/Jersey
-            * `Europe/Kaliningrad` - Europe/Kaliningrad
-            * `Europe/Kirov` - Europe/Kirov
-            * `Europe/Kyiv` - Europe/Kyiv
-            * `Europe/Lisbon` - Europe/Lisbon
-            * `Europe/Ljubljana` - Europe/Ljubljana
-            * `Europe/London` - Europe/London
-            * `Europe/Luxembourg` - Europe/Luxembourg
-            * `Europe/Madrid` - Europe/Madrid
-            * `Europe/Malta` - Europe/Malta
-            * `Europe/Mariehamn` - Europe/Mariehamn
-            * `Europe/Minsk` - Europe/Minsk
-            * `Europe/Monaco` - Europe/Monaco
-            * `Europe/Moscow` - Europe/Moscow
-            * `Europe/Oslo` - Europe/Oslo
-            * `Europe/Paris` - Europe/Paris
-            * `Europe/Podgorica` - Europe/Podgorica
-            * `Europe/Prague` - Europe/Prague
-            * `Europe/Riga` - Europe/Riga
-            * `Europe/Rome` - Europe/Rome
-            * `Europe/Samara` - Europe/Samara
-            * `Europe/San_Marino` - Europe/San_Marino
-            * `Europe/Sarajevo` - Europe/Sarajevo
-            * `Europe/Saratov` - Europe/Saratov
-            * `Europe/Simferopol` - Europe/Simferopol
-            * `Europe/Skopje` - Europe/Skopje
-            * `Europe/Sofia` - Europe/Sofia
-            * `Europe/Stockholm` - Europe/Stockholm
-            * `Europe/Tallinn` - Europe/Tallinn
-            * `Europe/Tirane` - Europe/Tirane
-            * `Europe/Ulyanovsk` - Europe/Ulyanovsk
-            * `Europe/Vaduz` - Europe/Vaduz
-            * `Europe/Vatican` - Europe/Vatican
-            * `Europe/Vienna` - Europe/Vienna
-            * `Europe/Vilnius` - Europe/Vilnius
-            * `Europe/Volgograd` - Europe/Volgograd
-            * `Europe/Warsaw` - Europe/Warsaw
-            * `Europe/Zagreb` - Europe/Zagreb
-            * `Europe/Zurich` - Europe/Zurich
-            * `GMT` - GMT
-            * `Indian/Antananarivo` - Indian/Antananarivo
-            * `Indian/Chagos` - Indian/Chagos
-            * `Indian/Christmas` - Indian/Christmas
-            * `Indian/Cocos` - Indian/Cocos
-            * `Indian/Comoro` - Indian/Comoro
-            * `Indian/Kerguelen` - Indian/Kerguelen
-            * `Indian/Mahe` - Indian/Mahe
-            * `Indian/Maldives` - Indian/Maldives
-            * `Indian/Mauritius` - Indian/Mauritius
-            * `Indian/Mayotte` - Indian/Mayotte
-            * `Indian/Reunion` - Indian/Reunion
-            * `Pacific/Apia` - Pacific/Apia
-            * `Pacific/Auckland` - Pacific/Auckland
-            * `Pacific/Bougainville` - Pacific/Bougainville
-            * `Pacific/Chatham` - Pacific/Chatham
-            * `Pacific/Chuuk` - Pacific/Chuuk
-            * `Pacific/Easter` - Pacific/Easter
-            * `Pacific/Efate` - Pacific/Efate
-            * `Pacific/Fakaofo` - Pacific/Fakaofo
-            * `Pacific/Fiji` - Pacific/Fiji
-            * `Pacific/Funafuti` - Pacific/Funafuti
-            * `Pacific/Galapagos` - Pacific/Galapagos
-            * `Pacific/Gambier` - Pacific/Gambier
-            * `Pacific/Guadalcanal` - Pacific/Guadalcanal
-            * `Pacific/Guam` - Pacific/Guam
-            * `Pacific/Honolulu` - Pacific/Honolulu
-            * `Pacific/Kanton` - Pacific/Kanton
-            * `Pacific/Kiritimati` - Pacific/Kiritimati
-            * `Pacific/Kosrae` - Pacific/Kosrae
-            * `Pacific/Kwajalein` - Pacific/Kwajalein
-            * `Pacific/Majuro` - Pacific/Majuro
-            * `Pacific/Marquesas` - Pacific/Marquesas
-            * `Pacific/Midway` - Pacific/Midway
-            * `Pacific/Nauru` - Pacific/Nauru
-            * `Pacific/Niue` - Pacific/Niue
-            * `Pacific/Norfolk` - Pacific/Norfolk
-            * `Pacific/Noumea` - Pacific/Noumea
-            * `Pacific/Pago_Pago` - Pacific/Pago_Pago
-            * `Pacific/Palau` - Pacific/Palau
-            * `Pacific/Pitcairn` - Pacific/Pitcairn
-            * `Pacific/Pohnpei` - Pacific/Pohnpei
-            * `Pacific/Port_Moresby` - Pacific/Port_Moresby
-            * `Pacific/Rarotonga` - Pacific/Rarotonga
-            * `Pacific/Saipan` - Pacific/Saipan
-            * `Pacific/Tahiti` - Pacific/Tahiti
-            * `Pacific/Tarawa` - Pacific/Tarawa
-            * `Pacific/Tongatapu` - Pacific/Tongatapu
-            * `Pacific/Wake` - Pacific/Wake
-            * `Pacific/Wallis` - Pacific/Wallis
-            * `US/Alaska` - US/Alaska
-            * `US/Arizona` - US/Arizona
-            * `US/Central` - US/Central
-            * `US/Eastern` - US/Eastern
-            * `US/Hawaii` - US/Hawaii
-            * `US/Mountain` - US/Mountain
-            * `US/Pacific` - US/Pacific
-            * `UTC` - UTC
+        has_payment_method:
+          type: boolean
       required:
-      - customer_id
-      - default_currency
-      - email
-      - payment_provider
-      - timezone
+      - has_payment_method
+      - munim_id
     CustomerStripeIntegration:
       type: object
       properties:
@@ -9607,7 +8822,6 @@ components:
           type: string
           nullable: true
           description: The display name of the customer
-          maxLength: 100
         customer_id:
           type: string
           nullable: true
@@ -9837,7 +9051,6 @@ components:
           - America/Whitehorse
           - America/Winnipeg
           - America/Yakutat
-          - America/Yellowknife
           - Antarctica/Casey
           - Antarctica/Davis
           - Antarctica/DumontDUrville
@@ -10273,7 +9486,6 @@ components:
             * `America/Whitehorse` - America/Whitehorse
             * `America/Winnipeg` - America/Winnipeg
             * `America/Yakutat` - America/Yakutat
-            * `America/Yellowknife` - America/Yellowknife
             * `Antarctica/Casey` - Antarctica/Casey
             * `Antarctica/Davis` - Antarctica/Davis
             * `Antarctica/DumontDUrville` - Antarctica/DumontDUrville
@@ -10549,7 +9761,7 @@ components:
       required:
       - customer_usages
       - date
-    DeleteAddOn:
+    DeleteAddOnResponse:
       type: object
       properties:
         success:
@@ -10728,10 +9940,12 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
         external_plan_id:
           type: string
           maxLength: 100
@@ -10749,10 +9963,12 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
         external_plan_id:
           type: string
           minLength: 1
@@ -10857,11 +10073,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ComponentUsage'
-          description: "The usage of each component of the plan the customer is on.\
-            \ Only components that match the request will be included: If metric_id\
-            \ is provided, this will be a list of length 1. If event_name is provided,\
-            \ this will be a list of length 1 or more depending on how many components\
-            \ of the customer's plan use this event."
+          description: "The usage of each component of the plan the customer is on.
+            Only components that match the request will be included: If metric_id
+            is provided, this will be a list of length 1. If event_name is provided,
+            this will be a list of length 1 or more depending on how many components
+            of the customer's plan use this event."
       required:
       - plan_id
       - subscription_filters
@@ -10927,10 +10143,12 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
       required:
       - source
     ImportPaymentObjectFailure:
@@ -10966,10 +10184,12 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
       required:
       - source
     ImportSubscriptionsFailure:
@@ -11023,6 +10243,9 @@ components:
           items:
             $ref: '#/components/schemas/RecurringChargeCreateRequest'
           nullable: true
+        currency_code:
+          type: string
+          minLength: 1
         billing_frequency:
           enum:
           - one_time
@@ -11030,9 +10253,16 @@ components:
           description: |-
             * `one_time` - one_time
             * `recurring` - recurring
-        currency_code:
-          type: string
-          minLength: 1
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanComponentCreateRequest'
+          nullable: true
+        features:
+          type: array
+          items:
+            type: string
+            format: uuid
         invoice_when:
           enum:
           - invoice_on_attach
@@ -11040,16 +10270,6 @@ components:
           description: |-
             * `invoice_on_attach` - invoice_on_attach
             * `invoice_on_subscription_end` - invoice_on_subscription_end
-        features:
-          type: array
-          items:
-            type: string
-            format: uuid
-        components:
-          type: array
-          items:
-            $ref: '#/components/schemas/PlanComponentCreateRequest'
-          nullable: true
       required:
       - billing_frequency
       - currency_code
@@ -11061,10 +10281,12 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
         external_plan_id:
           type: string
           maxLength: 100
@@ -11078,10 +10300,12 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
         external_plan_id:
           type: string
           minLength: 1
@@ -11092,41 +10316,38 @@ components:
     InitialPlanVersionCreateRequest:
       type: object
       properties:
-        version:
-          type: integer
-        price_adjustment:
-          $ref: '#/components/schemas/PriceAdjustmentRequest'
-        month_anchor:
-          type: integer
-          maximum: 12
-          minimum: 1
-          writeOnly: true
-          nullable: true
-        recurring_charges:
-          type: array
-          items:
-            $ref: '#/components/schemas/RecurringChargeCreateRequest'
-        currency_code:
-          type: string
-          minLength: 1
-        localized_name:
-          type: string
-          writeOnly: true
-          nullable: true
         day_anchor:
           type: integer
           maximum: 31
           minimum: 1
           writeOnly: true
           nullable: true
-        make_active:
-          type: boolean
-          default: false
-        features:
+        localized_name:
+          type: string
+          writeOnly: true
+          nullable: true
+        price_adjustment:
+          $ref: '#/components/schemas/PriceAdjustmentRequest'
+        version:
+          type: integer
+        recurring_charges:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecurringChargeCreateRequest'
+        target_customer_ids:
           type: array
           items:
             type: string
-            format: uuid
+            nullable: true
+            minLength: 1
+            description: The id provided when creating the customer, we suggest matching
+              with your internal customer id in your backend
+        currency_code:
+          type: string
+          minLength: 1
+        make_active:
+          type: boolean
+          default: false
         make_active_type:
           enum:
           - replace_on_renewal
@@ -11140,14 +10361,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PlanComponentCreateRequest'
-        target_customer_ids:
+        features:
           type: array
           items:
             type: string
-            nullable: true
-            minLength: 1
-            description: The id provided when creating the customer, we suggest matching
-              with your internal customer id in your backend
+            format: uuid
+        month_anchor:
+          type: integer
+          maximum: 12
+          minimum: 1
+          writeOnly: true
+          nullable: true
       required:
       - currency_code
       - version
@@ -11229,11 +10453,13 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           - 
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
           nullable: true
         external_payment_obj_status:
           type: string
@@ -11281,24 +10507,46 @@ components:
       - payment_status
       - seller
       - start_date
-    InvoiceCreatedRequest:
+    InvoiceCreated:
       type: object
       properties:
         payload:
-          $ref: '#/components/schemas/InvoiceRequest'
+          $ref: '#/components/schemas/Invoice'
+        event_type:
+          type: string
+          readOnly: true
+          default: invoice.created
       required:
+      - event_type
       - payload
     InvoiceDetail:
       type: object
       properties:
-        invoice_id:
-          type: string
         line_items:
           type: array
           items:
             $ref: '#/components/schemas/InvoiceLineItem'
-        seller:
-          $ref: '#/components/schemas/Seller'
+        currency:
+          $ref: '#/components/schemas/PricingUnit'
+        end_date:
+          type: string
+          format: date
+          readOnly: true
+        cost_due:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: 0
+          exclusiveMaximum: true
+          deprecated: true
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+        issue_date:
+          type: string
+          format: date-time
+          readOnly: true
         payment_status:
           enum:
           - draft
@@ -11311,6 +10559,21 @@ components:
             * `paid` - paid
             * `unpaid` - unpaid
           readOnly: true
+        crm_provider_url:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        crm_provider:
+          enum:
+          - salesforce
+          type: string
+          description: '* `salesforce` - salesforce'
+          readOnly: true
+        invoice_id:
+          type: string
+        seller:
+          $ref: '#/components/schemas/Seller'
         amount:
           type: number
           format: double
@@ -11319,79 +10582,49 @@ components:
           exclusiveMaximum: true
           exclusiveMinimum: true
           readOnly: true
-        currency:
-          $ref: '#/components/schemas/PricingUnit'
-        cost_due:
-          type: number
-          format: double
-          maximum: 10000000000
-          minimum: 0
-          exclusiveMaximum: true
-          deprecated: true
-        crm_provider_url:
-          type: string
-          format: uri
-          nullable: true
-          readOnly: true
-        start_date:
-          type: string
-          format: date
-          readOnly: true
-        end_date:
-          type: string
-          format: date
-          readOnly: true
-        crm_provider_id:
-          type: string
-          nullable: true
-          readOnly: true
-        customer:
-          $ref: '#/components/schemas/LightweightCustomerSerializerForInvoice'
-        external_payment_obj_url:
-          type: string
-          format: uri
-          nullable: true
-          readOnly: true
         invoice_pdf:
           type: string
           format: uri
           readOnly: true
           nullable: true
-        external_payment_obj_type:
-          enum:
-          - stripe
-          - braintree
-          - 
-          type: string
-          description: |-
-            * `stripe` - Stripe
-            * `braintree` - Braintree
-          nullable: true
         external_payment_obj_id:
           type: string
           readOnly: true
           nullable: true
-        invoice_number:
+        customer:
+          $ref: '#/components/schemas/LightweightCustomerSerializerForInvoice'
+        crm_provider_id:
           type: string
-          readOnly: true
-        crm_provider:
-          enum:
-          - salesforce
-          type: string
-          description: '* `salesforce` - salesforce'
+          nullable: true
           readOnly: true
         due_date:
           type: string
           format: date-time
           readOnly: true
           nullable: true
-        issue_date:
-          type: string
-          format: date-time
-          readOnly: true
         external_payment_obj_status:
           type: string
           nullable: true
+        external_payment_obj_type:
+          enum:
+          - stripe
+          - braintree
+          - munim
+          - 
+          type: string
+          description: |-
+            * `stripe` - Stripe
+            * `braintree` - Braintree
+            * `munim` - Munim
+          nullable: true
+        invoice_number:
+          type: string
+          readOnly: true
+        external_payment_obj_url:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
       required:
       - amount
       - cost_due
@@ -11416,15 +10649,10 @@ components:
     InvoiceDetailRequest:
       type: object
       properties:
-        invoice_id:
-          type: string
-          minLength: 1
         line_items:
           type: array
           items:
             $ref: '#/components/schemas/InvoiceLineItemRequest'
-        seller:
-          $ref: '#/components/schemas/SellerRequest'
         currency:
           $ref: '#/components/schemas/PricingUnitRequest'
         cost_due:
@@ -11434,18 +10662,25 @@ components:
           minimum: 0
           exclusiveMaximum: true
           deprecated: true
+        invoice_id:
+          type: string
+          minLength: 1
+        seller:
+          $ref: '#/components/schemas/SellerRequest'
+        external_payment_obj_status:
+          type: string
+          nullable: true
         external_payment_obj_type:
           enum:
           - stripe
           - braintree
+          - munim
           - 
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
-          nullable: true
-        external_payment_obj_status:
-          type: string
+            * `munim` - Munim
           nullable: true
       required:
       - cost_due
@@ -11642,19 +10877,29 @@ components:
       - quantity
       - start_date
       - subtotal
-    InvoicePaidRequest:
+    InvoicePaid:
       type: object
       properties:
         payload:
-          $ref: '#/components/schemas/InvoiceRequest'
+          $ref: '#/components/schemas/Invoice'
+        event_type:
+          type: string
+          readOnly: true
+          default: invoice.paid
       required:
+      - event_type
       - payload
-    InvoicePastDueRequest:
+    InvoicePastDue:
       type: object
       properties:
         payload:
-          $ref: '#/components/schemas/InvoiceRequest'
+          $ref: '#/components/schemas/Invoice'
+        event_type:
+          type: string
+          readOnly: true
+          default: invoice.past_due
       required:
+      - event_type
       - payload
     InvoicePayment:
       type: object
@@ -11684,11 +10929,13 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           - lotus_out_of_band
           type: string
           description: |-
             * `stripe` - stripe
             * `braintree` - braintree
+            * `munim` - munim
             * `lotus_out_of_band` - lotus_out_of_band
           readOnly: true
       required:
@@ -11699,47 +10946,6 @@ components:
       - invoice_number
       - payment_date
       - source
-    InvoiceRequest:
-      type: object
-      properties:
-        invoice_id:
-          type: string
-          minLength: 1
-        cost_due:
-          type: number
-          format: double
-          maximum: 10000000000
-          minimum: 0
-          exclusiveMaximum: true
-          deprecated: true
-        currency:
-          $ref: '#/components/schemas/PricingUnitRequest'
-        external_payment_obj_type:
-          enum:
-          - stripe
-          - braintree
-          - 
-          type: string
-          description: |-
-            * `stripe` - Stripe
-            * `braintree` - Braintree
-          nullable: true
-        external_payment_obj_status:
-          type: string
-          nullable: true
-        line_items:
-          type: array
-          items:
-            $ref: '#/components/schemas/InvoiceLineItemRequest'
-        seller:
-          $ref: '#/components/schemas/SellerRequest'
-      required:
-      - cost_due
-      - currency
-      - external_payment_obj_type
-      - invoice_id
-      - line_items
-      - seller
     LightweightAddOn:
       type: object
       properties:
@@ -11768,20 +10974,6 @@ components:
       - addon_name
       - addon_type
       - billing_frequency
-    LightweightAddOnRequest:
-      type: object
-      properties:
-        addon_name:
-          type: string
-          minLength: 1
-          description: The name of the add-on plan.
-        addon_id:
-          type: string
-          minLength: 1
-          description: The ID of the add-on plan.
-      required:
-      - addon_id
-      - addon_name
     LightweightAddOnSubscriptionRecord:
       type: object
       properties:
@@ -11810,17 +11002,6 @@ components:
       - end_date
       - fully_billed
       - start_date
-    LightweightAddOnSubscriptionRecordRequest:
-      type: object
-      properties:
-        addon_subscription_id:
-          type: string
-          minLength: 1
-        addon:
-          $ref: '#/components/schemas/LightweightAddOnRequest'
-      required:
-      - addon
-      - addon_subscription_id
     LightweightCustomer:
       type: object
       properties:
@@ -11879,10 +11060,27 @@ components:
     LightweightInvoice:
       type: object
       properties:
-        invoice_id:
+        currency:
+          $ref: '#/components/schemas/PricingUnit'
+        end_date:
           type: string
-        seller:
-          $ref: '#/components/schemas/Seller'
+          format: date
+          readOnly: true
+        cost_due:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: 0
+          exclusiveMaximum: true
+          deprecated: true
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+        issue_date:
+          type: string
+          format: date-time
+          readOnly: true
         payment_status:
           enum:
           - draft
@@ -11895,6 +11093,10 @@ components:
             * `paid` - paid
             * `unpaid` - unpaid
           readOnly: true
+        invoice_id:
+          type: string
+        seller:
+          $ref: '#/components/schemas/Seller'
         amount:
           type: number
           format: double
@@ -11903,57 +11105,38 @@ components:
           exclusiveMaximum: true
           exclusiveMinimum: true
           readOnly: true
-        currency:
-          $ref: '#/components/schemas/PricingUnit'
-        cost_due:
-          type: number
-          format: double
-          maximum: 10000000000
-          minimum: 0
-          exclusiveMaximum: true
-          deprecated: true
-        start_date:
-          type: string
-          format: date
-          readOnly: true
-        end_date:
-          type: string
-          format: date
-          readOnly: true
         invoice_pdf:
           type: string
           format: uri
           readOnly: true
           nullable: true
-        external_payment_obj_type:
-          enum:
-          - stripe
-          - braintree
-          - 
-          type: string
-          description: |-
-            * `stripe` - Stripe
-            * `braintree` - Braintree
-          nullable: true
         external_payment_obj_id:
           type: string
           readOnly: true
           nullable: true
-        invoice_number:
-          type: string
-          readOnly: true
         due_date:
           type: string
           format: date-time
           readOnly: true
           nullable: true
-        issue_date:
-          type: string
-          format: date-time
-          readOnly: true
         external_payment_obj_status:
           type: string
           nullable: true
+        external_payment_obj_type:
+          enum:
+          - stripe
+          - braintree
+          - munim
+          - 
+          type: string
+          description: |-
+            * `stripe` - Stripe
+            * `braintree` - Braintree
+            * `munim` - Munim
+          nullable: true
+        invoice_number:
+          type: string
+          readOnly: true
       required:
       - amount
       - cost_due
@@ -11972,10 +11155,27 @@ components:
     LightweightInvoiceDetail:
       type: object
       properties:
-        invoice_id:
+        currency:
+          $ref: '#/components/schemas/PricingUnit'
+        end_date:
           type: string
-        seller:
-          $ref: '#/components/schemas/Seller'
+          format: date
+          readOnly: true
+        cost_due:
+          type: number
+          format: double
+          maximum: 10000000000
+          minimum: 0
+          exclusiveMaximum: true
+          deprecated: true
+        start_date:
+          type: string
+          format: date
+          readOnly: true
+        issue_date:
+          type: string
+          format: date-time
+          readOnly: true
         payment_status:
           enum:
           - draft
@@ -11988,15 +11188,17 @@ components:
             * `paid` - paid
             * `unpaid` - unpaid
           readOnly: true
-        cost_due:
-          type: number
-          format: double
-          maximum: 10000000000
-          minimum: 0
-          exclusiveMaximum: true
-          deprecated: true
-        currency:
-          $ref: '#/components/schemas/PricingUnit'
+        crm_provider_url:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        crm_provider:
+          enum:
+          - salesforce
+          type: string
+          description: '* `salesforce` - salesforce'
+          readOnly: true
         amount:
           type: number
           format: double
@@ -12005,68 +11207,51 @@ components:
           exclusiveMaximum: true
           exclusiveMinimum: true
           readOnly: true
-        crm_provider_url:
+        seller:
+          $ref: '#/components/schemas/Seller'
+        invoice_id:
           type: string
-          format: uri
-          nullable: true
-          readOnly: true
-        start_date:
-          type: string
-          format: date
-          readOnly: true
-        end_date:
-          type: string
-          format: date
-          readOnly: true
-        crm_provider_id:
-          type: string
-          nullable: true
-          readOnly: true
-        external_payment_obj_url:
-          type: string
-          format: uri
-          nullable: true
-          readOnly: true
         invoice_pdf:
           type: string
           format: uri
           readOnly: true
           nullable: true
-        external_payment_obj_type:
-          enum:
-          - stripe
-          - braintree
-          - 
-          type: string
-          description: |-
-            * `stripe` - Stripe
-            * `braintree` - Braintree
-          nullable: true
         external_payment_obj_id:
           type: string
           readOnly: true
           nullable: true
-        invoice_number:
+        crm_provider_id:
           type: string
-          readOnly: true
-        crm_provider:
-          enum:
-          - salesforce
-          type: string
-          description: '* `salesforce` - salesforce'
+          nullable: true
           readOnly: true
         due_date:
           type: string
           format: date-time
           readOnly: true
           nullable: true
-        issue_date:
-          type: string
-          format: date-time
-          readOnly: true
         external_payment_obj_status:
           type: string
           nullable: true
+        external_payment_obj_type:
+          enum:
+          - stripe
+          - braintree
+          - munim
+          - 
+          type: string
+          description: |-
+            * `stripe` - Stripe
+            * `braintree` - Braintree
+            * `munim` - Munim
+          nullable: true
+        invoice_number:
+          type: string
+          readOnly: true
+        external_payment_obj_url:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
       required:
       - amount
       - cost_due
@@ -12108,7 +11293,6 @@ components:
           type: string
         organization_name:
           type: string
-          maxLength: 100
         organization_type:
           enum:
           - Production
@@ -12165,60 +11349,52 @@ components:
       - plan_name
       - version
       - version_id
-    LightweightPlanVersionRequest:
-      type: object
-      properties:
-        plan_id:
-          type: string
-          minLength: 1
-      required:
-      - plan_id
     LightweightSubscriptionRecord:
       type: object
       properties:
-        fully_billed:
-          type: boolean
-          readOnly: true
-        plan_detail:
-          allOf:
-          - $ref: '#/components/schemas/LightweightPlanVersion'
-          readOnly: true
-        subscription_id:
-          type: string
         metadata:
           type: object
           additionalProperties: {}
-        subscription_filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/SubscriptionFilter'
-          readOnly: true
-        addons:
-          type: array
-          items:
-            $ref: '#/components/schemas/LightweightAddOnSubscriptionRecord'
-        is_new:
-          type: boolean
-          description: Whether this subscription came from a renewal or from a first-time.
-            Defaults to true on creation.
-        customer:
-          $ref: '#/components/schemas/LightweightCustomer'
-        billing_plan:
-          $ref: '#/components/schemas/LightweightPlanVersion'
-        start_date:
-          type: string
-          format: date-time
-          description: The time the subscription starts. This will be a string in
-            yyyy-mm-dd HH:mm:ss format in UTC time.
         end_date:
           type: string
           format: date-time
           description: The time the subscription starts. This will be a string in
             yyyy-mm-dd HH:mm:ss format in UTC time.
+        subscription_id:
+          type: string
+        addons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LightweightAddOnSubscriptionRecord'
+        customer:
+          $ref: '#/components/schemas/LightweightCustomer'
+        is_new:
+          type: boolean
+          description: Whether this subscription came from a renewal or from a first-time.
+            Defaults to true on creation.
+        start_date:
+          type: string
+          format: date-time
+          description: The time the subscription starts. This will be a string in
+            yyyy-mm-dd HH:mm:ss format in UTC time.
+        billing_plan:
+          $ref: '#/components/schemas/LightweightPlanVersion'
+        plan_detail:
+          allOf:
+          - $ref: '#/components/schemas/LightweightPlanVersion'
+          readOnly: true
+        subscription_filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionFilter'
+          readOnly: true
         auto_renew:
           type: boolean
           description: Whether the subscription automatically renews. Defaults to
             true.
+        fully_billed:
+          type: boolean
+          readOnly: true
       required:
       - addons
       - auto_renew
@@ -12231,48 +11407,6 @@ components:
       - plan_detail
       - start_date
       - subscription_filters
-      - subscription_id
-    LightweightSubscriptionRecordRequest:
-      type: object
-      properties:
-        subscription_id:
-          type: string
-          minLength: 1
-        metadata:
-          type: object
-          additionalProperties: {}
-        addons:
-          type: array
-          items:
-            $ref: '#/components/schemas/LightweightAddOnSubscriptionRecordRequest'
-        is_new:
-          type: boolean
-          description: Whether this subscription came from a renewal or from a first-time.
-            Defaults to true on creation.
-        billing_plan:
-          $ref: '#/components/schemas/LightweightPlanVersionRequest'
-        start_date:
-          type: string
-          format: date-time
-          description: The time the subscription starts. This will be a string in
-            yyyy-mm-dd HH:mm:ss format in UTC time.
-        end_date:
-          type: string
-          format: date-time
-          description: The time the subscription starts. This will be a string in
-            yyyy-mm-dd HH:mm:ss format in UTC time.
-        auto_renew:
-          type: boolean
-          description: Whether the subscription automatically renews. Defaults to
-            true.
-      required:
-      - addons
-      - auto_renew
-      - billing_plan
-      - end_date
-      - is_new
-      - metadata
-      - start_date
       - subscription_id
     LightweightUser:
       type: object
@@ -12589,7 +11723,6 @@ components:
           writeOnly: true
           minLength: 1
           description: Name of the event that this metric is tracking.
-          maxLength: 50
         property_name:
           type: string
           writeOnly: true
@@ -12598,7 +11731,6 @@ components:
           description: The name of the property of the event that should be used for
             this metric. Doesn't apply if the metric is of type 'counter' with an
             aggregation of count.
-          maxLength: 50
         usage_aggregation_type:
           enum:
           - count
@@ -12751,6 +11883,27 @@ components:
     MetricDetail:
       type: object
       properties:
+        custom_sql:
+          type: string
+          readOnly: true
+          nullable: true
+          description: A custom SQL query that can be used to define the metric. Please
+            refer to our documentation for more information.
+        metric_type:
+          enum:
+          - counter
+          - rate
+          - custom
+          - gauge
+          type: string
+          readOnly: true
+          description: |-
+            The type of metric that this is. Please refer to our documentation for an explanation of the different types.
+
+            * `counter` - Counter
+            * `rate` - Rate
+            * `custom` - Custom
+            * `gauge` - Gauge
         metric_name:
           type: string
         numeric_filters:
@@ -12787,25 +11940,32 @@ components:
             * `quarters` - Quarter
             * `years` - Year
             * `total` - Total
-        event_name:
-          type: string
-          readOnly: true
-          description: Name of the event that this metric is tracking.
-        metric_type:
+        event_type:
           enum:
-          - counter
-          - rate
-          - custom
-          - gauge
+          - delta
+          - total
+          - 
           type: string
           readOnly: true
+          nullable: true
           description: |-
-            The type of metric that this is. Please refer to our documentation for an explanation of the different types.
+            Used only for metrics of type 'gauge'. Please refer to our documentation for an explanation of the different types.
 
-            * `counter` - Counter
-            * `rate` - Rate
-            * `custom` - Custom
-            * `gauge` - Gauge
+            * `delta` - Delta
+            * `total` - Total
+        property_name:
+          type: string
+          readOnly: true
+          nullable: true
+          description: The name of the property of the event that should be used for
+            this metric. Doesn't apply if the metric is of type 'counter' with an
+            aggregation of count.
+        metric_id:
+          type: string
+        categorical_filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoricalFilter'
         granularity:
           enum:
           - seconds
@@ -12831,38 +11991,10 @@ components:
             * `quarters` - Quarter
             * `years` - Year
             * `total` - Total
-        property_name:
+        event_name:
           type: string
           readOnly: true
-          nullable: true
-          description: The name of the property of the event that should be used for
-            this metric. Doesn't apply if the metric is of type 'counter' with an
-            aggregation of count.
-        event_type:
-          enum:
-          - delta
-          - total
-          - 
-          type: string
-          readOnly: true
-          nullable: true
-          description: |-
-            Used only for metrics of type 'gauge'. Please refer to our documentation for an explanation of the different types.
-
-            * `delta` - Delta
-            * `total` - Total
-        metric_id:
-          type: string
-        custom_sql:
-          type: string
-          readOnly: true
-          nullable: true
-          description: A custom SQL query that can be used to define the metric. Please
-            refer to our documentation for more information.
-        categorical_filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/CategoricalFilter'
+          description: Name of the event that this metric is tracking.
         usage_aggregation_type:
           enum:
           - count
@@ -12913,32 +12045,6 @@ components:
       - numeric_filters
       - property_name
       - proration
-    MetricRequest:
-      type: object
-      properties:
-        metric_id:
-          type: string
-          minLength: 1
-        aggregation_type:
-          type: string
-          minLength: 1
-        metric_name:
-          type: string
-          minLength: 1
-        numeric_filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/NumericFilterRequest'
-        categorical_filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/CategoricalFilterRequest'
-      required:
-      - aggregation_type
-      - categorical_filters
-      - metric_id
-      - metric_name
-      - numeric_filters
     MetricRevenue:
       type: object
       properties:
@@ -12960,7 +12066,6 @@ components:
         billable_metric_name:
           type: string
           nullable: true
-          maxLength: 50
         status:
           enum:
           - active
@@ -13031,34 +12136,6 @@ components:
       - comparison_value
       - operator
       - property_name
-    NumericFilterRequest:
-      type: object
-      properties:
-        property_name:
-          type: string
-          minLength: 1
-          maxLength: 100
-        operator:
-          enum:
-          - gte
-          - gt
-          - eq
-          - lt
-          - lte
-          type: string
-          description: |-
-            * `gte` - Greater than or equal to
-            * `gt` - Greater than
-            * `eq` - Equal to
-            * `lt` - Less than
-            * `lte` - Less than or equal to
-        comparison_value:
-          type: number
-          format: double
-      required:
-      - comparison_value
-      - operator
-      - property_name
     Organization:
       type: object
       properties:
@@ -13066,7 +12143,6 @@ components:
           type: string
         organization_name:
           type: string
-          maxLength: 100
         users:
           type: array
           items:
@@ -13092,8 +12168,10 @@ components:
           nullable: true
           description: Tax rate as percentage. For example, 10.5 for 10.5%
         payment_grace_period:
-          type: string
-          readOnly: true
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
         linked_organizations:
           type: array
           items:
@@ -13313,7 +12391,6 @@ components:
           - America/Whitehorse
           - America/Winnipeg
           - America/Yakutat
-          - America/Yellowknife
           - Antarctica/Casey
           - Antarctica/Davis
           - Antarctica/DumontDUrville
@@ -13749,7 +12826,6 @@ components:
             * `America/Whitehorse` - America/Whitehorse
             * `America/Winnipeg` - America/Winnipeg
             * `America/Yakutat` - America/Yakutat
-            * `America/Yellowknife` - America/Yellowknife
             * `Antarctica/Casey` - Antarctica/Casey
             * `Antarctica/Davis` - Antarctica/Davis
             * `Antarctica/DumontDUrville` - Antarctica/DumontDUrville
@@ -13996,6 +13072,10 @@ components:
           type: string
           nullable: true
           readOnly: true
+        munim_account_id:
+          type: string
+          nullable: true
+          readOnly: true
         tax_providers:
           type: array
           items:
@@ -14014,6 +13094,8 @@ components:
           type: boolean
         gen_cust_in_braintree_after_lotus:
           type: boolean
+        gen_cust_in_munim_after_lotus:
+          type: boolean
         lotus_is_customer_source_for_salesforce:
           type: boolean
       required:
@@ -14024,9 +13106,9 @@ components:
       - current_user
       - default_currency
       - linked_organizations
+      - munim_account_id
       - organization_id
       - organization_name
-      - payment_grace_period
       - plan_tags
       - stripe_account_id
       - tax_providers
@@ -14039,7 +13121,6 @@ components:
         organization_name:
           type: string
           minLength: 1
-          maxLength: 100
         default_currency_code:
           type: string
           minLength: 1
@@ -14354,7 +13435,6 @@ components:
           - America/Whitehorse
           - America/Winnipeg
           - America/Yakutat
-          - America/Yellowknife
           - Antarctica/Casey
           - Antarctica/Davis
           - Antarctica/DumontDUrville
@@ -14790,7 +13870,6 @@ components:
             * `America/Whitehorse` - America/Whitehorse
             * `America/Winnipeg` - America/Winnipeg
             * `America/Yakutat` - America/Yakutat
-            * `America/Yellowknife` - America/Yellowknife
             * `Antarctica/Casey` - Antarctica/Casey
             * `Antarctica/Davis` - Antarctica/Davis
             * `Antarctica/DumontDUrville` - Antarctica/DumontDUrville
@@ -15049,7 +14128,6 @@ components:
         billable_metric_name:
           type: string
           nullable: true
-          maxLength: 50
         status:
           enum:
           - active
@@ -15287,7 +14365,6 @@ components:
           - America/Whitehorse
           - America/Winnipeg
           - America/Yakutat
-          - America/Yellowknife
           - Antarctica/Casey
           - Antarctica/Davis
           - Antarctica/DumontDUrville
@@ -15723,7 +14800,6 @@ components:
             * `America/Whitehorse` - America/Whitehorse
             * `America/Winnipeg` - America/Winnipeg
             * `America/Yakutat` - America/Yakutat
-            * `America/Yellowknife` - America/Yellowknife
             * `Antarctica/Casey` - Antarctica/Casey
             * `Antarctica/Davis` - Antarctica/Davis
             * `Antarctica/DumontDUrville` - Antarctica/DumontDUrville
@@ -15966,12 +15042,14 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             To udpate a payment provider's ID, specify the payment provider you want to update in this field, and the payment_provider_id in the corresponding field.
 
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
         payment_provider_id:
           type: string
           minLength: 1
@@ -15993,6 +15071,9 @@ components:
           type: boolean
           writeOnly: true
         gen_cust_in_braintree_after_lotus:
+          type: boolean
+          writeOnly: true
+        gen_cust_in_munim_after_lotus:
           type: boolean
           writeOnly: true
         lotus_is_customer_source_for_salesforce:
@@ -16041,10 +15122,12 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
         data:
           type: object
           additionalProperties: {}
@@ -16065,10 +15148,12 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
         success:
           type: boolean
         details:
@@ -16217,10 +15302,10 @@ components:
           allOf:
           - $ref: '#/components/schemas/PlanVersion'
           readOnly: true
-          description: "[DEPRECATED] Display version has been deprecated. Use 'versions'\
-            \ instead. We will still return this field for now with some heuristics\
-            \ for figuring out what the desired version is, but it will be removed\
-            \ in the near future."
+          description: "[DEPRECATED] Display version has been deprecated. Use 'versions'
+            instead. We will still return this field for now with some heuristics
+            for figuring out what the desired version is, but it will be removed in
+            the near future."
           deprecated: true
         status:
           type: string
@@ -16357,6 +15442,9 @@ components:
           allOf:
           - $ref: '#/components/schemas/ComponentChargeCreateRequest'
           nullable: true
+        bulk_pricing_enabled:
+          type: boolean
+          default: false
       required:
       - metric_id
     PlanCreateRequest:
@@ -16402,11 +15490,33 @@ components:
     PlanDetail:
       type: object
       properties:
+        taxjar_code:
+          type: string
+          nullable: true
+          maxLength: 30
+        external_links:
+          type: array
+          items:
+            $ref: '#/components/schemas/InitialExternalPlanLink'
+          description: The external links that this plan has.
         versions:
           type: array
           items:
             $ref: '#/components/schemas/PlanVersionDetail'
           readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+          description: The tags that this plan has.
+        num_versions:
+          type: integer
+          readOnly: true
+          description: The number of versions that this plan has.
+        plan_name:
+          type: string
+          description: Name of the plan
         plan_duration:
           enum:
           - monthly
@@ -16421,43 +15531,21 @@ components:
             * `monthly` - Monthly
             * `quarterly` - Quarterly
             * `yearly` - Yearly
-        active_subscriptions:
-          type: integer
-          readOnly: true
-          description: The number of active subscriptions that this plan has across
-            all versions.
-        external_links:
-          type: array
-          items:
-            $ref: '#/components/schemas/InitialExternalPlanLink'
-          description: The external links that this plan has.
+        plan_description:
+          type: string
+          nullable: true
+          description: Description of the plan
         active_version:
           type: integer
           readOnly: true
           description: This plan's currently active version.
         plan_id:
           type: string
-        tags:
-          type: array
-          items:
-            $ref: '#/components/schemas/Tag'
-          readOnly: true
-          description: The tags that this plan has.
-        taxjar_code:
-          type: string
-          nullable: true
-          maxLength: 30
-        num_versions:
+        active_subscriptions:
           type: integer
           readOnly: true
-          description: The number of versions that this plan has.
-        plan_name:
-          type: string
-          description: Name of the plan
-        plan_description:
-          type: string
-          nullable: true
-          description: Description of the plan
+          description: The number of active subscriptions that this plan has across
+            all versions.
       required:
       - active_subscriptions
       - active_version
@@ -16701,11 +15789,8 @@ components:
     PlanVersionDetail:
       type: object
       properties:
-        transition_to:
-          $ref: '#/components/schemas/LightweightPlan'
-        active_subscriptions:
-          type: integer
-          readOnly: true
+        currency:
+          $ref: '#/components/schemas/PricingUnit'
         status:
           enum:
           - active
@@ -16723,25 +15808,10 @@ components:
             * `inactive` - Inactive
             * `not_started` - Not Started
           readOnly: true
-        localized_name:
-          type: string
-          readOnly: true
+        price_adjustment:
+          allOf:
+          - $ref: '#/components/schemas/PriceAdjustment'
           nullable: true
-        plan_id:
-          type: string
-          readOnly: true
-        currency:
-          $ref: '#/components/schemas/PricingUnit'
-        created_on:
-          type: string
-          format: date-time
-          readOnly: true
-        replace_with:
-          $ref: '#/components/schemas/LightweightPlanVersion'
-        components:
-          type: array
-          items:
-            $ref: '#/components/schemas/PlanComponent'
         version:
           oneOf:
           - type: integer
@@ -16749,22 +15819,24 @@ components:
             - custom_version
             type: string
           readOnly: true
-        price_adjustment:
-          allOf:
-          - $ref: '#/components/schemas/PriceAdjustment'
-          nullable: true
-        features:
-          type: array
-          items:
-            $ref: '#/components/schemas/Feature'
+        plan_name:
+          type: string
+          readOnly: true
+        replace_with:
+          $ref: '#/components/schemas/AppLightweightPlanVersion'
         recurring_charges:
           type: array
           items:
             $ref: '#/components/schemas/RecurringCharge'
           readOnly: true
-        version_id:
-          type: string
-          readOnly: true
+        target_customers:
+          type: array
+          items:
+            $ref: '#/components/schemas/LightweightCustomer'
+        components:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanComponent'
         active_to:
           type: string
           format: date-time
@@ -16775,18 +15847,34 @@ components:
           format: date-time
           readOnly: true
           nullable: true
+        active_subscriptions:
+          type: integer
+          readOnly: true
+        transition_to:
+          $ref: '#/components/schemas/LightweightPlan'
+        localized_name:
+          type: string
+          readOnly: true
+          nullable: true
+        version_id:
+          type: string
+          readOnly: true
         alerts:
           type: array
           items:
-            $ref: '#/components/schemas/UsageAlert'
+            $ref: '#/components/schemas/AppUsageAlert'
           readOnly: true
-        target_customers:
-          type: array
-          items:
-            $ref: '#/components/schemas/LightweightCustomer'
-        plan_name:
+        plan_id:
           type: string
           readOnly: true
+        created_on:
+          type: string
+          format: date-time
+          readOnly: true
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/Feature'
       required:
       - active_from
       - active_subscriptions
@@ -17092,7 +16180,6 @@ components:
           maxLength: 10
         name:
           type: string
-          maxLength: 100
         symbol:
           type: string
           maxLength: 10
@@ -17108,7 +16195,6 @@ components:
           maxLength: 10
         name:
           type: string
-          maxLength: 100
         symbol:
           type: string
           maxLength: 10
@@ -17126,7 +16212,6 @@ components:
         name:
           type: string
           minLength: 1
-          maxLength: 100
         symbol:
           type: string
           minLength: 1
@@ -17145,7 +16230,6 @@ components:
         name:
           type: string
           minLength: 1
-          maxLength: 100
         symbol:
           type: string
           minLength: 1
@@ -17816,48 +16900,48 @@ components:
     StripeSubscriptionRecord:
       type: object
       properties:
-        fully_billed:
-          type: boolean
-          readOnly: true
-        subscription_id:
-          type: string
         metadata:
           type: object
           additionalProperties: {}
-        subscription_filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/SubscriptionFilter'
-        addons:
-          type: array
-          items:
-            $ref: '#/components/schemas/LightweightAddOnSubscriptionRecord'
-        stripe_subscription_id:
-          type: string
-          readOnly: true
-          nullable: true
-        is_new:
-          type: boolean
-          description: Whether this subscription came from a renewal or from a first-time.
-            Defaults to true on creation.
-        customer:
-          $ref: '#/components/schemas/LightweightCustomer'
-        billing_plan:
-          $ref: '#/components/schemas/LightweightPlanVersion'
-        start_date:
-          type: string
-          format: date-time
-          description: The time the subscription starts. This will be a string in
-            yyyy-mm-dd HH:mm:ss format in UTC time.
         end_date:
           type: string
           format: date-time
           description: The time the subscription starts. This will be a string in
             yyyy-mm-dd HH:mm:ss format in UTC time.
+        subscription_id:
+          type: string
+        addons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LightweightAddOnSubscriptionRecord'
+        customer:
+          $ref: '#/components/schemas/LightweightCustomer'
+        is_new:
+          type: boolean
+          description: Whether this subscription came from a renewal or from a first-time.
+            Defaults to true on creation.
+        start_date:
+          type: string
+          format: date-time
+          description: The time the subscription starts. This will be a string in
+            yyyy-mm-dd HH:mm:ss format in UTC time.
+        billing_plan:
+          $ref: '#/components/schemas/LightweightPlanVersion'
+        stripe_subscription_id:
+          type: string
+          readOnly: true
+          nullable: true
+        subscription_filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionFilter'
         auto_renew:
           type: boolean
           description: Whether the subscription automatically renews. Defaults to
             true.
+        fully_billed:
+          type: boolean
+          readOnly: true
       required:
       - addons
       - billing_plan
@@ -17894,19 +16978,29 @@ components:
       required:
       - detail
       - status
-    SubscriptionCancelledRequest:
+    SubscriptionCancelled:
       type: object
       properties:
         payload:
-          $ref: '#/components/schemas/SubscriptionRecordRequest'
+          $ref: '#/components/schemas/SubscriptionRecord'
+        eventType:
+          type: string
+          readOnly: true
+          default: subscription.cancelled
       required:
+      - eventType
       - payload
-    SubscriptionCreatedRequest:
+    SubscriptionCreated:
       type: object
       properties:
         payload:
-          $ref: '#/components/schemas/SubscriptionRecordRequest'
+          $ref: '#/components/schemas/SubscriptionRecord'
+        eventType:
+          type: string
+          readOnly: true
+          default: subscription.created
       required:
+      - eventType
       - payload
     SubscriptionCustomerSummary:
       type: object
@@ -18146,53 +17240,6 @@ components:
       required:
       - customer_id
       - start_date
-    SubscriptionRecordRequest:
-      type: object
-      properties:
-        subscription_id:
-          type: string
-          minLength: 1
-        start_date:
-          type: string
-          format: date-time
-          description: The time the subscription starts. This will be a string in
-            yyyy-mm-dd HH:mm:ss format in UTC time.
-        end_date:
-          type: string
-          format: date-time
-          description: The time the subscription starts. This will be a string in
-            yyyy-mm-dd HH:mm:ss format in UTC time.
-        auto_renew:
-          type: boolean
-          description: Whether the subscription automatically renews. Defaults to
-            true.
-        is_new:
-          type: boolean
-          description: Whether this subscription came from a renewal or from a first-time.
-            Defaults to true on creation.
-        subscription_filters:
-          type: array
-          items:
-            $ref: '#/components/schemas/SubscriptionFilterRequest'
-        billing_plan:
-          $ref: '#/components/schemas/LightweightPlanVersionRequest'
-        addons:
-          type: array
-          items:
-            $ref: '#/components/schemas/LightweightAddOnSubscriptionRecordRequest'
-        metadata:
-          type: object
-          additionalProperties: {}
-      required:
-      - addons
-      - auto_renew
-      - billing_plan
-      - end_date
-      - is_new
-      - metadata
-      - start_date
-      - subscription_filters
-      - subscription_id
     SubscriptionRecordSwitchPlanRequest:
       type: object
       properties:
@@ -18285,12 +17332,17 @@ components:
           type: string
           format: date-time
           description: Change the end date for the subscription.
-    SubscriptionRenewedRequest:
+    SubscriptionRenewed:
       type: object
       properties:
         payload:
-          $ref: '#/components/schemas/SubscriptionRecordRequest'
+          $ref: '#/components/schemas/SubscriptionRecord'
+        eventType:
+          type: string
+          readOnly: true
+          default: subscription.renewed
       required:
+      - eventType
       - payload
     SuccessResponse:
       type: object
@@ -18299,12 +17351,21 @@ components:
           type: boolean
       required:
       - success
+    SyncCRMResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+      - message
+      - success
     Tag:
       type: object
       properties:
         tag_name:
           type: string
-          maxLength: 50
         tag_hex:
           type: string
           maxLength: 7
@@ -18321,7 +17382,6 @@ components:
         tag_name:
           type: string
           minLength: 1
-          maxLength: 50
         tag_hex:
           type: string
           minLength: 1
@@ -18419,10 +17479,12 @@ components:
           enum:
           - stripe
           - braintree
+          - munim
           type: string
           description: |-
             * `stripe` - Stripe
             * `braintree` - Braintree
+            * `munim` - Munim
         end_now:
           type: boolean
       required:
@@ -18527,13 +17589,13 @@ components:
       - metric_id
       - plan_version_id
       - threshold
-    UsageAlertPayloadRequest:
+    UsageAlertPayload:
       type: object
       properties:
         subscription:
-          $ref: '#/components/schemas/LightweightSubscriptionRecordRequest'
+          $ref: '#/components/schemas/LightweightSubscriptionRecord'
         usage_alert:
-          $ref: '#/components/schemas/UsageAlertRequest'
+          $ref: '#/components/schemas/UsageAlert'
         usage:
           type: number
           format: double
@@ -18549,30 +17611,17 @@ components:
       - time_triggered
       - usage
       - usage_alert
-    UsageAlertRequest:
+    UsageAlertTriggered:
       type: object
       properties:
-        metric:
-          $ref: '#/components/schemas/MetricRequest'
-        plan_version:
-          $ref: '#/components/schemas/LightweightPlanVersionRequest'
-        threshold:
-          type: number
-          format: double
-          maximum: 10000000000
-          minimum: -10000000000
-          exclusiveMaximum: true
-          exclusiveMinimum: true
-      required:
-      - metric
-      - plan_version
-      - threshold
-    UsageAlertTriggeredRequest:
-      type: object
-      properties:
+        event_type:
+          type: string
+          readOnly: true
+          default: usage_alert.triggered
         payload:
-          $ref: '#/components/schemas/UsageAlertPayloadRequest'
+          $ref: '#/components/schemas/UsageAlertPayload'
       required:
+      - event_type
       - payload
     User:
       type: object
@@ -18631,10 +17680,8 @@ components:
         name:
           type: string
           nullable: true
-          maxLength: 100
         webhook_url:
           type: string
-          maxLength: 100
         webhook_secret:
           type: string
           readOnly: true
@@ -18654,11 +17701,9 @@ components:
         name:
           type: string
           nullable: true
-          maxLength: 100
         webhook_url:
           type: string
           minLength: 1
-          maxLength: 100
         triggers_in:
           type: array
           items:

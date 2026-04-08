@@ -38,6 +38,7 @@ from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
     extend_schema,
+    extend_schema_view,
     inline_serializer,
 )
 from rest_framework import mixins, serializers, status, viewsets
@@ -103,7 +104,6 @@ from metering_billing.exceptions import (
 from metering_billing.exceptions.exceptions import InvalidOperation, NotFoundException
 from metering_billing.invoice import generate_invoice
 from metering_billing.payment_processors import PAYMENT_PROCESSOR_MAP
-from metering_billing.invoice_pdf import get_invoice_presigned_url
 from metering_billing.kafka.producer import Producer
 from metering_billing.models import (
     ComponentChargeRecord,
@@ -738,6 +738,18 @@ class PlanViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         return super().retrieve(request, *args, **kwargs)
 
 
+@extend_schema_view(
+    retrieve=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "subscription_id",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.PATH,
+                description="The subscription's ID in the format `subscription_<uuid>`",
+            )
+        ]
+    )
+)
 class SubscriptionViewSet(
     PermissionPolicyMixin,
     mixins.CreateModelMixin,
@@ -1350,6 +1362,7 @@ class SubscriptionViewSet(
         )
 
     @extend_schema(
+        operation_id="api_subscriptions_cancel_multi",
         parameters=[
             SubscriptionRecordFilterSerializerDelete,
         ],
@@ -1400,6 +1413,7 @@ class SubscriptionViewSet(
         return Response(ret, status=status.HTTP_200_OK)
 
     @extend_schema(
+        operation_id="api_subscriptions_update_multi",
         parameters=[SubscriptionRecordFilterSerializer],
         responses={200: SubscriptionRecordSerializer(many=True)},
     )
@@ -1690,24 +1704,6 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             self._refresh_payment_status(invoice)
         return super().list(request)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="invoice_id",
-                required=True,
-                location=OpenApiParameter.PATH,
-                description="Either an invoice ID (in the format `invoice_<uuid>`) or an invoice number (in the format `YYMMDD-000001`)",
-            )
-        ]
-    )
-    @action(detail=True, methods=["get"])
-    def pdf_url(self, request, *args, **kwargs):
-        invoice = self.get_object()
-        url = get_invoice_presigned_url(invoice).get("url")
-        return Response(
-            {"url": url},
-            status=status.HTTP_200_OK,
-        )
 
 
 class CustomerBalanceAdjustmentViewSet(

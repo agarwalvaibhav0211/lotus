@@ -1,6 +1,7 @@
 import stripe
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
@@ -52,6 +53,7 @@ def _invoice_updated_handler(event):
         matching_invoice.save()
 
 
+@extend_schema(exclude=True)
 @api_view(http_method_names=["POST"])
 @csrf_exempt
 @permission_classes([])
