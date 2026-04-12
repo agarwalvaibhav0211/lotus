@@ -1,3 +1,10 @@
+networks:
+  shared:
+    external: true
+    name: shared
+  lotus-internal:
+    driver: bridge
+
 services:
   db:
     image: timescale/timescaledb:latest-pg14
@@ -8,6 +15,8 @@ services:
       - pgdata_prod:/var/lib/postgresql/data
     env_file:
       - ./env/.env.prod
+    networks:
+      - lotus-internal
 
   svix-server:
     image: svix/svix-server:v0.74
@@ -17,8 +26,8 @@ services:
       SVIX_DB_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db
     env_file:
       - ./env/.env.prod
-    ports:
-      - "8071:8071"
+    expose:
+      - 8071
     depends_on:
     - db
     - redis
@@ -26,6 +35,8 @@ services:
     - db
     - redis
     restart: on-failure
+    networks:
+      - lotus-internal
 
   redpanda:
     image: docker.redpanda.com/vectorized/redpanda:v22.2.2
@@ -44,6 +55,8 @@ services:
       - 9092
       - 9644
       - 29092
+    networks:
+      - lotus-internal
 
   backend: &backend
     env_file:
@@ -62,6 +75,8 @@ services:
       - redis
       - redpanda
     restart: on-failure
+    networks:
+      - lotus-internal
 
   event-guidance:
     env_file:
@@ -76,6 +91,8 @@ services:
       - redis
       - redpanda
     restart: "on-failure:15"
+    networks:
+      - lotus-internal
 
   event-ingestion:
     env_file:
@@ -91,6 +108,8 @@ services:
       - redpanda
       - backend
     restart: "on-failure:15"
+    networks:
+      - lotus-internal
 
   frontend:
     restart: always
@@ -101,18 +120,23 @@ services:
     env_file:
       - ./env/.env.prod
     stdin_open: true
-    ports:
-      - 80:80
+    expose:
+      - 80
     volumes:
       - django_static_volume:/app/backend/server/django_staticfiles
     depends_on:
       - backend
+    networks:
+      - shared
+      - lotus-internal  # needs both to reach backend/event-ingestion internally
 
   redis:
     image: redis:7-alpine
     command: redis-server
     env_file:
       - ./env/.env.prod
+    networks:
+      - lotus-internal
 
   celery:
     env_file:
@@ -126,6 +150,8 @@ services:
       - redis
       - backend
     restart: on-failure
+    networks:
+      - lotus-internal
 
   celery-beat:
     env_file:
@@ -140,6 +166,8 @@ services:
       - celery
       - backend
       - redis
+    networks:
+      - lotus-internal
 
 volumes:
   pgdata_prod:
