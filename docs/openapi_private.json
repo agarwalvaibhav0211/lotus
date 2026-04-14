@@ -12410,16 +12410,214 @@
   },
   "openapi": "3.0.3",
   "paths": {
-    "/api/addons/": {
+    "/app/actions/": {
       "get": {
-        "operationId": "api_addons_list",
+        "description": "API endpoint that allows events to be viewed.",
+        "operationId": "app_actions_list",
+        "parameters": [
+          {
+            "description": "The pagination cursor value.",
+            "in": "query",
+            "name": "c",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Number of results to return per page.",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedActionList"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/addon_versions/": {
+      "post": {
+        "operationId": "app_addon_versions_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOnVersionCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOnVersionCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOnVersionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddOnVersionDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/addon_versions/{version_id}/": {
+      "patch": {
+        "operationId": "app_addon_versions_partial_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedAddOnVersionUpdateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedAddOnVersionUpdateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedAddOnVersionUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddOnVersionUpdate"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/addon_versions/{version_id}/delete/": {
+      "post": {
+        "operationId": "app_addon_versions_delete_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteAddOnVersion"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/addons/": {
+      "get": {
+        "operationId": "app_addons_list",
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/AddOn"
+                    "$ref": "#/components/schemas/AddOnDetail"
                   },
                   "type": "array"
                 }
@@ -12438,30 +12636,37 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
-      }
-    },
-    "/api/addons/{plan_id}/": {
-      "get": {
-        "operationId": "api_addons_retrieve",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "plan_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
+      },
+      "post": {
+        "operationId": "app_addons_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOnCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOnCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AddOnCreateRequest"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
-          "200": {
+          "201": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AddOn"
+                  "$ref": "#/components/schemas/AddOnDetail"
                 }
               }
             },
@@ -12478,13 +12683,601 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/credits/": {
+    "/app/addons/{addon_id}/": {
       "get": {
-        "operationId": "api_credits_list",
+        "operationId": "app_addons_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addon_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddOnDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "patch": {
+        "operationId": "app_addons_partial_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addon_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedAddOnUpdateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedAddOnUpdateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedAddOnUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddOnUpdate"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/addons/{addon_id}/delete/": {
+      "post": {
+        "operationId": "app_addons_delete_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addon_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteAddOnResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/addons/{addon_id}/features/add/": {
+      "post": {
+        "operationId": "app_addons_features_add_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addon_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureToAddOnRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureToAddOnRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureToAddOnRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddFeatureToAddOnResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/analysis/": {
+      "get": {
+        "operationId": "app_analysis_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AnalysisSummary"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "operationId": "app_analysis_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BacktestCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BacktestCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/BacktestCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BacktestCreate"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/analysis/{analysis_id}/": {
+      "get": {
+        "operationId": "app_analysis_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "analysis_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/api_tokens/": {
+      "get": {
+        "description": "API endpoint that allows API Tokens to be viewed or edited.",
+        "operationId": "app_api_tokens_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/APIToken"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "description": "API endpoint that allows API Tokens to be viewed or edited.",
+        "operationId": "app_api_tokens_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/APITokenRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/APITokenRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/APITokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APITokenCreateResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/api_tokens/{prefix}/": {
+      "delete": {
+        "description": "API endpoint that allows API Tokens to be viewed or edited.",
+        "operationId": "app_api_tokens_destroy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prefix",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/api_tokens/{prefix}/roll/": {
+      "post": {
+        "description": "API endpoint that allows API Tokens to be viewed or edited.",
+        "operationId": "app_api_tokens_roll_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "prefix",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APITokenRollResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/backtests/": {
+      "get": {
+        "operationId": "app_backtests_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BacktestSummary"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "operationId": "app_backtests_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BacktestCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/BacktestCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/BacktestCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BacktestCreate"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/backtests/{backtest_id}/": {
+      "get": {
+        "operationId": "app_backtests_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "backtest_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BacktestDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/credits/": {
+      "get": {
+        "operationId": "app_credits_list",
         "parameters": [
           {
             "description": "Filter to adjustments in a specific currency",
@@ -12606,11 +13399,11 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       },
       "post": {
-        "operationId": "api_credits_create",
+        "operationId": "app_credits_create",
         "requestBody": {
           "content": {
             "application/json": {
@@ -12653,13 +13446,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/credits/{credit_id}/": {
+    "/app/credits/{credit_id}/": {
       "get": {
-        "operationId": "api_credits_retrieve",
+        "operationId": "app_credits_retrieve",
         "parameters": [
           {
             "description": "The ID of the credit to retrieve or update.",
@@ -12693,13 +13486,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/credits/{credit_id}/update/": {
+    "/app/credits/{credit_id}/update/": {
       "post": {
-        "operationId": "api_credits_update_create",
+        "operationId": "app_credits_update_create",
         "parameters": [
           {
             "description": "The ID of the credit to retrieve or update.",
@@ -12752,13 +13545,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/credits/{credit_id}/void/": {
+    "/app/credits/{credit_id}/void/": {
       "post": {
-        "operationId": "api_credits_void_create",
+        "operationId": "app_credits_void_create",
         "parameters": [
           {
             "description": "The ID of the credit to retrieve or update.",
@@ -12792,158 +13585,20 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/customer_feature_access/": {
+    "/app/crm/": {
       "get": {
-        "deprecated": true,
-        "operationId": "api_customer_feature_access_list",
-        "parameters": [
-          {
-            "description": "The customer_id of the customer you want to check access.",
-            "in": "query",
-            "name": "customer_id",
-            "required": true,
-            "schema": {
-              "minLength": 1,
-              "nullable": true,
-              "type": "string"
-            }
-          },
-          {
-            "description": "Name of the feature to check access for.",
-            "in": "query",
-            "name": "feature_name",
-            "required": true,
-            "schema": {
-              "minLength": 1,
-              "type": "string"
-            }
-          },
-          {
-            "description": "The subscription filters that are applied to this plan's relationship with the customer. If your billing model does not have the ability multiple plans or subscriptions per customer, this is likely not relevant for you. This must be passed in as a stringified JSON object.",
-            "in": "query",
-            "name": "subscription_filters",
-            "schema": {
-              "items": {
-                "$ref": "#/components/schemas/SubscriptionFilterRequest"
-              },
-              "type": "array"
-            }
-          }
-        ],
+        "operationId": "app_crm_list",
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/GetFeatureAccess"
-                  },
-                  "type": "array"
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "OrganizationApiKeyAuth": [],
-            "TokenAuth": []
-          }
-        ],
-        "tags": [
-          "api"
-        ]
-      }
-    },
-    "/api/customer_metric_access/": {
-      "get": {
-        "deprecated": true,
-        "operationId": "api_customer_metric_access_list",
-        "parameters": [
-          {
-            "description": "The customer_id of the customer you want to check access.",
-            "in": "query",
-            "name": "customer_id",
-            "required": true,
-            "schema": {
-              "minLength": 1,
-              "nullable": true,
-              "type": "string"
-            }
-          },
-          {
-            "description": "The name of the event you are checking access for.",
-            "in": "query",
-            "name": "event_name",
-            "schema": {
-              "minLength": 1,
-              "nullable": true,
-              "type": "string"
-            }
-          },
-          {
-            "description": "The metric_id of the metric you are checking access for. Please note that you must porovide exactly one of event_name and metric_id are mutually; a validation error will be thrown if both or none are provided.",
-            "in": "query",
-            "name": "metric_id",
-            "schema": {
-              "format": "uuid",
-              "nullable": true,
-              "type": "string"
-            }
-          },
-          {
-            "description": "The subscription filters that are applied to this plan's relationship with the customer. If your billing model does not have the ability multiple plans or subscriptions per customer, this is likely not relevant for you. This must be passed in as a stringified JSON object.",
-            "in": "query",
-            "name": "subscription_filters",
-            "schema": {
-              "items": {
-                "$ref": "#/components/schemas/SubscriptionFilterRequest"
-              },
-              "type": "array"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/GetEventAccess"
-                  },
-                  "type": "array"
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "OrganizationApiKeyAuth": [],
-            "TokenAuth": []
-          }
-        ],
-        "tags": [
-          "api"
-        ]
-      }
-    },
-    "/api/customers/": {
-      "get": {
-        "operationId": "api_customers_list",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/Customer"
+                    "$ref": "#/components/schemas/SingleCRMProvider"
                   },
                   "type": "array"
                 }
@@ -12962,11 +13617,170 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
+        ]
+      }
+    },
+    "/app/crm/link_token/": {
+      "post": {
+        "operationId": "app_crm_link_token_create",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkTokenResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/crm/set_customer_source/": {
+      "post": {
+        "operationId": "app_crm_set_customer_source_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCRMSourceOfTruthRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCRMSourceOfTruthRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCRMSourceOfTruthRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/crm/store_token/": {
+      "post": {
+        "operationId": "app_crm_store_token_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreTokenRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreTokenRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreTokenRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreTokenResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/customers/": {
+      "get": {
+        "operationId": "app_customers_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerDetail"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
         ]
       },
       "post": {
-        "operationId": "api_customers_create",
+        "operationId": "app_customers_create",
         "requestBody": {
           "content": {
             "application/json": {
@@ -13009,13 +13823,73 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/customers/{customer_id}/": {
+    "/app/customers/summary/": {
       "get": {
-        "operationId": "api_customers_retrieve",
+        "description": "Get the current settings for the organization.",
+        "operationId": "app_customers_summary_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerSummary"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/customers/totals/": {
+      "get": {
+        "description": "Get the current settings for the organization.",
+        "operationId": "app_customers_totals_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerWithRevenue"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/customers/{customer_id}/": {
+      "get": {
+        "operationId": "app_customers_retrieve",
         "parameters": [
           {
             "in": "path",
@@ -13032,7 +13906,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Customer"
+                  "$ref": "#/components/schemas/CustomerDetail"
                 }
               }
             },
@@ -13049,13 +13923,70 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
+        ]
+      },
+      "patch": {
+        "operationId": "app_customers_partial_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "customer_id",
+            "required": true,
+            "schema": {
+              "description": "The id provided when creating the customer, we suggest matching with your internal customer id in your backend",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedCustomerUpdateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedCustomerUpdateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedCustomerUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerUpdate"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
         ]
       }
     },
-    "/api/customers/{customer_id}/cost_analysis/": {
+    "/app/customers/{customer_id}/cost_analysis/": {
       "get": {
-        "operationId": "api_customers_cost_analysis_retrieve",
+        "operationId": "app_customers_cost_analysis_retrieve",
         "parameters": [
           {
             "in": "path",
@@ -13107,13 +14038,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/customers/{customer_id}/delete/": {
+    "/app/customers/{customer_id}/delete/": {
       "post": {
-        "operationId": "api_customers_delete_create",
+        "operationId": "app_customers_delete_create",
         "parameters": [
           {
             "in": "path",
@@ -13147,13 +14078,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/customers/{customer_id}/draft_invoice/": {
+    "/app/customers/{customer_id}/draft_invoice/": {
       "get": {
-        "operationId": "api_customers_draft_invoice_retrieve",
+        "operationId": "app_customers_draft_invoice_retrieve",
         "parameters": [
           {
             "in": "path",
@@ -13188,53 +14119,49 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/feature_access/": {
-      "get": {
-        "operationId": "api_feature_access_retrieve",
-        "parameters": [
-          {
-            "description": "The customer_id of the customer you want to check access.",
-            "in": "query",
-            "name": "customer_id",
-            "required": true,
-            "schema": {
-              "minLength": 1,
-              "nullable": true,
-              "type": "string"
+    "/app/demo_login/": {
+      "post": {
+        "operationId": "app_demo_login_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoLoginRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoLoginRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoLoginRequestRequest"
+              }
             }
           },
-          {
-            "description": "The feature_id of the feature you want to check access for.",
-            "in": "query",
-            "name": "feature_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
-            }
-          },
-          {
-            "description": "The subscription filters that are applied to this plan's relationship with the customer. If your billing model does not have the ability multiple plans or subscriptions per customer, this is likely not relevant for you. ",
-            "in": "query",
-            "name": "subscription_filters",
-            "schema": {
-              "items": {
-                "$ref": "#/components/schemas/SubscriptionFilterRequest"
-              },
-              "type": "array"
-            }
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FeatureAccessResponse"
+                  "$ref": "#/components/schemas/DemoLoginSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoLoginFailure"
                 }
               }
             },
@@ -13243,37 +14170,577 @@
         },
         "security": [
           {
+            "basicAuth": []
+          },
+          {
             "OrganizationApiKeyAuth": [],
             "TokenAuth": []
-          }
+          },
+          {}
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/healthcheck/": {
-      "get": {
-        "operationId": "api_healthcheck_retrieve",
+    "/app/demo_register/": {
+      "post": {
+        "operationId": "app_demo_register_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoRegistrationRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoRegistrationRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoRegistrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": "No response body"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRegistrationSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoRegistrationFailure"
+                }
+              }
+            },
+            "description": ""
           }
         },
         "security": [
+          {
+            "basicAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          },
+          {}
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/events/": {
+      "get": {
+        "description": "API endpoint that allows events to be viewed.",
+        "operationId": "app_events_list",
+        "parameters": [
+          {
+            "description": "The pagination cursor value.",
+            "in": "query",
+            "name": "c",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Number of results to return per page.",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEventDetailList"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
           {
             "OrganizationApiKeyAuth": [],
             "TokenAuth": []
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/invoices/": {
+    "/app/events/properties/": {
       "get": {
-        "operationId": "api_invoices_list",
+        "description": "API endpoint that allows events to be viewed.",
+        "operationId": "app_events_properties_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventProperties"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/events/search/": {
+      "get": {
+        "description": "API endpoint that allows events to be viewed.",
+        "operationId": "app_events_search_list",
+        "parameters": [
+          {
+            "description": "The pagination cursor value.",
+            "in": "query",
+            "name": "c",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "customer_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "idempotency_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Number of results to return per page.",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEventDetailList"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/external_plan_links/": {
+      "post": {
+        "operationId": "app_external_plan_links_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalPlanLinkRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalPlanLinkRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ExternalPlanLinkRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExternalPlanLink"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/external_plan_links/{external_plan_id}/": {
+      "delete": {
+        "operationId": "app_external_plan_links_destroy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "external_plan_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "* `stripe` - Stripe\n* `braintree` - Braintree\n* `munim` - Munim",
+            "in": "query",
+            "name": "source",
+            "required": true,
+            "schema": {
+              "enum": [
+                "braintree",
+                "munim",
+                "stripe"
+              ],
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/features/": {
+      "get": {
+        "operationId": "app_features_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FeatureDetail"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "operationId": "app_features_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeatureCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/FeatureCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/FeatureCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/import_customers/": {
+      "post": {
+        "operationId": "app_import_customers_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportCustomersRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportCustomersRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportCustomersRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCustomerSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportCustomerFailure"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/import_payment_objects/": {
+      "post": {
+        "operationId": "app_import_payment_objects_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportPaymentObjectsRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportPaymentObjectsRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportPaymentObjectsRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPaymentObjectSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPaymentObjectFailure"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/import_subscriptions/": {
+      "post": {
+        "operationId": "app_import_subscriptions_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportSubscriptionsRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportSubscriptionsRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportSubscriptionsRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportSubscriptionsSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportSubscriptionsFailure"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/invoices/": {
+      "get": {
+        "operationId": "app_invoices_list",
         "parameters": [
           {
             "description": "A filter for invoices for a specific customer",
@@ -13311,7 +14778,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/Invoice"
+                    "$ref": "#/components/schemas/InvoiceDetail"
                   },
                   "type": "array"
                 }
@@ -13330,30 +14797,37 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
-      }
-    },
-    "/api/invoices/{invoice_id}/": {
-      "get": {
-        "operationId": "api_invoices_retrieve",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "invoice_id",
-            "required": true,
-            "schema": {
-              "format": "uuid",
-              "type": "string"
+      },
+      "post": {
+        "operationId": "app_invoices_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceDetailRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceDetailRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceDetailRequest"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
-          "200": {
+          "201": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Invoice"
+                  "$ref": "#/components/schemas/InvoiceDetail"
                 }
               }
             },
@@ -13370,11 +14844,51 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
+        ]
+      }
+    },
+    "/app/invoices/{invoice_id}/": {
+      "get": {
+        "operationId": "app_invoices_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "invoice_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
         ]
       },
       "patch": {
-        "operationId": "api_invoices_partial_update",
+        "operationId": "app_invoices_partial_update",
         "parameters": [
           {
             "in": "path",
@@ -13427,45 +14941,22 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/metric_access/": {
-      "get": {
-        "operationId": "api_metric_access_retrieve",
+    "/app/invoices/{invoice_id}/send/": {
+      "post": {
+        "operationId": "app_invoices_send_create",
         "parameters": [
           {
-            "description": "The customer_id of the customer you want to check access.",
-            "in": "query",
-            "name": "customer_id",
-            "required": true,
-            "schema": {
-              "minLength": 1,
-              "nullable": true,
-              "type": "string"
-            }
-          },
-          {
-            "description": "The metric_id of the metric you want to check access for.",
-            "in": "query",
-            "name": "metric_id",
+            "in": "path",
+            "name": "invoice_id",
             "required": true,
             "schema": {
               "format": "uuid",
               "type": "string"
             }
-          },
-          {
-            "description": "Used if you want to restrict the access check to only plans that fulfill certain subscription filter criteria. If your billing model does not have the ability multiple plans or subscriptions per customer, this is likely not relevant for you. ",
-            "in": "query",
-            "name": "subscription_filters",
-            "schema": {
-              "items": {
-                "$ref": "#/components/schemas/SubscriptionFilterRequest"
-              },
-              "type": "array"
-            }
           }
         ],
         "responses": {
@@ -13473,42 +14964,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MetricAccessResponse"
-                }
-              }
-            },
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "OrganizationApiKeyAuth": [],
-            "TokenAuth": []
-          }
-        ],
-        "tags": [
-          "api"
-        ]
-      }
-    },
-    "/api/ping/": {
-      "get": {
-        "description": "Ping the API to check if the API key is valid.",
-        "operationId": "api_ping_retrieve",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "examples": {
-                  "ConfirmConnected": {
-                    "summary": "Example response for ConfirmConnected",
-                    "value": {
-                      "organization_id": "org_088c5d194bef40ed9aaeb72d42bd7945"
-                    }
-                  }
-                },
-                "schema": {
-                  "$ref": "#/components/schemas/ConfirmConnected"
+                  "$ref": "#/components/schemas/InvoiceDetail"
                 }
               }
             },
@@ -13525,13 +14981,1583 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/plans/": {
+    "/app/login/": {
+      "post": {
+        "operationId": "app_login_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginFailure"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "basicAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          },
+          {}
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/logout/": {
+      "post": {
+        "operationId": "app_logout_create",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutFailure"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          },
+          {}
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/metrics/": {
       "get": {
-        "operationId": "api_plans_list",
+        "operationId": "app_metrics_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/MetricDetail"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "operationId": "app_metrics_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetricCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/MetricCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/MetricCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/metrics/{metric_id}/": {
+      "get": {
+        "operationId": "app_metrics_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "metric_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "patch": {
+        "operationId": "app_metrics_partial_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "metric_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedMetricUpdateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedMetricUpdateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedMetricUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricUpdate"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/netsuite_customers/": {
+      "get": {
+        "operationId": "app_netsuite_customers_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/URLResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/netsuite_invoices/": {
+      "get": {
+        "operationId": "app_netsuite_invoices_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/URLResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/organization/invite/": {
+      "post": {
+        "operationId": "app_organization_invite_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/organization/invite_link/": {
+      "post": {
+        "operationId": "app_organization_invite_link_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteLinkResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/organizations/": {
+      "get": {
+        "operationId": "app_organizations_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Organization"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "operationId": "app_organizations_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganizationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/organizations/{organization_id}/": {
+      "patch": {
+        "operationId": "app_organizations_partial_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedOrganizationUpdateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedOrganizationUpdateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedOrganizationUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Organization"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/organizations/{organization_id}/sync_crm/": {
+      "post": {
+        "operationId": "app_organizations_sync_crm_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "organization_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CRMSyncRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/CRMSyncRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CRMSyncRequestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncCRMResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/payment_providers/": {
+      "get": {
+        "operationId": "app_payment_providers_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SinglePaymentProcesor"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "operationId": "app_payment_providers_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentProcesorPostRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentProcesorPostRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentProcesorPostRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentProcesorPostResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/period_events/": {
+      "get": {
+        "description": "Returns the revenue for an organization in a given time period.",
+        "operationId": "app_period_events_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_1_end_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period_1_start_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period_2_end_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period_2_start_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeriodMetricRevenueResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/period_metric_revenue/": {
+      "get": {
+        "description": "Returns the revenue for an organization in a given time period.",
+        "operationId": "app_period_metric_revenue_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "end_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeriodMetricRevenueResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/period_metric_usage/": {
+      "get": {
+        "description": "Return current usage for a customer during a given billing period.",
+        "operationId": "app_period_metric_usage_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "end_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "top_n_customers",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeriodMetricUsageResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/period_subscriptions/": {
+      "get": {
+        "operationId": "app_period_subscriptions_retrieve",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period_1_end_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period_1_start_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period_2_end_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period_2_start_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PeriodSubscriptionsResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/": {
+      "get": {
+        "operationId": "app_plan_versions_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlanVersionDetail"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "operationId": "app_plan_versions_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanVersionCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanVersionCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanVersionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanVersionDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/{version_id}/": {
+      "get": {
+        "operationId": "app_plan_versions_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanVersionDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "patch": {
+        "operationId": "app_plan_versions_partial_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedPlanVersionUpdateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedPlanVersionUpdateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedPlanVersionUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanVersionUpdate"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/{version_id}/delete/": {
+      "post": {
+        "operationId": "app_plan_versions_delete_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePlanVersion"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/{version_id}/features/add/": {
+      "post": {
+        "operationId": "app_plan_versions_features_add_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddFeatureResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/{version_id}/make_public/": {
+      "post": {
+        "operationId": "app_plan_versions_make_public_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MakePublicRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/MakePublicRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/MakePublicRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MakePublicResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/{version_id}/replacement/make/": {
+      "post": {
+        "operationId": "app_plan_versions_replacement_make_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MakeReplaceWithRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/MakeReplaceWithRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/MakeReplaceWithRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MakeReplaceWithResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/{version_id}/replacement/set/": {
+      "post": {
+        "operationId": "app_plan_versions_replacement_set_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetReplaceWithRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/SetReplaceWithRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SetReplaceWithRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetReplaceWithResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/{version_id}/subscriptions/": {
+      "get": {
+        "operationId": "app_plan_versions_subscriptions_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PlanVersionHistoricalSubscription"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/{version_id}/target_customers/add/": {
+      "post": {
+        "operationId": "app_plan_versions_target_customers_add_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetCustomersRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetCustomersRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetCustomersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddTargetCustomerResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plan_versions/{version_id}/target_customers/remove/": {
+      "post": {
+        "operationId": "app_plan_versions_target_customers_remove_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "version_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetCustomersRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetCustomersRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetCustomersRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemoveTargetCustomerResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/": {
+      "get": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_list",
         "parameters": [
           {
             "description": "Filter to plans that have this duration.\n\n* `monthly` - Monthly\n* `quarterly` - Quarterly\n* `yearly` - Yearly",
@@ -13636,7 +16662,7 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/Plan"
+                    "$ref": "#/components/schemas/PlanDetail"
                   },
                   "type": "array"
                 }
@@ -13655,13 +16681,62 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
+        ]
+      },
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
         ]
       }
     },
-    "/api/plans/{plan_id}/": {
+    "/app/plans/{plan_id}/": {
       "get": {
-        "operationId": "api_plans_retrieve",
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_retrieve",
         "parameters": [
           {
             "in": "path",
@@ -13724,7 +16799,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plan"
+                  "$ref": "#/components/schemas/PlanDetail"
                 }
               }
             },
@@ -13741,13 +16816,988 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
+        ]
+      },
+      "patch": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_partial_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedPlanUpdateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedPlanUpdateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedPlanUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanUpdate"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
         ]
       }
     },
-    "/api/subscriptions/": {
+    "/app/plans/{plan_id}/delete/": {
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_delete_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletePlan"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/{plan_id}/features/add/": {
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_features_add_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureToPlanRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureToPlanRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureToPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddFeatureToPlanResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/{plan_id}/tags/add/": {
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_tags_add_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPlanTagsRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPlanTagsRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AddPlanTagsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddPlanTags"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/{plan_id}/tags/remove/": {
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_tags_remove_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemovePlanTagsRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/RemovePlanTagsRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RemovePlanTagsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RemovePlanTags"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/{plan_id}/tags/set/": {
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_tags_set_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPlanTagsRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPlanTagsRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPlanTagsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetPlanTagsResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/{plan_id}/versions/next/": {
       "get": {
-        "operationId": "api_subscriptions_list",
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_versions_next_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextPlanVersionNumberResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/{plan_id}/versions/{version_number}/active_dates/update/": {
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_versions_active_dates_update_create",
+        "parameters": [
+          {
+            "description": "The ID of the plan whose versions we're changing the active dates.",
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The version number to update.",
+            "in": "path",
+            "name": "version_number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeActiveDatesRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeActiveDatesRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeActiveDatesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeActiveDateResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/{plan_id}/versions/{version_number}/features/add/": {
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_versions_features_add_create",
+        "parameters": [
+          {
+            "description": "The ID of the plan whose versions we're adding a feature to.",
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The version number to update.",
+            "in": "path",
+            "name": "version_number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureToPlanRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureToPlanRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/AddFeatureToPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddFeatureToPlanVersionNumberResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/{plan_id}/versions/{version_number}/replacement/set/": {
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_versions_replacement_set_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The version number to update.",
+            "in": "path",
+            "name": "version_number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlansSetReplaceWithForVersionNumberRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PlansSetReplaceWithForVersionNumberRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PlansSetReplaceWithForVersionNumberRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanVersionNumberSetReplaceWithResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans/{plan_id}/versions/{version_number}/transition/set/": {
+      "post": {
+        "description": "ViewSet for viewing and editing Plans.",
+        "operationId": "app_plans_versions_transition_set_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "The version number to update.",
+            "in": "path",
+            "name": "version_number",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlansSetTransitionToForVersionNumberRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PlansSetTransitionToForVersionNumberRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PlansSetTransitionToForVersionNumberRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanVersionNumberSetTransitionToResponse"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/plans_by_customer/": {
+      "get": {
+        "operationId": "app_plans_by_customer_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlansByNumCustomers"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/pricing_units/": {
+      "get": {
+        "operationId": "app_pricing_units_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PricingUnitDetail"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "operationId": "app_pricing_units_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PricingUnitDetailRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PricingUnitDetailRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PricingUnitDetailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingUnitDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/register/": {
+      "post": {
+        "operationId": "app_register_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistrationFailure"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "basicAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          },
+          {}
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/session/": {
+      "get": {
+        "operationId": "app_session_retrieve",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionSuccess"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/stripe/cancel_at_period_end_subscriptions/": {
+      "post": {
+        "operationId": "app_stripe_cancel_at_period_end_subscriptions_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeMultiSubscriptionsRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeMultiSubscriptionsRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeMultiSubscriptionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripeTurnOffAutoRenewalSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripeTurnOffAutoRenewalFailure"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/stripe/cancel_subscriptions/": {
+      "post": {
+        "operationId": "app_stripe_cancel_subscriptions_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeMultiSubscriptionsRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeMultiSubscriptionsRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/StripeMultiSubscriptionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripeCancelSubscriptionsSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StripeCancelSubscriptionsFailure"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/subscriptions/": {
+      "get": {
+        "operationId": "app_subscriptions_list",
         "parameters": [
           {
             "description": "Filter to a specific customer.",
@@ -13844,11 +17894,11 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       },
       "post": {
-        "operationId": "api_subscriptions_create",
+        "operationId": "app_subscriptions_create",
         "requestBody": {
           "content": {
             "application/json": {
@@ -13891,14 +17941,14 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/add/": {
+    "/app/subscriptions/add/": {
       "post": {
         "deprecated": true,
-        "operationId": "api_subscriptions_add_create",
+        "operationId": "app_subscriptions_add_create",
         "requestBody": {
           "content": {
             "application/json": {
@@ -13941,14 +17991,14 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/cancel/": {
+    "/app/subscriptions/cancel/": {
       "post": {
         "deprecated": true,
-        "operationId": "api_subscriptions_cancel_multi",
+        "operationId": "app_subscriptions_cancel_multi",
         "parameters": [
           {
             "description": "Filter to a specific customer.",
@@ -14026,13 +18076,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/update/": {
+    "/app/subscriptions/update/": {
       "post": {
-        "operationId": "api_subscriptions_update_multi",
+        "operationId": "app_subscriptions_update_multi",
         "parameters": [
           {
             "description": "Filter to a specific customer.",
@@ -14111,13 +18161,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/{subscription_id}/": {
+    "/app/subscriptions/{subscription_id}/": {
       "get": {
-        "operationId": "api_subscriptions_retrieve",
+        "operationId": "app_subscriptions_retrieve",
         "parameters": [
           {
             "description": "The subscription's ID in the format `subscription_<uuid>`",
@@ -14151,13 +18201,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/{subscription_id}/addons/attach/": {
+    "/app/subscriptions/{subscription_id}/addons/attach/": {
       "post": {
-        "operationId": "api_subscriptions_addons_attach_create",
+        "operationId": "app_subscriptions_addons_attach_create",
         "parameters": [
           {
             "description": "The ID of the subscription to add an addon to.",
@@ -14210,13 +18260,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/{subscription_id}/addons/{addon_id}/cancel/": {
+    "/app/subscriptions/{subscription_id}/addons/{addon_id}/cancel/": {
       "post": {
-        "operationId": "api_subscriptions_addons_cancel_create",
+        "operationId": "app_subscriptions_addons_cancel_create",
         "parameters": [
           {
             "description": "The ID of the addon within the subscription update.",
@@ -14281,13 +18331,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/{subscription_id}/cancel/": {
+    "/app/subscriptions/{subscription_id}/cancel/": {
       "post": {
-        "operationId": "api_subscriptions_cancel_create",
+        "operationId": "app_subscriptions_cancel_create",
         "parameters": [
           {
             "description": "The ID of the subscription to cancel.",
@@ -14340,13 +18390,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/{subscription_id}/components/{metric_id}/change_prepaid_units/": {
+    "/app/subscriptions/{subscription_id}/components/{metric_id}/change_prepaid_units/": {
       "post": {
-        "operationId": "api_subscriptions_components_change_prepaid_units_create",
+        "operationId": "app_subscriptions_components_change_prepaid_units_create",
         "parameters": [
           {
             "description": "The ID of the metric to alter the prepaid usage for.",
@@ -14409,13 +18459,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/{subscription_id}/switch_plan/": {
+    "/app/subscriptions/{subscription_id}/switch_plan/": {
       "post": {
-        "operationId": "api_subscriptions_switch_plan_create",
+        "operationId": "app_subscriptions_switch_plan_create",
         "parameters": [
           {
             "description": "The ID of the subscription which will have its plans switched.",
@@ -14468,13 +18518,13 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/subscriptions/{subscription_id}/update/": {
+    "/app/subscriptions/{subscription_id}/update/": {
       "post": {
-        "operationId": "api_subscriptions_update_create",
+        "operationId": "app_subscriptions_update_create",
         "parameters": [
           {
             "description": "The ID of the subscription to update.",
@@ -14527,28 +18577,29 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
         ]
       }
     },
-    "/api/verify_idems_received/": {
+    "/app/switch_organization/": {
       "post": {
-        "operationId": "api_verify_idems_received_create",
+        "description": "Get the current settings for the organization.",
+        "operationId": "app_switch_organization_create",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmIdemsReceivedRequestRequest"
+                "$ref": "#/components/schemas/ChangeUserOrganizationRequestRequest"
               }
             },
             "application/x-www-form-urlencoded": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmIdemsReceivedRequestRequest"
+                "$ref": "#/components/schemas/ChangeUserOrganizationRequestRequest"
               }
             },
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmIdemsReceivedRequestRequest"
+                "$ref": "#/components/schemas/ChangeUserOrganizationRequestRequest"
               }
             }
           },
@@ -14556,20 +18607,33 @@
         },
         "responses": {
           "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConfirmIdemsReceived"
-                }
-              }
-            },
-            "description": ""
+            "description": "No response body"
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
           },
-          "400": {
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/timezones/": {
+      "get": {
+        "description": "Pagination-enabled endpoint for retrieving an organization's event stream.",
+        "operationId": "app_timezones_retrieve",
+        "responses": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConfirmIdemsReceivedFailure"
+                  "$ref": "#/components/schemas/TimezonesResponse"
                 }
               }
             },
@@ -14586,7 +18650,726 @@
           }
         ],
         "tags": [
-          "api"
+          "app"
+        ]
+      }
+    },
+    "/app/transfer_subscriptions/": {
+      "post": {
+        "operationId": "app_transfer_subscriptions_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferSubscriptionsRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferSubscriptionsRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferSubscriptionsRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferSubscriptionsSuccess"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransferSubscriptionsFailure"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/usage_alerts/": {
+      "get": {
+        "description": "ViewSet for viewing and editing UsageAlerts.",
+        "operationId": "app_usage_alerts_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AppUsageAlert"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "description": "ViewSet for viewing and editing UsageAlerts.",
+        "operationId": "app_usage_alerts_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsageAlertCreateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/UsageAlertCreateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UsageAlertCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageAlertCreate"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/usage_alerts/{usage_alert_id}/": {
+      "delete": {
+        "description": "ViewSet for viewing and editing UsageAlerts.",
+        "operationId": "app_usage_alerts_destroy",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "usage_alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "get": {
+        "description": "ViewSet for viewing and editing UsageAlerts.",
+        "operationId": "app_usage_alerts_retrieve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "usage_alert_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppUsageAlert"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/user/password/reset/": {
+      "post": {
+        "description": "Verifies the token and resets the password.",
+        "operationId": "app_user_password_reset_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequestRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequestRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPasswordSuccess"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          },
+          {}
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/user/password/reset/init/": {
+      "post": {
+        "operationId": "app_user_password_reset_init_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InitResetPasswordSuccess"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          },
+          {}
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/users/": {
+      "get": {
+        "operationId": "app_users_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "operationId": "app_users_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/webhooks/": {
+      "get": {
+        "description": "API endpoint that allows alerts to be viewed or edited.",
+        "operationId": "app_webhooks_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WebhookEndpoint"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "post": {
+        "callbacks": {
+          "customer.created": {
+            "{$request.body#/webhook_url}": {
+              "post": {
+                "description": "Customer created webhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/CustomerCreated"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "No response body"
+                  }
+                }
+              }
+            }
+          },
+          "invoice.created": {
+            "{$request.body#/webhook_url}": {
+              "post": {
+                "description": "Invoice created webhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/InvoiceCreated"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "No response body"
+                  }
+                }
+              }
+            }
+          },
+          "invoice.paid": {
+            "{$request.body#/webhook_url}": {
+              "post": {
+                "description": "Invoice paid webhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/InvoicePaid"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "No response body"
+                  }
+                }
+              }
+            }
+          },
+          "invoice.past_due": {
+            "{$request.body#/webhook_url}": {
+              "post": {
+                "description": "Invoice past due webhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/InvoicePastDue"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "No response body"
+                  }
+                }
+              }
+            }
+          },
+          "subscription.cancelled": {
+            "{$request.body#/webhook_url}": {
+              "post": {
+                "description": "Subscription cancelled webhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/SubscriptionCancelled"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "No response body"
+                  }
+                }
+              }
+            }
+          },
+          "subscription.created": {
+            "{$request.body#/webhook_url}": {
+              "post": {
+                "description": "Subscription created webhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/SubscriptionCreated"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "No response body"
+                  }
+                }
+              }
+            }
+          },
+          "subscription.renewed": {
+            "{$request.body#/webhook_url}": {
+              "post": {
+                "description": "Subscription renewed webhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/SubscriptionRenewed"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "No response body"
+                  }
+                }
+              }
+            }
+          },
+          "usage_alert.triggered": {
+            "{$request.body#/webhook_url}": {
+              "post": {
+                "description": "Usage alert triggered webhook",
+                "requestBody": {
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/UsageAlertTriggered"
+                      }
+                    }
+                  },
+                  "required": true
+                },
+                "responses": {
+                  "200": {
+                    "description": "No response body"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "API endpoint that allows alerts to be viewed or edited.",
+        "operationId": "app_webhooks_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEndpointRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEndpointRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEndpointRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpoint"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/webhooks/{webhook_endpoint_id}/": {
+      "delete": {
+        "description": "API endpoint that allows alerts to be viewed or edited.",
+        "operationId": "app_webhooks_destroy",
+        "parameters": [
+          {
+            "description": "Webhook endpoint ID in the format `webhook_<uuid>`",
+            "in": "path",
+            "name": "webhook_endpoint_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No response body"
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      },
+      "get": {
+        "description": "API endpoint that allows alerts to be viewed or edited.",
+        "operationId": "app_webhooks_retrieve",
+        "parameters": [
+          {
+            "description": "Webhook endpoint ID in the format `webhook_<uuid>`",
+            "in": "path",
+            "name": "webhook_endpoint_id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpoint"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
         ]
       }
     }

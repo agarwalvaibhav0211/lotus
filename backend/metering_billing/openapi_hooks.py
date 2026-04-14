@@ -1,3 +1,10 @@
+def sort_schema_deterministically(endpoints):
+    """Sort endpoints and parameters for deterministic schema generation"""
+    # Sort endpoints by path
+    sorted_endpoints = sorted(endpoints, key=lambda x: str(x[0]))
+    return sorted_endpoints
+
+
 def remove_invalid_subscription_methods(endpoints):
     # your modifications to the list of operations that are exposed in the schema
     to_remove = []
@@ -62,4 +69,23 @@ def add_plan_id_parent_plan_target_customer_to_required(result, **kwargs):
         schemas["Plan"]["required"].append("parent_plan")
     if "target_customer" not in schemas["Plan"]["required"]:
         schemas["Plan"]["required"].append("target_customer")
+    return result
+
+
+def sort_enums_and_required_fields(result, **kwargs):
+    """Sort all enum arrays and required fields lists for deterministic output"""
+    def sort_recursive(obj):
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if key == "enum" and isinstance(value, list) and all(isinstance(v, str) for v in value):
+                    obj[key] = sorted(value)
+                elif key == "required" and isinstance(value, list):
+                    obj[key] = sorted(value)
+                else:
+                    sort_recursive(value)
+        elif isinstance(obj, list):
+            for item in obj:
+                sort_recursive(item)
+
+    sort_recursive(result)
     return result
