@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y netcat-openbsd
 COPY pyproject.toml poetry.lock ./
 RUN pip install --no-cache-dir --disable-pip-version-check poetry
 RUN poetry config virtualenvs.create false \
-  && poetry install --no-interaction --no-ansi
+  && poetry install --no-interaction --no-ansi --no-root
 COPY ./lotus/ ./lotus/
 COPY ./metering_billing/ ./metering_billing/
 COPY ./api/ ./api/
