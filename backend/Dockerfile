@@ -2,14 +2,15 @@
 # Build
 # ---------------------------------------
 FROM python:3.9-bullseye AS build
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1 \
+  POETRY_VERSION=1.4.2
 WORKDIR /lotus
 # pip install optimization
 RUN apt-get update && apt-get install -y netcat-openbsd
 COPY pyproject.toml poetry.lock ./
-RUN pip install --no-cache-dir --disable-pip-version-check poetry
+RUN pip install --no-cache-dir --disable-pip-version-check "poetry==$POETRY_VERSION"
 RUN poetry config virtualenvs.create false \
-  && poetry install --no-interaction --no-ansi --no-root
+  && poetry install --only main --no-interaction --no-ansi --no-root
 COPY ./lotus/ ./lotus/
 COPY ./metering_billing/ ./metering_billing/
 COPY ./api/ ./api/
