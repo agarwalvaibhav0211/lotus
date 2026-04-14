@@ -10,6 +10,7 @@ permissions:
   packages: write
 
 env:
+  COMPOSE_FILE: docker-compose.prod.yaml
   LOTUS_IMAGE_TAG: sha-${{ github.sha }}
   POSTGRES_USER: lotus
   POSTGRES_PASSWORD: lotus
