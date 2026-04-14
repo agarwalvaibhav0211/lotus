@@ -59,6 +59,8 @@ services:
       - lotus-internal
 
   backend: &backend
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/backend:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     build:
@@ -79,6 +81,8 @@ services:
       - lotus-internal
 
   event-guidance:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/event-guidance:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     build:
@@ -95,6 +99,8 @@ services:
       - lotus-internal
 
   event-ingestion:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/event-ingestion:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     build:
@@ -112,6 +118,8 @@ services:
       - lotus-internal
 
   frontend:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/frontend:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     restart: always
     build:
       context: ./frontend
@@ -139,6 +147,8 @@ services:
       - lotus-internal
 
   celery:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/backend:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     build:
@@ -154,6 +164,8 @@ services:
       - lotus-internal
 
   celery-beat:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/backend:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     restart: on-failure
