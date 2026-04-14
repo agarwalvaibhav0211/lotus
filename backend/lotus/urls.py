@@ -106,6 +106,7 @@ api_router.register(
     r"subscriptions", api_views.SubscriptionViewSet, basename="subscription"
 )
 api_router.register(r"invoices", api_views.InvoiceViewSet, basename="invoice")
+api_router.register(r"addons", api_views.AddOnViewSet, basename="addon")
 api_router.register(
     r"credits",
     api_views.CustomerBalanceAdjustmentViewSet,

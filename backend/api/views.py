@@ -54,6 +54,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.serializers.model_serializers import (
+    AddOnSerializer,
     AddOnSubscriptionRecordCreateSerializer,
     AddOnSubscriptionRecordSerializer,
     AddOnSubscriptionRecordUpdateSerializer,
@@ -1704,6 +1705,24 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             self._refresh_payment_status(invoice)
         return super().list(request)
 
+
+class AddOnViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
+    serializer_class = AddOnSerializer
+    lookup_field = "plan_id"
+    http_method_names = ["get", "head"]
+    queryset = Plan.addons.all().order_by(
+        F("created_on").desc(nulls_last=False), F("plan_name")
+    )
+
+    def get_object(self):
+        string_uuid = str(self.kwargs[self.lookup_field])
+        uuid = AddOnUUIDField().to_internal_value(string_uuid)
+        self.kwargs[self.lookup_field] = uuid
+        return super().get_object()
+
+    def get_queryset(self):
+        organization = self.request.organization
+        return self.queryset.filter(organization=organization)
 
 
 class CustomerBalanceAdjustmentViewSet(
