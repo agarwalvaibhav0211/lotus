@@ -84,7 +84,7 @@ jobs:
       - name: Install backend dependencies
         if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
-          cd ./backend && poetry install
+          cd ./backend && poetry install --no-root
 
       - name: Migrate
         run: |
