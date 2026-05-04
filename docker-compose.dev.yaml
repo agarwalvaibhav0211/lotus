@@ -16,7 +16,7 @@ services:
       - ./env/.env.dev
 
   redpanda:
-    image: docker.redpanda.com/vectorized/redpanda:v22.2.2
+    image: docker.redpanda.com/redpandadata/redpanda:v22.2.2
     command:
       - redpanda start
       - --smp 1
