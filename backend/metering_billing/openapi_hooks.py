@@ -74,10 +74,15 @@ def add_plan_id_parent_plan_target_customer_to_required(result, **kwargs):
 
 def sort_enums_and_required_fields(result, **kwargs):
     """Sort all enum arrays and required fields lists for deterministic output"""
+
     def sort_recursive(obj):
         if isinstance(obj, dict):
             for key, value in obj.items():
-                if key == "enum" and isinstance(value, list) and all(isinstance(v, str) for v in value):
+                if (
+                    key == "enum"
+                    and isinstance(value, list)
+                    and all(isinstance(v, str) for v in value)
+                ):
                     obj[key] = sorted(value)
                 elif key == "required" and isinstance(value, list):
                     obj[key] = sorted(value)

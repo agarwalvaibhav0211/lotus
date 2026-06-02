@@ -4,18 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0236_auto_20230321_0407'),
+        ("metering_billing", "0236_auto_20230321_0407"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='historicalorganization',
-            name='subscription_filters_setting_provisioned',
+            model_name="historicalorganization",
+            name="subscription_filters_setting_provisioned",
         ),
         migrations.RemoveField(
-            model_name='organization',
-            name='subscription_filters_setting_provisioned',
+            model_name="organization",
+            name="subscription_filters_setting_provisioned",
         ),
     ]

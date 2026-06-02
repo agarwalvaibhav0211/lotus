@@ -173,8 +173,9 @@ class TestMunimConnectorManagement:
             "account_id": "munim_acct_startup",
             "name": "Startup Org",
         }
-        with patch("metering_billing.payment_processors.MUNIM_API_KEY", "startup-key"), \
-             patch("metering_billing.payment_processors.requests.get") as mock_get:
+        with patch(
+            "metering_billing.payment_processors.MUNIM_API_KEY", "startup-key"
+        ), patch("metering_billing.payment_processors.requests.get") as mock_get:
             mock_get.return_value.raise_for_status = lambda: None
             mock_get.return_value.json = lambda: account_response
             connector = MunimConnector()
@@ -558,9 +559,7 @@ class TestMunimUpdatePaymentObjectStatus:
         connector = munim_setup["connector"]
         org = munim_setup["org"]
 
-        with patch.object(
-            connector, "_get", side_effect=Exception("network error")
-        ):
+        with patch.object(connector, "_get", side_effect=Exception("network error")):
             result = connector.update_payment_object_status(org, MUNIM_INVOICE_ID)
 
         assert result == Invoice.PaymentStatus.UNPAID
@@ -579,9 +578,7 @@ class TestMunimRetrieveCustomer:
         expected = _make_munim_customer_response()
 
         with patch.object(connector, "_get", return_value=expected):
-            result = connector.retrieve_customer_by_external_id(
-                org, MUNIM_CUSTOMER_ID
-            )
+            result = connector.retrieve_customer_by_external_id(org, MUNIM_CUSTOMER_ID)
 
         assert result == expected
         assert result["customer_id"] == MUNIM_CUSTOMER_ID
@@ -729,7 +726,9 @@ class TestMunimHandlePost:
         response = connector.handle_post({}, org)
 
         assert response.status_code == status.HTTP_200_OK
-        assert MunimOrganizationIntegration.objects.filter(organization=org).count() == 1
+        assert (
+            MunimOrganizationIntegration.objects.filter(organization=org).count() == 1
+        )
 
     def test_handle_post_returns_400_when_api_key_not_validated(self, munim_setup):
         """If startup GET /account failed, working() is False and handle_post rejects."""

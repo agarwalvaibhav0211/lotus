@@ -6,22 +6,47 @@ import metering_billing.utils.utils
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0178_oldevent_unique_idempotency_id_per_org1'),
+        ("metering_billing", "0178_oldevent_unique_idempotency_id_per_org1"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='IdempotenceCheck',
+            name="IdempotenceCheck",
             fields=[
-                ('time_created', models.DateTimeField(help_text='The time that the event occured, represented as a datetime in ISO 8601 in the UTC timezome.')),
-                ('idempotency_id', models.SlugField(default=metering_billing.utils.utils.event_uuid, help_text='A unique identifier for the specific event being passed in. Passing in a unique id allows Lotus to make sure no double counting occurs. We recommend using a UUID4. You can use the same idempotency_id again after 45 days.', max_length=255, primary_key=True, serialize=False)),
-                ('organization', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='metering_billing.organization')),
+                (
+                    "time_created",
+                    models.DateTimeField(
+                        help_text="The time that the event occured, represented as a datetime in ISO 8601 in the UTC timezome."
+                    ),
+                ),
+                (
+                    "idempotency_id",
+                    models.SlugField(
+                        default=metering_billing.utils.utils.event_uuid,
+                        help_text="A unique identifier for the specific event being passed in. Passing in a unique id allows Lotus to make sure no double counting occurs. We recommend using a UUID4. You can use the same idempotency_id again after 45 days.",
+                        max_length=255,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "organization",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="+",
+                        to="metering_billing.organization",
+                    ),
+                ),
             ],
         ),
         migrations.AddConstraint(
-            model_name='idempotencecheck',
-            constraint=models.UniqueConstraint(fields=('organization', 'idempotency_id'), name='unique_idempotency_id_per_org_raw'),
+            model_name="idempotencecheck",
+            constraint=models.UniqueConstraint(
+                fields=("organization", "idempotency_id"),
+                name="unique_idempotency_id_per_org_raw",
+            ),
         ),
     ]

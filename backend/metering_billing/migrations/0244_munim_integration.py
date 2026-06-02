@@ -4,14 +4,12 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("metering_billing", "0243_alter_backtest_backtest_name_and_more"),
     ]
 
     operations = [
         # ── New standalone integration tables ─────────────────────────────────
-
         migrations.CreateModel(
             name="MunimCustomerIntegration",
             fields=[
@@ -27,9 +25,7 @@ class Migration(migrations.Migration):
                 ("munim_customer_id", models.TextField()),
                 (
                     "created",
-                    models.DateTimeField(
-                        default=metering_billing.utils.utils.now_utc
-                    ),
+                    models.DateTimeField(default=metering_billing.utils.utils.now_utc),
                 ),
                 (
                     "organization",
@@ -48,7 +44,6 @@ class Migration(migrations.Migration):
                 name="unique_munim_customer_id",
             ),
         ),
-
         migrations.CreateModel(
             name="MunimOrganizationIntegration",
             fields=[
@@ -64,9 +59,7 @@ class Migration(migrations.Migration):
                 ("munim_account_id", models.TextField()),
                 (
                     "created",
-                    models.DateTimeField(
-                        default=metering_billing.utils.utils.now_utc
-                    ),
+                    models.DateTimeField(default=metering_billing.utils.utils.now_utc),
                 ),
                 (
                     "organization",
@@ -85,9 +78,7 @@ class Migration(migrations.Migration):
                 name="unique_munim_account_id",
             ),
         ),
-
         # ── New FK fields on Organization ─────────────────────────────────────
-
         migrations.AddField(
             model_name="organization",
             name="munim_integration",
@@ -121,9 +112,7 @@ class Migration(migrations.Migration):
                 to="metering_billing.munimorganizationintegration",
             ),
         ),
-
         # ── New FK fields on Customer ─────────────────────────────────────────
-
         migrations.AddField(
             model_name="customer",
             name="munim_integration",
@@ -147,9 +136,7 @@ class Migration(migrations.Migration):
                 to="metering_billing.munimcustomerintegration",
             ),
         ),
-
         # ── PAYMENT_PROCESSORS enum — alter affected fields ───────────────────
-
         migrations.AlterField(
             model_name="customer",
             name="payment_provider",

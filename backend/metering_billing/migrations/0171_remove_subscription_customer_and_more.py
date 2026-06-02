@@ -4,42 +4,46 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0170_historicalsubscriptionrecord_quantity_and_more'),
+        ("metering_billing", "0170_historicalsubscriptionrecord_quantity_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='subscription',
-            name='customer',
+            model_name="subscription",
+            name="customer",
         ),
         migrations.RemoveField(
-            model_name='subscription',
-            name='organization',
+            model_name="subscription",
+            name="organization",
         ),
         migrations.RemoveIndex(
-            model_name='invoice',
-            name='metering_bi_organiz_af373b_idx',
+            model_name="invoice",
+            name="metering_bi_organiz_af373b_idx",
         ),
         migrations.RemoveField(
-            model_name='historicalinvoice',
-            name='subscription',
+            model_name="historicalinvoice",
+            name="subscription",
         ),
         migrations.RemoveField(
-            model_name='invoice',
-            name='subscription',
+            model_name="invoice",
+            name="subscription",
         ),
         migrations.AddField(
-            model_name='invoice',
-            name='subscription_records',
-            field=models.ManyToManyField(related_name='invoices', to='metering_billing.subscriptionrecord'),
+            model_name="invoice",
+            name="subscription_records",
+            field=models.ManyToManyField(
+                related_name="invoices", to="metering_billing.subscriptionrecord"
+            ),
         ),
         migrations.AddIndex(
-            model_name='invoice',
-            index=models.Index(fields=['organization', '-issue_date'], name='metering_bi_organiz_943e95_idx'),
+            model_name="invoice",
+            index=models.Index(
+                fields=["organization", "-issue_date"],
+                name="metering_bi_organiz_943e95_idx",
+            ),
         ),
         migrations.DeleteModel(
-            name='Subscription',
+            name="Subscription",
         ),
     ]

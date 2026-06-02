@@ -1436,7 +1436,10 @@ class MunimConnector(PaymentProcesor):
                 logger.error("Munim startup validation failed: %s", e)
 
     def _headers(self, organization=None) -> dict:
-        return {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+        return {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
 
     def _get(self, path: str, organization=None, params=None):
         url = f"{self.base_url}{path}"
@@ -1541,7 +1544,9 @@ class MunimConnector(PaymentProcesor):
         from metering_billing.models import Invoice
 
         try:
-            data = self._get(f"/v1/invoices/{payment_object_id}", organization=organization)
+            data = self._get(
+                f"/v1/invoices/{payment_object_id}", organization=organization
+            )
             if data.get("status") == "paid":
                 return Invoice.PaymentStatus.PAID
         except Exception as e:

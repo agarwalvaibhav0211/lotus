@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("metering_billing", "0168_alter_invoicelineitem_billing_type"),
     ]

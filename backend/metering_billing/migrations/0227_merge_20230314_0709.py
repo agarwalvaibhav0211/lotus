@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0208_alter_plancomponent_usage_component_id_and_more'),
-        ('metering_billing', '0226_historicalsubscriptionrecord_metadata_and_more'),
+        ("metering_billing", "0208_alter_plancomponent_usage_component_id_and_more"),
+        ("metering_billing", "0226_historicalsubscriptionrecord_metadata_and_more"),
     ]
 
-    operations = [
-    ]
+    operations = []

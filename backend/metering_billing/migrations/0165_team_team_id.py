@@ -5,7 +5,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("metering_billing", "0164_alter_customer_default_currency_and_more"),
     ]

@@ -71,7 +71,7 @@ class SubscriptionCancelledSerializer(serializers.Serializer):
     eventType = serializers.CharField(
         default=WEBHOOK_TRIGGER_EVENTS.SUBSCRIPTION_CANCELLED, read_only=True
     )
-    
+
 
 class SubscriptionRenewedSerializer(serializers.Serializer):
     payload = SubscriptionRecordSerializer()
