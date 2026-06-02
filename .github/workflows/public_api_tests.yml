@@ -51,20 +51,20 @@ jobs:
       SELF_HOSTED: "${{ secrets.SELF_HOSTED }}"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: start redpanda
         run: |
           docker run -d --name redpanda \
             -p 9092:9092 \
-            docker.redpanda.com/redpandadata/redpanda:latest \
+            docker.redpanda.com/redpandadata/redpanda:v22.2.2 \
             redpanda start --overprovisioned --smp 1 --memory 1G \
             --reserve-memory 0M --node-id 0 --check=false \
             --kafka-addr PLAINTEXT://0.0.0.0:9092 \
             --advertise-kafka-addr PLAINTEXT://localhost:9092
 
       - name: Set up Python 3.9
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: "3.9"
 
@@ -73,7 +73,7 @@ jobs:
           python -m pip install --upgrade poetry wheel
 
       - id: cache-poetry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
