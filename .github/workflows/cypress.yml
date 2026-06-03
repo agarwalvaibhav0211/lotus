@@ -79,12 +79,22 @@ jobs:
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install system dependencies
-        run: sudo apt-get install -y libcairo2-dev
+        run: sudo apt-get update && sudo apt-get install -y libcairo2-dev postgresql-client
 
       - name: Install backend dependencies
         if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
           cd ./backend && poetry install --no-root
+
+      - name: Create TimescaleDB template database
+        run: |
+          psql -h localhost -U lotus -c "CREATE DATABASE template_timescale;"
+          psql -h localhost -U lotus -d template_timescale -c "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"
+          psql -h localhost -U lotus -c "UPDATE pg_database SET datistemplate = true WHERE datname = 'template_timescale';"
+          psql -h localhost -U lotus -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'template_timescale' AND pid <> pg_backend_pid();"
+          psql -h localhost -U lotus -c "UPDATE pg_database SET datallowconn = false WHERE datname = 'template_timescale';"
+        env:
+          PGPASSWORD: lotus
 
       - name: Migrate
         run: |
