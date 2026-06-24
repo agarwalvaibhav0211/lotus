@@ -88,7 +88,7 @@ pytz = "*"
 django-activity-stream = "*"
 kafka-python = "*"
 cronitor = "*"
-svix = "*"
+svix = ">=1.10.0"
 pyjwt = "*"
 drf-standardized-errors = {extras = ["openapi"], version = "*"}
 boto3 = "*"
