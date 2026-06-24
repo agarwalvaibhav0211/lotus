@@ -119,6 +119,10 @@ curl -o env/.env.prod.example \
 cp env/.env.prod.example env/.env.prod
 ```
 
+> **Why `--env-file` is required on every `docker compose` command**
+>
+> The compose file uses `env_file: ./env/.env.prod` inside each service definition — that injects variables into the containers at runtime. However, `svix-server` also uses Docker Compose variable interpolation (`${POSTGRES_USER}`, `${POSTGRES_PASSWORD}`) to build its database DSN at parse time. Compose resolves those from the shell or a `.env` at the project root — not from `env_file`. Passing `--env-file env/.env.prod` on every invocation covers both: it feeds the interpolation and acts as the default env file. Without it, the Svix DSN silently becomes `postgresql://:@db` and Svix fails to connect.
+
 ### 2.3 Edit `env/.env.prod`
 
 Open `env/.env.prod` and fill in every value marked `change_me`. The table below explains each variable.
@@ -270,7 +274,7 @@ Public images do not require a login.
 ### 5.2 Pull all images
 
 ```bash
-docker compose -f docker-compose.prod.yaml pull
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml pull
 ```
 
 This pulls `backend`, `frontend`, `event-ingestion`, and `event-guidance` from GHCR, plus `timescaledb`, `redis`, `redpanda`, and `svix-server` from their public registries.
@@ -278,13 +282,13 @@ This pulls `backend`, `frontend`, `event-ingestion`, and `event-guidance` from G
 ### 5.3 Start all services
 
 ```bash
-docker compose -f docker-compose.prod.yaml up -d
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml up -d
 ```
 
 Check that every service comes up:
 
 ```bash
-docker compose -f docker-compose.prod.yaml ps
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml ps
 ```
 
 Expected:
@@ -313,16 +317,16 @@ Run these once on first deploy (they are idempotent, safe to re-run):
 
 ```bash
 # Apply all Django migrations
-docker compose -f docker-compose.prod.yaml exec backend python manage.py migrate
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml exec backend python manage.py migrate
 
 # Create the initial admin user from ADMIN_* env vars
-docker compose -f docker-compose.prod.yaml exec backend python manage.py initadmin
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml exec backend python manage.py initadmin
 
 # Collect Django static files into the shared volume
-docker compose -f docker-compose.prod.yaml exec backend python manage.py collectstatic --noinput
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml exec backend python manage.py collectstatic --noinput
 
 # Set up Celery periodic tasks
-docker compose -f docker-compose.prod.yaml exec backend python manage.py setup_tasks
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml exec backend python manage.py setup_tasks
 ```
 
 ---
@@ -342,7 +346,7 @@ curl -sf https://yourdomain.com/api/healthcheck/ && echo "OK"
 **Event ingestion (internal test):**
 
 ```bash
-docker compose -f docker-compose.prod.yaml exec backend \
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml exec backend \
   curl -s http://event-ingestion:7998/healthz
 ```
 
@@ -358,13 +362,13 @@ export LOTUS_IMAGE_TAG=v1.3.0
 export LOTUS_IMAGE_PULL_POLICY=always
 
 # 2. Pull the new images
-docker compose -f docker-compose.prod.yaml pull backend frontend event-ingestion event-guidance
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml pull backend frontend event-ingestion event-guidance
 
 # 3. Recreate containers (zero-downtime order: db stays up)
-docker compose -f docker-compose.prod.yaml up -d --no-deps backend celery celery-beat event-ingestion event-guidance frontend
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml up -d --no-deps backend celery celery-beat event-ingestion event-guidance frontend
 
 # 4. Run any new migrations
-docker compose -f docker-compose.prod.yaml exec backend python manage.py migrate
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml exec backend python manage.py migrate
 ```
 
 ### Rolling back
@@ -378,8 +382,8 @@ Rollback is the same process — just set `LOTUS_IMAGE_TAG` back to the previous
 If you need to customise the images or cannot use GHCR, build locally:
 
 ```bash
-docker compose -f docker-compose.prod.yaml build backend frontend event-ingestion event-guidance
-docker compose -f docker-compose.prod.yaml up -d
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml build backend frontend event-ingestion event-guidance
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml up -d
 ```
 
 The build takes 10–15 minutes on first run. Subsequent builds use Docker layer cache and are much faster.
@@ -388,8 +392,8 @@ To push your own builds to a private registry:
 
 ```bash
 export LOTUS_IMAGE_REGISTRY=registry.example.com/myorg/lotus
-docker compose -f docker-compose.prod.yaml build
-docker compose -f docker-compose.prod.yaml push backend frontend event-ingestion event-guidance
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml build
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml push backend frontend event-ingestion event-guidance
 ```
 
 ---
@@ -413,20 +417,20 @@ find "$DEST" -mtime +7 -delete
 
 ```bash
 # All services, live
-docker compose -f docker-compose.prod.yaml logs -f
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml logs -f
 
 # Single service
-docker compose -f docker-compose.prod.yaml logs -f backend
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml logs -f backend
 ```
 
 ### Stopping and removing
 
 ```bash
 # Stop (keeps volumes)
-docker compose -f docker-compose.prod.yaml down
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml down
 
 # Stop and wipe all data (irreversible)
-docker compose -f docker-compose.prod.yaml down -v
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml down -v
 ```
 
 ---
@@ -436,7 +440,7 @@ docker compose -f docker-compose.prod.yaml down -v
 ### A service keeps restarting
 
 ```bash
-docker compose -f docker-compose.prod.yaml logs <service-name> | tail -50
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml logs <service-name> | tail -50
 ```
 
 Common causes:
@@ -447,10 +451,10 @@ Common causes:
 
 ```bash
 # Is the DB container healthy?
-docker compose -f docker-compose.prod.yaml ps db
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml ps db
 
 # Can the backend reach it?
-docker compose -f docker-compose.prod.yaml exec backend \
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml exec backend \
   python -c "import django; django.setup(); from django.db import connection; connection.ensure_connection(); print('OK')"
 ```
 
@@ -472,12 +476,12 @@ Make the packages public in your GitHub repo settings under **Packages** if you 
 
 ```bash
 # Check event-ingestion received them
-docker compose -f docker-compose.prod.yaml logs event-ingestion | grep -i error
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml logs event-ingestion | grep -i error
 
 # Check Redpanda consumer lag
-docker compose -f docker-compose.prod.yaml exec redpanda \
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml exec redpanda \
   rpk group describe lotus-consumer-group
 
 # Check Celery is consuming
-docker compose -f docker-compose.prod.yaml logs celery | tail -20
+docker compose --env-file env/.env.prod -f docker-compose.prod.yaml logs celery | tail -20
 ```
