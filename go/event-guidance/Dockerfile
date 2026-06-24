@@ -1,5 +1,6 @@
 # Create a builder stage
-FROM golang:1.20-alpine as builder
+FROM --platform=$BUILDPLATFORM golang:1.20-alpine as builder
+ARG TARGETOS TARGETARCH
 
 RUN apk update
 RUN apk add --no-cache git ca-certificates \
@@ -27,7 +28,7 @@ RUN go mod download
 RUN go mod verify
 
 # Build the binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
     go build -ldflags="-w -s" \
     -o /go/bin/docker-binary
 
