@@ -1,898 +1,483 @@
 # Lotus Deployment Guide
 
-Complete step-by-step guide to deploy Lotus on an existing Docker Compose + Caddy stack with strict network isolation.
+Deploy Lotus using pre-built images from GitHub Container Registry (GHCR). Images are built and pushed automatically by CI on every merge to `main` and on every published release.
 
 ## Table of Contents
+
 1. [Prerequisites](#prerequisites)
 2. [Architecture Overview](#architecture-overview)
-3. [Pre-Deployment Checklist](#pre-deployment-checklist)
-4. [Step 1: Environment Setup](#step-1-environment-setup)
-5. [Step 2: Configure Lotus Environment](#step-2-configure-lotus-environment)
-6. [Step 3: Configure Caddy](#step-3-configure-caddy)
-7. [Step 4: Prepare Your Existing Stack](#step-4-prepare-your-existing-stack)
-8. [Step 5: Deploy Lotus](#step-5-deploy-lotus)
-9. [Step 6: Initialize Database](#step-6-initialize-database)
-10. [Step 7: Verification](#step-7-verification)
-11. [Troubleshooting](#troubleshooting)
-12. [Post-Deployment](#post-deployment)
+3. [Step 1: Choose an Image Tag](#step-1-choose-an-image-tag)
+4. [Step 2: Configure the Environment](#step-2-configure-the-environment)
+5. [Step 3: Set Up the Shared Network](#step-3-set-up-the-shared-network)
+6. [Step 4: Configure Caddy](#step-4-configure-caddy)
+7. [Step 5: Pull and Start Services](#step-5-pull-and-start-services)
+8. [Step 6: Initialize the Database](#step-6-initialize-the-database)
+9. [Step 7: Verify the Deployment](#step-7-verify-the-deployment)
+10. [Updating to a New Version](#updating-to-a-new-version)
+11. [Building from Source](#building-from-source)
+12. [Maintenance](#maintenance)
+13. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## Prerequisites
 
-### Required Software
-- Docker & Docker Compose (v1.29+)
-- Caddy (v2.0+) running on your existing stack
-- Bash shell
-- `curl` for testing APIs
-- Text editor for configuration files
-
-### System Requirements
-- **CPU**: 2-4 cores minimum
-- **RAM**: 4-8GB recommended
-- **Disk**: 20GB+ for data and logs
-- **Network**: Ports 80/443 available (Caddy), others handled internally
-
-### Access Requirements
-- SSH or direct access to the deployment server
-- Root or sudo privileges for Docker operations
-- Write access to Docker volumes directory
+- Docker Engine 24+ and Docker Compose v2 (`docker compose` plugin, not `docker-compose`)
+- Caddy v2 running as a reverse proxy with access to a `shared` Docker network
+- A domain pointed at your server with HTTPS handled by Caddy
+- 4 GB RAM, 20 GB free disk
 
 ---
 
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    External Traffic (HTTPS)                 │
-└──────────────────────────┬──────────────────────────────────┘
-                           │
-                    ┌──────▼─────┐
-                    │   Caddy     │ (Your existing stack)
-                    │ Reverse     │ Listens on :80, :443
-                    │ Proxy       │
-                    └──────┬──────┘
-                           │
-          ┌────────────────┴────────────────┐
-          │                                 │
-    ┌─────▼────────┐            ┌──────────▼──────────┐
-    │  SHARED NET  │            │  LOTUS-INTERNAL NET │
-    │  (external)  │            │  (isolated)         │
-    │              │            │                     │
-    │ - Caddy      │◄──────────►│ - Frontend:80       │
-    │              │            │ - Backend:8000      │
-    │              │            │ - Event-Ingestion   │
-    │              │            │ - Event-Guidance    │
-    │              │            │ - Redis, DB, etc.   │
-    └──────────────┘            │ - Workers           │
-                                └─────────────────────┘
-                                       (Isolated)
+Internet (HTTPS)
+      │
+   ┌──▼──────────┐
+   │    Caddy    │  ← your existing reverse-proxy stack
+   └──┬──────────┘
+      │ proxies to lotus-frontend:80
+      │
+┌─────▼──────────────────────────────────────────┐
+│  shared  (external Docker network)              │
+│  frontend:80  ←────────────────────────────┐   │
+└────────────────────────────────────────────┼───┘
+                                             │
+┌────────────────────────────────────────────┼───┐
+│  lotus-internal  (bridge, isolated)        │   │
+│                                            │   │
+│  frontend ─────────────────────────────────┘   │
+│      │                                         │
+│      ├─► backend:8000   (Django / Gunicorn)     │
+│      ├─► event-ingestion:7998  (Go)             │
+│      └─► event-guidance:7999  (Go)             │
+│                                                 │
+│  backend ──► db:5432  (TimescaleDB/Postgres)    │
+│  backend ──► redis:6379                         │
+│  backend ──► redpanda:29092  (Kafka)            │
+│  backend ──► svix-server:8071  (webhooks)       │
+│                                                 │
+│  celery, celery-beat  (same image as backend)   │
+└─────────────────────────────────────────────────┘
 ```
 
-**Key Points:**
-- Only `frontend` is exposed to the shared network
-- All internal Lotus infrastructure is completely isolated
-- Caddy proxies all requests to `lotus-frontend:80`
-- Frontend Nginx handles internal routing via lotus-internal network
+Only `frontend` is on the `shared` network. Everything else is isolated inside `lotus-internal`.
 
 ---
 
-## Pre-Deployment Checklist
+## Step 1: Choose an Image Tag
 
-- [ ] Docker & Docker Compose installed and working
-- [ ] Caddy service running on your existing stack
-- [ ] Shared network (`shared`) already created by your existing docker-compose.yml
-- [ ] DNS/domain pointing to your server
-- [ ] HTTPS certificates configured in Caddy
-- [ ] 4GB+ free RAM available
-- [ ] 20GB+ free disk space
-- [ ] Backup of existing configurations
+All four application images are published to GHCR under:
 
----
+```
+ghcr.io/agarwalvaibhav0211/lotus/{service}:{tag}
+```
 
-## Step 1: Environment Setup
+where `{service}` is `backend`, `frontend`, `event-ingestion`, or `event-guidance`.
 
-### 1.1 Verify Your Existing Stack
+| Tag | When to use |
+|-----|-------------|
+| `latest` | Most recent build from `main` — always up to date |
+| `v1.2.3` | A specific release — recommended for production |
+| `sha-a1b2c3d...` | A specific commit — useful for debugging |
 
-Check that your existing docker-compose has the shared network configured:
+To list available tags:
 
 ```bash
-cd /path/to/your/stack
-docker network ls | grep shared
-```
-
-Expected output:
-```
-xxxxx        shared           bridge      local
-```
-
-If the network doesn't exist, add it to your docker-compose.yml:
-
-```yaml
-networks:
-  shared:
-    driver: bridge
-
-services:
-  caddy:
-    networks:
-      - shared
-  # ... other services
-```
-
-Then run:
-```bash
-docker-compose up -d
-```
-
-### 1.2 Verify Your Caddy Setup
-
-Test that Caddy is running:
-
-```bash
-docker ps | grep caddy
-```
-
-Check Caddy's logs for errors:
-
-```bash
-docker logs <caddy-container-id>
+# requires gh CLI and repo access
+gh api /orgs/agarwalvaibhav0211/packages/container/lotus%2Fbackend/versions \
+  --jq '.[].metadata.container.tags[]' | head -20
 ```
 
 ---
 
-## Step 2: Configure Lotus Environment
+## Step 2: Configure the Environment
 
-### 2.1 Copy Environment Template
+### 2.1 Get the repository
 
-Navigate to the Lotus directory:
+You only need two things from the repo: `docker-compose.prod.yaml` and the `env/` directory.
 
 ```bash
-cd /path/to/lotus
+git clone https://github.com/agarwalvaibhav0211/lotus.git
+cd lotus
 ```
 
-Copy the production environment template:
+Or if you don't want the full source:
+
+```bash
+mkdir lotus && cd lotus
+curl -O https://raw.githubusercontent.com/agarwalvaibhav0211/lotus/main/docker-compose.prod.yaml
+mkdir env
+curl -o env/.env.prod.example \
+  https://raw.githubusercontent.com/agarwalvaibhav0211/lotus/main/env/.env.prod.example
+```
+
+### 2.2 Create the env file
 
 ```bash
 cp env/.env.prod.example env/.env.prod
 ```
 
-### 2.2 Edit Environment Variables
+### 2.3 Edit `env/.env.prod`
 
-Open `env/.env.prod` in your editor:
+Open `env/.env.prod` and fill in every value marked `change_me`. The table below explains each variable.
 
-```bash
-nano env/.env.prod
-```
+#### Required
 
-Configure the following critical variables:
+| Variable | Example | Notes |
+|----------|---------|-------|
+| `POSTGRES_USER` | `lotus` | Database user |
+| `POSTGRES_PASSWORD` | *(generated)* | `openssl rand -hex 16` |
+| `POSTGRES_DB` | `lotus` | Database name |
+| `SECRET_KEY` | *(generated)* | `openssl rand -hex 32` |
+| `ADMIN_USERNAME` | `admin` | Initial superuser login |
+| `ADMIN_EMAIL` | `you@example.com` | Initial superuser email |
+| `ADMIN_PASSWORD` | *(generated)* | Initial superuser password |
+| `VITE_API_URL` | `https://yourdomain.com/` | Must end with `/` — used by the frontend to reach the API |
+| `SVIX_JWT_SECRET` | *(generated)* | `openssl rand -hex 32` |
 
-**Database:**
-```
-POSTGRES_USER=lotus
-POSTGRES_PASSWORD=<generate-strong-password>
-POSTGRES_DB=lotus
-```
+#### Fixed values (do not change)
 
-**Django Security:**
-```
-SECRET_KEY=<generate-with: openssl rand -hex 32>
-SELF_HOSTED=True
-DOCKERIZED=True
-DJANGO_SETTINGS_MODULE=lotus.settings
-```
+| Variable | Value |
+|----------|-------|
+| `SELF_HOSTED` | `True` |
+| `DOCKERIZED` | `True` |
+| `DJANGO_SETTINGS_MODULE` | `lotus.settings` |
+| `KAFKA_URL` | `redpanda:29092` |
 
-**Admin Credentials:**
-```
-ADMIN_USERNAME=<your-admin-username>
-ADMIN_EMAIL=<your-email>
-ADMIN_PASSWORD=<your-admin-password>
-```
+#### Optional integrations
 
-**Frontend:**
-```
-NODE_ENV=production
-VITE_API_URL=https://yourdomain.com/
-VITE_NANGO_PK=<your-nango-pk-if-using>
-```
+| Variable | Purpose |
+|----------|---------|
+| `STRIPE_LIVE_SECRET_KEY` | Stripe live key (`sk_live_…`) |
+| `STRIPE_LIVE_CLIENT` | Stripe live client ID (`ca_…`) |
+| `STRIPE_TEST_SECRET_KEY` | Stripe test key (`sk_test_…`) |
+| `STRIPE_TEST_CLIENT` | Stripe test client ID |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret (`whsec_…`) |
+| `BRAINTREE_LIVE_MERCHANT_ID` | Braintree merchant ID |
+| `BRAINTREE_LIVE_PUBLIC_KEY` | Braintree public key |
+| `BRAINTREE_LIVE_SECRET_KEY` | Braintree secret key |
+| `AWS_ACCESS_KEY_ID` | S3 file uploads |
+| `AWS_SECRET_ACCESS_KEY` | S3 file uploads |
+| `TAXJAR_API_KEY` | Tax calculation |
 
-**Payment Processors (Optional):**
-```
-STRIPE_LIVE_SECRET_KEY=sk_live_...
-STRIPE_LIVE_CLIENT=ca_...
-STRIPE_TEST_SECRET_KEY=sk_test_...
-STRIPE_TEST_CLIENT=ca_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-BRAINTREE_LIVE_MERCHANT_ID=...
-BRAINTREE_LIVE_PUBLIC_KEY=...
-BRAINTREE_LIVE_SECRET_KEY=...
-```
-
-**AWS (Optional, for file uploads):**
-```
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-```
-
-**Optional Integrations:**
-```
-TAXJAR_API_KEY=...
-SVIX_JWT_SECRET=<generate-strong-password>
-```
-
-### 2.3 Generate Secure Passwords
+#### Quick secret generation
 
 ```bash
-# Generate SECRET_KEY
-openssl rand -hex 32
-
-# Generate SVIX_JWT_SECRET
-openssl rand -hex 32
-
-# Generate POSTGRES_PASSWORD
-openssl rand -hex 16
+echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)"
+echo "SECRET_KEY=$(openssl rand -hex 32)"
+echo "SVIX_JWT_SECRET=$(openssl rand -hex 32)"
+echo "ADMIN_PASSWORD=$(openssl rand -hex 12)"
 ```
 
-### 2.4 Verify Environment File
-
-Check that all required variables are set:
+Verify no placeholders remain:
 
 ```bash
-grep -E "change_me|^$" env/.env.prod
+grep "change_me" env/.env.prod
+# should print nothing
 ```
 
-Only comments and empty lines should appear. If you see `change_me`, update those values.
+### 2.4 Set image tag variables
 
----
+The compose file reads three optional environment variables you can export in your shell or add to a `.env` file alongside `docker-compose.prod.yaml`:
 
-## Step 3: Configure Caddy
+| Variable | Default | Override to… |
+|----------|---------|-------------|
+| `LOTUS_IMAGE_REGISTRY` | `ghcr.io/agarwalvaibhav0211/lotus` | Use your own registry mirror |
+| `LOTUS_IMAGE_TAG` | `latest` | Pin to a release, e.g. `v1.2.3` |
+| `LOTUS_IMAGE_PULL_POLICY` | `missing` | Set to `always` to force re-pull on every `up` |
 
-### 3.1 Update Your Caddyfile
-
-Edit your Caddy configuration file (typically `Caddyfile` or `caddy/Caddyfile`):
-
-```caddyfile
-# Your existing services can stay as-is
-
-# Add Lotus routing
-yourdomain.com {
-  # Lotus - all requests proxy to frontend
-  # Frontend Nginx handles internal routing
-  reverse_proxy lotus-frontend:80 {
-    header_uri -X-Forwarded-Proto http
-    header_uri -X-Forwarded-For
-    header_uri -X-Url-Scheme
-  }
-}
-```
-
-**If you have multiple domains/subdomains:**
-
-```caddyfile
-yourdomain.com {
-  # Lotus runs on root domain
-  reverse_proxy lotus-frontend:80 {
-    header_uri -X-Forwarded-Proto http
-    header_uri -X-Forwarded-For
-  }
-}
-
-api.yourdomain.com {
-  # Your other services continue here
-  reverse_proxy your-service:port
-}
-```
-
-### 3.2 Reload Caddy
-
-After updating the Caddyfile:
+To deploy a specific release:
 
 ```bash
-# If Caddy is in a container
-docker exec <caddy-container-id> caddy reload
-
-# If Caddy is running locally
-caddy reload
-```
-
-Verify no errors:
-
-```bash
-docker logs <caddy-container-id> | tail -20
+export LOTUS_IMAGE_TAG=v1.2.3
+export LOTUS_IMAGE_PULL_POLICY=always
 ```
 
 ---
 
-## Step 4: Prepare Your Existing Stack
+## Step 3: Set Up the Shared Network
 
-### 4.1 Verify Shared Network
+Lotus's `frontend` service must join your existing `shared` Docker network so Caddy can reach it.
 
-Ensure your existing docker-compose.yml has:
+Check if it already exists:
+
+```bash
+docker network ls | grep shared
+```
+
+If not, create it:
+
+```bash
+docker network create shared
+```
+
+If your Caddy is managed by its own docker-compose file, declare the network there as external in that file:
 
 ```yaml
+# your existing caddy docker-compose.yml
 networks:
   shared:
     driver: bridge
 
 services:
-  # All services should have:
-  service-name:
-    networks:
-      - shared
-```
-
-### 4.2 Update All Services (If Needed)
-
-Every service in your existing stack should connect to the shared network:
-
-```yaml
-services:
   caddy:
     networks:
       - shared
-    # ... rest of config
-  
-  your-service:
-    networks:
-      - shared
-    # ... rest of config
 ```
 
-### 4.3 Restart Existing Stack
+Then recreate that stack so Caddy joins the network:
 
 ```bash
-cd /path/to/your/stack
-docker-compose up -d
-```
-
-Verify all services are running:
-
-```bash
-docker-compose ps
+docker compose up -d   # in your Caddy directory
 ```
 
 ---
 
-## Step 5: Deploy Lotus
+## Step 4: Configure Caddy
 
-### 5.1 Build Docker Images
+Add a block to your `Caddyfile` that proxies all traffic to the Lotus frontend container. The frontend's Nginx handles internal routing (API calls, event ingestion, static files) without Caddy needing to know about them.
 
-Navigate to Lotus directory:
+```caddyfile
+yourdomain.com {
+    reverse_proxy lotus-frontend:80
+}
+```
+
+Reload Caddy:
 
 ```bash
-cd /path/to/lotus
-```
+# Caddy in a container
+docker exec <caddy-container> caddy reload --config /etc/caddy/Caddyfile
 
-Build all Lotus services:
-
-```bash
-docker-compose -f docker-compose.prod.yaml build
-```
-
-This may take 10-15 minutes depending on your internet speed and system performance.
-
-Monitor build progress:
-
-```bash
-# In another terminal, watch Docker
-docker ps
-docker images | grep lotus
-```
-
-### 5.2 Start Lotus Services
-
-Start all services in the background:
-
-```bash
-docker-compose -f docker-compose.prod.yaml up -d
-```
-
-### 5.3 Verify Services Are Starting
-
-Check service status:
-
-```bash
-docker-compose -f docker-compose.prod.yaml ps
-```
-
-Expected output:
-```
-NAME                COMMAND                  SERVICE             STATUS              PORTS
-lotus-backend       "sh -c './scripts/..."   backend             Up 2 minutes
-lotus-celery        "bash -c 'while !..."    celery              Up 2 minutes
-lotus-celery-beat   "bash -c 'while !..."    celery-beat         Up 2 minutes
-lotus-db            "postgres"               db                  Up 3 minutes
-lotus-event-guidance "event-guidance"        event-guidance      Up 2 minutes
-lotus-event-ingestion "/app/app"             event-ingestion     Up 2 minutes
-lotus-frontend      "nginx -g daemon off"    frontend            Up 2 minutes
-lotus-redis         "redis-server"           redis               Up 3 minutes
-lotus-redpanda      "/entrypoint.sh"         redpanda            Up 3 minutes
-lotus-svix-server   "svix-server"            svix-server         Up 2 minutes
-```
-
-All services should show `Up`.
-
-### 5.4 Check Logs for Errors
-
-```bash
-# Check all logs
-docker-compose -f docker-compose.prod.yaml logs -f
-
-# Check specific service logs
-docker-compose -f docker-compose.prod.yaml logs -f backend
-docker-compose -f docker-compose.prod.yaml logs -f frontend
-```
-
-Wait 30-60 seconds for services to fully initialize. You may see some initial errors as services wait for dependencies—this is normal.
-
----
-
-## Step 6: Initialize Database
-
-### 6.1 Run Migrations
-
-Apply Django database migrations:
-
-```bash
-docker-compose -f docker-compose.prod.yaml exec backend python manage.py migrate
-```
-
-Expected output:
-```
-Operations to perform:
-  Apply all migrations: ...
-Running migrations:
-  Applying ... OK
-```
-
-### 6.2 Create Admin User
-
-Create the superuser account:
-
-```bash
-docker-compose -f docker-compose.prod.yaml exec backend python manage.py createsuperuser
-```
-
-Follow the prompts to set username and password (use values from env/.env.prod).
-
-Alternative (non-interactive):
-
-```bash
-docker-compose -f docker-compose.prod.yaml exec backend python manage.py createsuperuser \
-  --username=$ADMIN_USERNAME \
-  --email=$ADMIN_EMAIL \
-  --noinput
-```
-
-Then set the password:
-
-```bash
-docker-compose -f docker-compose.prod.yaml exec backend python manage.py changepassword $ADMIN_USERNAME
-```
-
-### 6.3 Collect Static Files
-
-```bash
-docker-compose -f docker-compose.prod.yaml exec backend python manage.py collectstatic --noinput
+# Caddy on the host
+caddy reload
 ```
 
 ---
 
-## Step 7: Verification
+## Step 5: Pull and Start Services
 
-### 7.1 Test Web Access
-
-Open your browser and navigate to:
-
-```
-https://yourdomain.com
-```
-
-You should see the Lotus login page.
-
-### 7.2 Login
-
-Log in with:
-- Username: `ADMIN_USERNAME` from env/.env.prod
-- Password: `ADMIN_PASSWORD` from env/.env.prod
-
-### 7.3 Verify Services Are Healthy
-
-**Check backend API:**
+### 5.1 Log in to GHCR (if images are private)
 
 ```bash
-curl -X GET https://yourdomain.com/api/health/
+echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
 ```
 
-Expected response (if health endpoint exists):
-```json
-{"status": "ok"}
-```
+Public images do not require a login.
 
-**Check event ingestion:**
+### 5.2 Pull all images
 
 ```bash
-curl -X POST https://yourdomain.com/api/track \
-  -H "Content-Type: application/json" \
-  -d '{"test": "event"}'
+docker compose -f docker-compose.prod.yaml pull
 ```
 
-### 7.4 Check Service Logs
+This pulls `backend`, `frontend`, `event-ingestion`, and `event-guidance` from GHCR, plus `timescaledb`, `redis`, `redpanda`, and `svix-server` from their public registries.
 
-Monitor logs for any errors:
+### 5.3 Start all services
 
 ```bash
-docker-compose -f docker-compose.prod.yaml logs --tail=50
+docker compose -f docker-compose.prod.yaml up -d
 ```
 
-### 7.5 Test Admin Panel
+Check that every service comes up:
 
-Navigate to:
-
-```
-https://yourdomain.com/admin
+```bash
+docker compose -f docker-compose.prod.yaml ps
 ```
 
-Log in with admin credentials.
+Expected:
+
+```
+NAME                STATUS
+lotus-backend       Up
+lotus-celery        Up
+lotus-celery-beat   Up
+lotus-db            Up
+lotus-event-guidance  Up
+lotus-event-ingestion Up
+lotus-frontend      Up
+lotus-redis         Up
+lotus-redpanda      Up
+lotus-svix-server   Up
+```
+
+Services that depend on the database (`backend`, `celery`, `celery-beat`) will restart a few times while the DB initialises — this is normal.
 
 ---
 
-## Troubleshooting
+## Step 6: Initialize the Database
 
-### Services Won't Start
+Run these once on first deploy (they are idempotent, safe to re-run):
 
-**Symptom:** Services show `Exit` or `Restarting`
+```bash
+# Apply all Django migrations
+docker compose -f docker-compose.prod.yaml exec backend python manage.py migrate
 
-**Solution:**
+# Create the initial admin user from ADMIN_* env vars
+docker compose -f docker-compose.prod.yaml exec backend python manage.py initadmin
 
-1. Check logs:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml logs backend
-   ```
+# Collect Django static files into the shared volume
+docker compose -f docker-compose.prod.yaml exec backend python manage.py collectstatic --noinput
 
-2. Common issues:
-   - Database not initialized: Run migrations again
-   - Port conflict: Check if ports are already in use
-   - Network issues: Verify lotus-internal network exists
-
-### Database Connection Errors
-
-**Symptom:** Backend logs show `could not connect to server`
-
-**Solution:**
-
-1. Verify database is running:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml ps db
-   ```
-
-2. Check database logs:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml logs db
-   ```
-
-3. Check environment variables:
-   ```bash
-   cat env/.env.prod | grep POSTGRES
-   ```
-
-4. Restart database:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml restart db
-   ```
-
-### Frontend Not Loading
-
-**Symptom:** Browser shows connection refused or blank page
-
-**Solution:**
-
-1. Verify frontend is running:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml ps frontend
-   ```
-
-2. Check Nginx configuration:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml exec frontend nginx -t
-   ```
-
-3. Check Caddy is routing correctly:
-   ```bash
-   docker logs <caddy-container> | grep lotus
-   ```
-
-### API Calls Failing
-
-**Symptom:** Frontend loads but API requests fail
-
-**Solution:**
-
-1. Check backend is running:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml ps backend
-   ```
-
-2. Test backend directly:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml exec frontend \
-     curl http://backend:8000/api/
-   ```
-
-3. Check frontend Nginx routing:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml exec frontend nginx -T
-   ```
-
-### Event Ingestion Not Working
-
-**Symptom:** Events are not being processed
-
-**Solution:**
-
-1. Check event-ingestion logs:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml logs event-ingestion
-   ```
-
-2. Verify Redpanda is running:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml ps redpanda
-   ```
-
-3. Check Celery workers:
-   ```bash
-   docker-compose -f docker-compose.prod.yaml logs celery
-   ```
-
-### Caddy SSL/TLS Issues
-
-**Symptom:** HTTPS shows certificate errors
-
-**Solution:**
-
-1. Check Caddy logs:
-   ```bash
-   docker logs <caddy-container>
-   ```
-
-2. Verify DNS is pointing to your server:
-   ```bash
-   nslookup yourdomain.com
-   ```
-
-3. Reload Caddy with new certificates:
-   ```bash
-   docker exec <caddy-container> caddy reload
-   ```
+# Set up Celery periodic tasks
+docker compose -f docker-compose.prod.yaml exec backend python manage.py setup_tasks
+```
 
 ---
 
-## Post-Deployment
+## Step 7: Verify the Deployment
 
-### 6.1 Backup Configuration
-
-Backup your configuration files:
+**Health check:**
 
 ```bash
-# Backup environment file
-cp env/.env.prod env/.env.prod.backup
-
-# Backup Caddyfile
-cp /path/to/Caddyfile /path/to/Caddyfile.backup
-
-# Backup docker-compose files
-cp docker-compose.prod.yaml docker-compose.prod.yaml.backup
+curl -sf https://yourdomain.com/api/healthcheck/ && echo "OK"
 ```
 
-### 6.2 Setup Log Monitoring
+**Login:** open `https://yourdomain.com` and sign in with the credentials from `ADMIN_USERNAME` / `ADMIN_PASSWORD`.
 
-Monitor logs continuously:
+**Admin panel:** `https://yourdomain.com/admin`
+
+**Event ingestion (internal test):**
 
 ```bash
-# Watch all Lotus logs
-docker-compose -f docker-compose.prod.yaml logs -f
-
-# Watch specific service
-docker-compose -f docker-compose.prod.yaml logs -f backend
+docker compose -f docker-compose.prod.yaml exec backend \
+  curl -s http://event-ingestion:7998/healthz
 ```
 
-Or use a log aggregation tool.
+---
 
-### 6.3 Setup Backups
+## Updating to a New Version
 
-Create a backup script for PostgreSQL:
+### Recommended: pin to a release tag
 
 ```bash
-#!/bin/bash
-BACKUP_DIR="/backups/lotus"
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+# 1. Set the new tag
+export LOTUS_IMAGE_TAG=v1.3.0
+export LOTUS_IMAGE_PULL_POLICY=always
 
-mkdir -p $BACKUP_DIR
+# 2. Pull the new images
+docker compose -f docker-compose.prod.yaml pull backend frontend event-ingestion event-guidance
 
-docker-compose -f docker-compose.prod.yaml exec -T db \
-  pg_dump -U lotus lotus > $BACKUP_DIR/lotus_$TIMESTAMP.sql
+# 3. Recreate containers (zero-downtime order: db stays up)
+docker compose -f docker-compose.prod.yaml up -d --no-deps backend celery celery-beat event-ingestion event-guidance frontend
 
-# Keep only last 7 days
-find $BACKUP_DIR -mtime +7 -delete
+# 4. Run any new migrations
+docker compose -f docker-compose.prod.yaml exec backend python manage.py migrate
 ```
 
-Schedule with cron:
+### Rolling back
+
+Rollback is the same process — just set `LOTUS_IMAGE_TAG` back to the previous value. Migrations that were applied forward will remain, but Django migrations are designed to be non-destructive.
+
+---
+
+## Building from Source
+
+If you need to customise the images or cannot use GHCR, build locally:
 
 ```bash
-crontab -e
-# Add: 0 2 * * * /path/to/backup.sh
+docker compose -f docker-compose.prod.yaml build backend frontend event-ingestion event-guidance
+docker compose -f docker-compose.prod.yaml up -d
 ```
 
-### 6.4 Monitor Resources
+The build takes 10–15 minutes on first run. Subsequent builds use Docker layer cache and are much faster.
 
-Watch system resources:
-
-```bash
-# Watch Docker stats
-docker stats
-
-# Check disk usage
-df -h
-
-# Check memory
-free -h
-```
-
-### 6.5 Create Admin Users
-
-To create additional admin users:
+To push your own builds to a private registry:
 
 ```bash
-docker-compose -f docker-compose.prod.yaml exec backend \
-  python manage.py createsuperuser
-```
-
-### 6.6 Test Payment Processor Integration (If Using)
-
-1. Log in to admin panel
-2. Navigate to Settings → Payment Processors
-3. Add Stripe or Braintree credentials
-4. Run a test transaction
-
-### 6.7 Setup Webhooks (If Using Svix)
-
-1. Configure webhook endpoints in Lotus admin
-2. Test webhook delivery
-3. Monitor webhook logs
-
-### 6.8 Performance Tuning
-
-Monitor backend performance:
-
-```bash
-# Check Django settings
-docker-compose -f docker-compose.prod.yaml exec backend \
-  python manage.py check
-```
-
-Scale Celery workers if needed:
-
-```bash
-# Increase replicas in docker-compose.prod.yaml
-# Then restart
-docker-compose -f docker-compose.prod.yaml up -d celery
+export LOTUS_IMAGE_REGISTRY=registry.example.com/myorg/lotus
+docker compose -f docker-compose.prod.yaml build
+docker compose -f docker-compose.prod.yaml push backend frontend event-ingestion event-guidance
 ```
 
 ---
 
 ## Maintenance
 
-### Regular Tasks
-
-**Daily:**
-- Check logs for errors
-- Verify web accessibility
-- Monitor disk space
-
-**Weekly:**
-- Review backup completion
-- Check resource usage
-- Test admin panel access
-
-**Monthly:**
-- Review and archive logs
-- Update Docker images (if needed)
-- Test disaster recovery procedures
-
-### Updating Lotus
-
-To update to a new version:
+### Database backups
 
 ```bash
-# Pull latest code
-git pull origin main
-
-# Rebuild images
-docker-compose -f docker-compose.prod.yaml build
-
-# Restart services
-docker-compose -f docker-compose.prod.yaml down
-docker-compose -f docker-compose.prod.yaml up -d
-
-# Run migrations
-docker-compose -f docker-compose.prod.yaml exec backend python manage.py migrate
+#!/bin/bash
+# save as scripts/backup.sh, schedule with cron: 0 2 * * *
+DEST=/backups/lotus
+mkdir -p "$DEST"
+docker compose -f /path/to/lotus/docker-compose.prod.yaml exec -T db \
+  pg_dump -U lotus lotus \
+  | gzip > "$DEST/lotus_$(date +%Y%m%d_%H%M%S).sql.gz"
+find "$DEST" -mtime +7 -delete
 ```
 
-### Stopping Lotus
-
-To gracefully stop all Lotus services:
+### Viewing logs
 
 ```bash
-docker-compose -f docker-compose.prod.yaml down
+# All services, live
+docker compose -f docker-compose.prod.yaml logs -f
 
-# Keep volumes/data intact
-# To remove volumes too (careful!):
-# docker-compose -f docker-compose.prod.yaml down -v
+# Single service
+docker compose -f docker-compose.prod.yaml logs -f backend
+```
+
+### Stopping and removing
+
+```bash
+# Stop (keeps volumes)
+docker compose -f docker-compose.prod.yaml down
+
+# Stop and wipe all data (irreversible)
+docker compose -f docker-compose.prod.yaml down -v
 ```
 
 ---
 
-## Support
+## Troubleshooting
 
-For issues or questions:
-
-1. **Check logs first:**
-   ```bash
-   docker-compose -f docker-compose.prod.yaml logs
-   ```
-
-2. **Review this guide** for common issues
-
-3. **Check Lotus documentation:** https://docs.uselotus.io/
-
-4. **Open an issue:** https://github.com/agarwalvaibhav0211/lotus/issues
-
----
-
-## Quick Reference
-
-### Common Commands
+### A service keeps restarting
 
 ```bash
-# Start all services
-docker-compose -f docker-compose.prod.yaml up -d
-
-# Stop all services
-docker-compose -f docker-compose.prod.yaml down
-
-# View logs
-docker-compose -f docker-compose.prod.yaml logs -f
-
-# Restart a service
-docker-compose -f docker-compose.prod.yaml restart backend
-
-# Execute command in container
-docker-compose -f docker-compose.prod.yaml exec backend python manage.py shell
-
-# View service status
-docker-compose -f docker-compose.prod.yaml ps
+docker compose -f docker-compose.prod.yaml logs <service-name> | tail -50
 ```
 
-### Network Isolation Verification
+Common causes:
+- `backend` / `celery`: database not yet ready (normal during first startup; waits up to ~2 min)
+- Any service: wrong or missing value in `env/.env.prod`
+
+### Database connection refused
 
 ```bash
-# List networks
-docker network ls
+# Is the DB container healthy?
+docker compose -f docker-compose.prod.yaml ps db
 
-# Inspect shared network
-docker network inspect shared
-
-# Inspect lotus-internal network
-docker network inspect lotus-internal
-
-# Check which containers are on each network
-docker network inspect shared --format='{{json .Containers}}' | jq .
+# Can the backend reach it?
+docker compose -f docker-compose.prod.yaml exec backend \
+  python -c "import django; django.setup(); from django.db import connection; connection.ensure_connection(); print('OK')"
 ```
 
----
+### Frontend loads but API calls fail (404 / CORS)
 
-**Deployment completed!** 🎉
+Verify `VITE_API_URL` ends with a `/` and matches your public domain exactly. This value is baked into the frontend image at build time — if you change it, you need a new image build.
 
-Your Lotus instance is now running with strict network isolation, properly integrated with your existing Docker Compose + Caddy stack.
+### Cannot pull images (permission denied)
+
+GHCR packages on a private repo require authentication:
+
+```bash
+echo $GITHUB_TOKEN | docker login ghcr.io -u YOUR_USERNAME --password-stdin
+```
+
+Make the packages public in your GitHub repo settings under **Packages** if you want unauthenticated pulls.
+
+### Events not appearing after ingestion
+
+```bash
+# Check event-ingestion received them
+docker compose -f docker-compose.prod.yaml logs event-ingestion | grep -i error
+
+# Check Redpanda consumer lag
+docker compose -f docker-compose.prod.yaml exec redpanda \
+  rpk group describe lotus-consumer-group
+
+# Check Celery is consuming
+docker compose -f docker-compose.prod.yaml logs celery | tail -20
+```
