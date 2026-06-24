@@ -19,7 +19,7 @@ services:
       - lotus-internal
 
   svix-server:
-    image: svix/svix-server:v0.74
+    image: svix/svix-server:v1.38
     environment:
       WAIT_FOR: "true"
       SVIX_REDIS_DSN: redis://redis
@@ -39,7 +39,7 @@ services:
       - lotus-internal
 
   redpanda:
-    image: docker.redpanda.com/vectorized/redpanda:v22.2.2
+    image: docker.redpanda.com/redpandadata/redpanda:v22.2.2
     command:
       - redpanda start
       - --smp 1

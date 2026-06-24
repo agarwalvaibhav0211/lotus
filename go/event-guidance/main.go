@@ -144,7 +144,7 @@ func main() {
 	defer db.Close()
 
 	// Setup prepared statement
-	insertStatement, err := db.Prepare("SELECT insert_metric($1, $2, $3, $4, $5, $6)")
+	insertStatement, err := db.Prepare("SELECT insert_metric($1::integer, $2::text, $3::text, $4::timestamptz, $5::jsonb, $6::text)")
 
 	if err != nil {
 		panic(err)
