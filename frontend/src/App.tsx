@@ -33,10 +33,10 @@ function App() {
   const { pathname } = useLocation();
   const setOrgInfoToStore = useGlobalStore((state) => state.setOrgInfo);
   const setEnvironmentType = useGlobalStore(
-    (state) => state.setEnvironmentType
+    (state) => state.setEnvironmentType,
   );
   const setQuickStartProgress = useGlobalStore(
-    (state) => state.setQuickStartProgress
+    (state) => state.setQuickStartProgress,
   );
   const { refetch } = useQuery(
     ["organization"],
@@ -45,12 +45,12 @@ function App() {
       onSuccess: (data) => {
         setEnvironmentType(
           data.linked_organizations.filter((el) => el.current)[0]
-            .organization_type
+            .organization_type,
         );
 
         setOrgInfoToStore(data);
       },
-    }
+    },
   );
   const fetchSessionInfo = async (): Promise<{ isAuthenticated: boolean }> =>
     Authentication.getSession()

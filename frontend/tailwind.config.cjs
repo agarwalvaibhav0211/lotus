@@ -20,8 +20,6 @@ module.exports = {
       black: 900,
     },
 
-    
-
     extend: {
       colors: {
         // custom color palette

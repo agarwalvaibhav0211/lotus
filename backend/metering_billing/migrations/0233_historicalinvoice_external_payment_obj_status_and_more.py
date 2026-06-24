@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0232_merge_20230320_0050'),
+        ("metering_billing", "0232_merge_20230320_0050"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='historicalinvoice',
-            name='external_payment_obj_status',
+            model_name="historicalinvoice",
+            name="external_payment_obj_status",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='invoice',
-            name='external_payment_obj_status',
+            model_name="invoice",
+            name="external_payment_obj_status",
             field=models.TextField(blank=True, null=True),
         ),
     ]

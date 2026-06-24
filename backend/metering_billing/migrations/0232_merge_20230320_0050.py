@@ -4,11 +4,12 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0229_historicalorganization_crm_settings_provisioned_and_more'),
-        ('metering_billing', '0231_remove_subscriptionrecord_filters'),
+        (
+            "metering_billing",
+            "0229_historicalorganization_crm_settings_provisioned_and_more",
+        ),
+        ("metering_billing", "0231_remove_subscriptionrecord_filters"),
     ]
 
-    operations = [
-    ]
+    operations = []

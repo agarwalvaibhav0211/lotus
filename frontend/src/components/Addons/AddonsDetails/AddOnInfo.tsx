@@ -38,7 +38,7 @@ function AddOnInfo({ addOnInfo }: AddOnInfoProps) {
               <div>
                 {createShortenedText(
                   addOnInfo.addon_id as string,
-                  windowWidth >= 2500
+                  windowWidth >= 2500,
                 )}
               </div>
               <CopyText
@@ -68,7 +68,7 @@ function AddOnInfo({ addOnInfo }: AddOnInfoProps) {
               {" "}
               <div className="!text-card-grey Inter">
                 {capitalize(
-                  constructBillType(addOnInfo.versions[0].addon_type)
+                  constructBillType(addOnInfo.versions[0].addon_type),
                 )}
               </div>
             </div>
@@ -81,7 +81,7 @@ function AddOnInfo({ addOnInfo }: AddOnInfoProps) {
             <div>
               <div className="!text-card-grey Inter">
                 {constructBillType(
-                  addOnInfo.versions[0].billing_frequency as string
+                  addOnInfo.versions[0].billing_frequency as string,
                 )}
               </div>
             </div>

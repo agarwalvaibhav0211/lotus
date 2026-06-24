@@ -5,7 +5,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable camelcase */
 import React, { FC } from "react";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import { Table } from "antd";
 import dayjs from "dayjs";
 import type { TableColumnsType } from "antd";
@@ -29,7 +29,7 @@ const DraftInvoice: FC<Props> = ({ customer_id }) => {
   const { data: invoiceData } = useQuery<DraftInvoiceType>(
     ["draft_invoice", customer_id],
     () => Invoices.getDraftInvoice(customer_id),
-    { refetchInterval: 10000 }
+    { refetchInterval: 10000 },
   );
 
   const expandedRowRender =
@@ -47,7 +47,7 @@ const DraftInvoice: FC<Props> = ({ customer_id }) => {
           render: (_, record) => (
             <div>
               {`${dayjs(record.start_date).format("MM/DD/YYYY")} - ${dayjs(
-                record.end_date
+                record.end_date,
               ).format("MM/DD/YYYY")}`}
             </div>
           ),

@@ -12,7 +12,7 @@ interface PlanFeaturesProps {
 
 const PlanFeatures: FC<PlanFeaturesProps> = ({ features }) => {
   const windowWidth = useMediaQuery();
-  
+
   return (
     <div className="min-h-[200px] mt-4 min-w-[246px] p-8 cursor-pointer font-main rounded-sm bg-card ">
       <Typography.Title className="!text-[18px]">Features</Typography.Title>
@@ -31,7 +31,7 @@ const PlanFeatures: FC<PlanFeaturesProps> = ({ features }) => {
                   <div>
                     {createShortenedText(
                       feature.feature_id,
-                      windowWidth >= 2500
+                      windowWidth >= 2500,
                     )}
                   </div>
                   <CopyText showIcon onlyIcon textToCopy={feature.feature_id} />

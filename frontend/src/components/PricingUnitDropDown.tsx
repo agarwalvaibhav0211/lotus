@@ -1,7 +1,7 @@
 import { Select } from "antd";
 
 import React from "react";
-import { UseQueryResult, useQuery } from '@tanstack/react-query';
+import { UseQueryResult, useQuery } from "@tanstack/react-query";
 import { PricingUnits } from "../api/api";
 import { CurrencyType } from "../types/pricing-unit-type";
 
@@ -26,7 +26,7 @@ const PricingUnitDropDown: React.FC<PricingUnitDropDownProps> = ({
 }) => {
   const { data }: UseQueryResult<CurrencyType[]> = useQuery<CurrencyType[]>(
     ["pricing_unit_list"],
-    () => PricingUnits.list().then((res) => res)
+    () => PricingUnits.list().then((res) => res),
   );
 
   const getCurrencies = () => {
@@ -53,7 +53,7 @@ const PricingUnitDropDown: React.FC<PricingUnitDropDownProps> = ({
       onChange={(currency: string) => {
         setCurrentCurrency(currency);
         const selectedPricingUnit = data?.find(
-          (unit) => unit.code === currency
+          (unit) => unit.code === currency,
         );
         if (selectedPricingUnit && setCurrentSymbol) {
           setCurrentSymbol(selectedPricingUnit.symbol);

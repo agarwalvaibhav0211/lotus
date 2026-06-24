@@ -31,6 +31,7 @@ from drf_spectacular.utils import (
     OpenApiCallback,
     OpenApiParameter,
     extend_schema,
+    extend_schema_view,
     inline_serializer,
 )
 from metering_billing.exceptions import (
@@ -305,6 +306,25 @@ class EmptySerializer(serializers.Serializer):
     pass
 
 
+_webhook_id_param = OpenApiParameter(
+    "webhook_endpoint_id",
+    type=OpenApiTypes.STR,
+    location=OpenApiParameter.PATH,
+    description="Webhook endpoint ID in the format `webhook_<uuid>`",
+)
+
+
+@extend_schema_view(
+    list=extend_schema(responses=WebhookEndpointSerializer(many=True)),
+    retrieve=extend_schema(
+        parameters=[_webhook_id_param],
+        responses=WebhookEndpointSerializer,
+    ),
+    destroy=extend_schema(
+        parameters=[_webhook_id_param],
+        responses={204: None},
+    ),
+)
 class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows alerts to be viewed or edited.
@@ -322,11 +342,8 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         "partial_update": [IsAuthenticated & ValidOrganization],
     }
     queryset = WebhookEndpoint.objects.all()
-    serializer_class = WebhookEndpointSerializer
 
     def get_serializer_class(self):
-        if self.action == "destroy":
-            return EmptySerializer
         return WebhookEndpointSerializer
 
     @extend_schema(
@@ -336,7 +353,8 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 "{$request.body#/webhook_url}",
                 extend_schema(
                     description="Customer created webhook",
-                    responses={200: CustomerCreatedSerializer},
+                    request=CustomerCreatedSerializer,
+                    responses={200: None},
                 ),
             ),
             OpenApiCallback(
@@ -344,7 +362,8 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 "{$request.body#/webhook_url}",
                 extend_schema(
                     description="Invoice created webhook",
-                    responses={200: InvoiceCreatedSerializer},
+                    request=InvoiceCreatedSerializer,
+                    responses={200: None},
                 ),
             ),
             OpenApiCallback(
@@ -352,7 +371,8 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 "{$request.body#/webhook_url}",
                 extend_schema(
                     description="Invoice paid webhook",
-                    responses={200: InvoicePaidSerializer},
+                    request=InvoicePaidSerializer,
+                    responses={200: None},
                 ),
             ),
             OpenApiCallback(
@@ -360,7 +380,8 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 "{$request.body#/webhook_url}",
                 extend_schema(
                     description="Usage alert triggered webhook",
-                    responses={200: UsageAlertTriggeredSerializer},
+                    request=UsageAlertTriggeredSerializer,
+                    responses={200: None},
                 ),
             ),
             OpenApiCallback(
@@ -368,15 +389,17 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 "{$request.body#/webhook_url}",
                 extend_schema(
                     description="Subscription cancelled webhook",
-                    responses={200: SubscriptionCancelledSerializer},
+                    request=SubscriptionCancelledSerializer,
+                    responses={200: None},
                 ),
             ),
             OpenApiCallback(
                 WEBHOOK_TRIGGER_EVENTS.INVOICE_PAST_DUE.value,
                 "{$request.body#/webhook_url}",
                 extend_schema(
-                    description="Usage alert triggered webhook",
-                    responses={200: InvoicePastDueSerializer},
+                    description="Invoice past due webhook",
+                    request=InvoicePastDueSerializer,
+                    responses={200: None},
                 ),
             ),
             OpenApiCallback(
@@ -384,7 +407,8 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 "{$request.body#/webhook_url}",
                 extend_schema(
                     description="Subscription created webhook",
-                    responses={200: SubscriptionCreatedSerializer},
+                    request=SubscriptionCreatedSerializer,
+                    responses={200: None},
                 ),
             ),
             OpenApiCallback(
@@ -392,7 +416,8 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 "{$request.body#/webhook_url}",
                 extend_schema(
                     description="Subscription renewed webhook",
-                    responses={200: SubscriptionRenewedSerializer},
+                    request=SubscriptionRenewedSerializer,
+                    responses={200: None},
                 ),
             ),
         ]
@@ -445,12 +470,14 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_webhook",
                 properties={"organization": organization.organization_name},
@@ -700,12 +727,14 @@ class MetricViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_metric",
                 properties={"organization": organization.organization_name},
@@ -775,12 +804,14 @@ class FeatureViewSet(
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_feature",
                 properties={"organization": organization.organization_name},
@@ -864,12 +895,14 @@ class PlanVersionViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_plan_version",
                 properties={"organization": organization.organization_name},
@@ -1639,7 +1672,14 @@ class PlanViewSet(api_views.PlanViewSet):
         )
 
     @extend_schema(
-        parameters=None,
+        parameters=[
+            OpenApiParameter(
+                name="version_number",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+                description="The version number to update.",
+            ),
+        ],
         request=PlansSetReplaceWithForVersionNumberSerializer,
         responses=inline_serializer(
             "PlanVersionNumberSetReplaceWithResponse",
@@ -1714,7 +1754,14 @@ class PlanViewSet(api_views.PlanViewSet):
         )
 
     @extend_schema(
-        parameters=None,
+        parameters=[
+            OpenApiParameter(
+                name="version_number",
+                location=OpenApiParameter.PATH,
+                type=OpenApiTypes.INT,
+                description="The version number to update.",
+            ),
+        ],
         request=PlansSetTransitionToForVersionNumberSerializer,
         responses=inline_serializer(
             "PlanVersionNumberSetTransitionToResponse",
@@ -1804,6 +1851,10 @@ class PlanViewSet(api_views.PlanViewSet):
         )
 
 
+@extend_schema_view(
+    cancel_multi=extend_schema(operation_id="app_subscriptions_cancel_multi"),
+    edit=extend_schema(operation_id="app_subscriptions_update_multi"),
+)
 class SubscriptionViewSet(api_views.SubscriptionViewSet):
     pass
     # @extend_schema(exclude=True)
@@ -1890,12 +1941,14 @@ class BacktestViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_backtest",
                 properties={"organization": organization.organization_name},
@@ -1954,12 +2007,14 @@ class AnalysisViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_analysis",
                 properties={"organization": organization.organization_name},
@@ -1999,12 +2054,14 @@ class ProductViewSet(viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_product",
                 properties={"organization": organization.organization_name},
@@ -2074,12 +2131,14 @@ class ExternalPlanLinkViewSet(viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_external_plan_link",
                 properties={"organization": organization.organization_name},
@@ -2205,7 +2264,7 @@ class OrganizationViewSet(
         parameters=None,
         request=CRMSyncRequestSerializer,
         responses=inline_serializer(
-            "DeleteAddOnSerializer",
+            "SyncCRMResponseSerializer",
             fields={
                 "success": serializers.BooleanField(),
                 "message": serializers.CharField(),
@@ -2329,7 +2388,7 @@ class AddOnViewSet(viewsets.ModelViewSet):
         parameters=None,
         request=None,
         responses=inline_serializer(
-            "DeleteAddOnSerializer",
+            "DeleteAddOnResponseSerializer",
             fields={
                 "success": serializers.BooleanField(),
                 "message": serializers.CharField(),
@@ -2430,12 +2489,14 @@ class AddOnVersionViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_plan_version",
                 properties={"organization": organization.organization_name},

@@ -6,7 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import "vite/modulepreload-polyfill";
 import "./index.css";
 import "./custom.less";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConfigProvider } from "antd";
 import enUS from "antd/lib/locale/en_US";
 
@@ -22,7 +22,7 @@ const queryClient = new QueryClient({
 });
 
 const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
+  document.getElementById("root") as HTMLElement,
 );
 root.render(
   <React.StrictMode>
@@ -33,5 +33,5 @@ root.render(
         </ConfigProvider>
       </QueryClientProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Authentication } from "../api/api";
 import { Card, Input, Button, Form } from "antd";
 import "./Login.css";
-import { useMutation } from '@tanstack/react-query';
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { QueryErrors } from "../types/error-response-types";
@@ -39,11 +39,11 @@ const ResetPassword: FC = () => {
           toast.error(
             Array.isArray(error.response.data.email)
               ? error.response.data.email[0]
-              : error.response.data.email
+              : error.response.data.email,
           );
         }
       },
-    }
+    },
   );
 
   const handleResetPassword = (event: React.FormEvent<FormElements>) => {

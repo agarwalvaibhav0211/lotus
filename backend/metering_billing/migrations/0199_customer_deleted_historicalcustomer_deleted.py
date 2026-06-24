@@ -4,20 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0198_alter_customer_customer_id_and_more'),
+        ("metering_billing", "0198_alter_customer_customer_id_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='customer',
-            name='deleted',
-            field=models.DateTimeField(help_text='The date the customer was deleted', null=True),
+            model_name="customer",
+            name="deleted",
+            field=models.DateTimeField(
+                help_text="The date the customer was deleted", null=True
+            ),
         ),
         migrations.AddField(
-            model_name='historicalcustomer',
-            name='deleted',
-            field=models.DateTimeField(help_text='The date the customer was deleted', null=True),
+            model_name="historicalcustomer",
+            name="deleted",
+            field=models.DateTimeField(
+                help_text="The date the customer was deleted", null=True
+            ),
         ),
     ]

@@ -32,9 +32,7 @@ class UserService:
         body = f"Use this link to reset your password: {reset_url}"
         from_email = f"Lotus <{DEFAULT_FROM_EMAIL}>"
         html = """
-            <p>Please <a href={url}>reset your password</a></p>""".format(
-            url=reset_url
-        )
+            <p>Please <a href={url}>reset your password</a></p>""".format(url=reset_url)
         msg = EmailMultiAlternatives(subject, body, from_email, [to])
         msg.attach_alternative(html, "text/html")
         msg.tags = ["reset_password"]

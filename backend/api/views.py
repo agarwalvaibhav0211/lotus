@@ -38,6 +38,7 @@ from drf_spectacular.utils import (
     OpenApiExample,
     OpenApiParameter,
     extend_schema,
+    extend_schema_view,
     inline_serializer,
 )
 from rest_framework import mixins, serializers, status, viewsets
@@ -53,6 +54,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.serializers.model_serializers import (
+    AddOnSerializer,
     AddOnSubscriptionRecordCreateSerializer,
     AddOnSubscriptionRecordSerializer,
     AddOnSubscriptionRecordUpdateSerializer,
@@ -102,7 +104,7 @@ from metering_billing.exceptions import (
 )
 from metering_billing.exceptions.exceptions import InvalidOperation, NotFoundException
 from metering_billing.invoice import generate_invoice
-from metering_billing.invoice_pdf import get_invoice_presigned_url
+from metering_billing.payment_processors import PAYMENT_PROCESSOR_MAP
 from metering_billing.kafka.producer import Producer
 from metering_billing.models import (
     ComponentChargeRecord,
@@ -485,12 +487,14 @@ class CustomerViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             organization = self.request.organization or self.request.user.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_customer",
                     properties={"organization": organization.organization_name},
@@ -687,12 +691,14 @@ class PlanViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             organization = self.request.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_plan",
                     properties={"organization": organization.organization_name},
@@ -737,6 +743,18 @@ class PlanViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         return super().retrieve(request, *args, **kwargs)
 
 
+@extend_schema_view(
+    retrieve=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "subscription_id",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.PATH,
+                description="The subscription's ID in the format `subscription_<uuid>`",
+            )
+        ]
+    )
+)
 class SubscriptionViewSet(
     PermissionPolicyMixin,
     mixins.CreateModelMixin,
@@ -1332,9 +1350,11 @@ class SubscriptionViewSet(
 
         try:
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (organization.organization_name + " (Unknown)"),
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (organization.organization_name + " (Unknown)")
+                ),
                 event="DEPRECATED_add_subscription",
                 properties={
                     "organization": organization.organization_name,
@@ -1349,6 +1369,7 @@ class SubscriptionViewSet(
         )
 
     @extend_schema(
+        operation_id="api_subscriptions_cancel_multi",
         parameters=[
             SubscriptionRecordFilterSerializerDelete,
         ],
@@ -1384,9 +1405,11 @@ class SubscriptionViewSet(
 
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (organization.organization_name + " (Unknown)"),
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (organization.organization_name + " (Unknown)")
+                    ),
                     event="DEPRECATED_cancel_subscription",
                     properties={
                         "organization": organization.organization_name,
@@ -1399,6 +1422,7 @@ class SubscriptionViewSet(
         return Response(ret, status=status.HTTP_200_OK)
 
     @extend_schema(
+        operation_id="api_subscriptions_update_multi",
         parameters=[SubscriptionRecordFilterSerializer],
         responses={200: SubscriptionRecordSerializer(many=True)},
     )
@@ -1503,9 +1527,11 @@ class SubscriptionViewSet(
 
         try:
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (organization.organization_name + " (Unknown)"),
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (organization.organization_name + " (Unknown)")
+                ),
                 event="DEPRECATED_update_subscription",
                 properties={
                     "organization": organization.organization_name,
@@ -1527,12 +1553,14 @@ class SubscriptionViewSet(
             organization = self.request.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_subscription",
                     properties={"organization": organization.organization_name},
@@ -1622,6 +1650,28 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    def _refresh_payment_status(self, invoice):
+        if (
+            invoice.payment_status == Invoice.PaymentStatus.UNPAID
+            and invoice.external_payment_obj_id
+        ):
+            pp = invoice.external_payment_obj_type
+            connector = PAYMENT_PROCESSOR_MAP.get(pp)
+            if connector and connector.working():
+                try:
+                    new_status = connector.update_payment_object_status(
+                        invoice.organization, invoice.external_payment_obj_id
+                    )
+                    if new_status == Invoice.PaymentStatus.PAID:
+                        invoice.payment_status = Invoice.PaymentStatus.PAID
+                        invoice.save(update_fields=["payment_status"])
+                except Exception as e:
+                    logger.error(
+                        "Error refreshing invoice %s status: %s",
+                        invoice.invoice_id,
+                        e,
+                    )
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         organization = self.request.organization
@@ -1638,12 +1688,14 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             organization = self.request.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_invoice",
                     properties={"organization": organization.organization_name},
@@ -1652,30 +1704,39 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 pass
         return response
 
+    def retrieve(self, request, *args, **kwargs):
+        self._refresh_payment_status(self.get_object())
+        return super().retrieve(request, *args, **kwargs)
+
     @extend_schema(
         parameters=[InvoiceListFilterSerializer],
     )
     def list(self, request):
+        for invoice in self.get_queryset().filter(
+            payment_status=Invoice.PaymentStatus.UNPAID,
+            external_payment_obj_id__isnull=False,
+        ):
+            self._refresh_payment_status(invoice)
         return super().list(request)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="invoice_id",
-                required=True,
-                location=OpenApiParameter.PATH,
-                description="Either an invoice ID (in the format `invoice_<uuid>`) or an invoice number (in the format `YYMMDD-000001`)",
-            )
-        ]
+
+class AddOnViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
+    serializer_class = AddOnSerializer
+    lookup_field = "plan_id"
+    http_method_names = ["get", "head"]
+    queryset = Plan.addons.all().order_by(
+        F("created_on").desc(nulls_last=False), F("plan_name")
     )
-    @action(detail=True, methods=["get"])
-    def pdf_url(self, request, *args, **kwargs):
-        invoice = self.get_object()
-        url = get_invoice_presigned_url(invoice).get("url")
-        return Response(
-            {"url": url},
-            status=status.HTTP_200_OK,
-        )
+
+    def get_object(self):
+        string_uuid = str(self.kwargs[self.lookup_field])
+        uuid = AddOnUUIDField().to_internal_value(string_uuid)
+        self.kwargs[self.lookup_field] = uuid
+        return super().get_object()
+
+    def get_queryset(self):
+        organization = self.request.organization
+        return self.queryset.filter(organization=organization)
 
 
 class CustomerBalanceAdjustmentViewSet(
@@ -1871,12 +1932,14 @@ class CustomerBalanceAdjustmentViewSet(
             organization = self.request.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_balance_adjustment",
                     properties={"organization": organization.organization_name},
@@ -2293,9 +2356,9 @@ def track_event(request):
             # If the datetime object is naive, replace its tzinfo with UTC
             tc = tc.replace(tzinfo=pytz.UTC)
         if not (now - relativedelta(days=30) <= tc <= now + relativedelta(days=1)):
-            bad_events[
-                idempotency_id
-            ] = "Time created too far in the past or future. Events must be within 30 days before or 1 day ahead of current time."
+            bad_events[idempotency_id] = (
+                "Time created too far in the past or future. Events must be within 30 days before or 1 day ahead of current time."
+            )
             continue
         data["time_created"] = tc.isoformat()
         try:
@@ -2466,9 +2529,11 @@ class GetCustomerFeatureAccessView(APIView):
             username = None
         try:
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (username if username else result + " (Unknown)"),
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (username if username else result + " (Unknown)")
+                ),
                 event="DEPRECATED_get_feature_access",
                 properties={"organization": organization.organization_name},
             )
@@ -2550,12 +2615,14 @@ class GetCustomerEventAccessView(APIView):
             username = None
         try:
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (Unknown)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (Unknown)"
+                    )
                 ),
                 event="DEPRECATED_get_metric_access",
                 properties={"organization": organization.organization_name},

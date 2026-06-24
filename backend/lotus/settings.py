@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+
 import datetime
 import logging
 import os
@@ -100,6 +101,11 @@ if BRAINTREE_TEST_PUBLIC_KEY == "change_me":
 if BRAINTREE_TEST_SECRET_KEY == "change_me":
     BRAINTREE_TEST_SECRET_KEY = None
 BRAINTREE_WEBHOOK_SECRET = config("BRAINTREE_WEBHOOK_SECRET", default="")
+# Munim
+MUNIM_API_KEY = config("MUNIM_API_KEY", default=None)
+MUNIM_BASE_URL = config("MUNIM_BASE_URL", default="https://api.munim.io")
+if MUNIM_API_KEY == "change_me":
+    MUNIM_API_KEY = None
 # taxjar
 TAXJAR_API_KEY = config("TAXJAR_API_KEY", default=None)
 # Webhooks for Svix
@@ -284,6 +290,9 @@ else:
             "PASSWORD": POSTGRES_PASSWORD,
             "HOST": "db" if DOCKERIZED else "localhost",
             "PORT": 5432,
+            "TEST": {
+                "TEMPLATE": "template_timescale",
+            },
         }
     }
 
@@ -599,6 +608,7 @@ SPECTACULAR_SETTINGS = {
     ),
     "VERSION": "0.9.3",
     "SERVE_INCLUDE_SCHEMA": False,
+    "SORT_OPERATION_PARAMETERS": True,
     "APPEND_COMPONENTS": {
         "securitySchemes": {
             "OrganizationApiKeyAuth": {
@@ -615,13 +625,16 @@ SPECTACULAR_SETTINGS = {
             "TokenAuth": [],
         }
     ],
-    "PREPROCESSING_HOOKS": [],
+    "PREPROCESSING_HOOKS": [
+        "metering_billing.openapi_hooks.sort_schema_deterministically",
+    ],
     "POSTPROCESSING_HOOKS": [
         "metering_billing.openapi_hooks.remove_required_parent_plan_and_target_customer",
         "metering_billing.openapi_hooks.remove_required_external_payment_obj_type",
         "metering_billing.openapi_hooks.add_external_payment_obj_type_to_required",
         "metering_billing.openapi_hooks.add_plan_id_parent_plan_target_customer_to_required",
         "metering_billing.openapi_hooks.remove_required_address_from_lw_cust_invoice",
+        "metering_billing.openapi_hooks.sort_enums_and_required_fields",
     ],
     "ENUM_NAME_OVERRIDES": {
         "numeric_filter_operators": "metering_billing.utils.enums.NUMERIC_FILTER_OPERATORS.choices",

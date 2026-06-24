@@ -121,7 +121,7 @@ export const ComponentDisplay = ({ ...props }: Props) => (
                   {renderCost(tier, props.pricing_unit)}
                 </div>
               </div>
-            ))
+            )),
           )}
         </div>
       </div>

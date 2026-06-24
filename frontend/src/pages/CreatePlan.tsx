@@ -5,7 +5,7 @@ import { Button, Col, Form, Modal, Row } from "antd";
 // @ts-ignore
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import clsx from "clsx";
 import UsageComponentForm from "../components/Plans/UsageComponentForm";
@@ -61,7 +61,7 @@ function CreatePlan() {
   const [allPlans, setAllPlans] = useState<PlanType[]>([]);
   const [allCurrencies, setAllCurrencies] = useState<CurrencyType[]>([]);
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyType | null>(
-    null
+    null,
   );
   const [featureVisible, setFeatureVisible] = useState<boolean>(false);
   const [priceAdjustmentType, setPriceAdjustmentType] =
@@ -122,14 +122,14 @@ function CreatePlan() {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
 
   const addFeatures = (newFeatures: FeatureType[]) => {
     for (let i = 0; i < newFeatures.length; i++) {
       if (
         planFeatures.some(
-          (feat) => feat.feature_id === newFeatures[i].feature_id
+          (feat) => feat.feature_id === newFeatures[i].feature_id,
         )
       ) {
       } else {
@@ -141,14 +141,14 @@ function CreatePlan() {
 
   const editFeatures = (feature_name: string) => {
     const currentFeature = planFeatures.filter(
-      (item) => item.feature_name === feature_name
+      (item) => item.feature_name === feature_name,
     )[0];
     setFeatureVisible(true);
   };
 
   const removeFeature = (feature_id: string) => {
     setPlanFeatures(
-      planFeatures.filter((item) => item.feature_id !== feature_id)
+      planFeatures.filter((item) => item.feature_id !== feature_id),
     );
   };
 
@@ -172,7 +172,7 @@ function CreatePlan() {
     // if not then add the new data to the componentsData
 
     const metricComponentExists = componentsData.some(
-      (item) => item.metric_id === newData.metric_id
+      (item) => item.metric_id === newData.metric_id,
     );
 
     if (metricComponentExists && !editComponentItem) {
@@ -184,7 +184,7 @@ function CreatePlan() {
 
     if (editComponentItem) {
       const index = componentsData.findIndex(
-        (item) => item.metric_id === editComponentItem.metric_id
+        (item) => item.metric_id === editComponentItem.metric_id,
       );
       old[index] = newData;
       setComponentsData(old);
@@ -205,7 +205,7 @@ function CreatePlan() {
 
   const handleComponentEdit = (id: string) => {
     const currentComponent = componentsData.filter(
-      (item) => item.metric_id === id
+      (item) => item.metric_id === id,
     )[0];
 
     setEditComponentsItem(currentComponent);
@@ -232,7 +232,7 @@ function CreatePlan() {
 
   const deleteComponent = (metric_id: string) => {
     setComponentsData(
-      componentsData.filter((item) => item.metric_id !== metric_id)
+      componentsData.filter((item) => item.metric_id !== metric_id),
     );
   };
 
@@ -293,7 +293,7 @@ function CreatePlan() {
             charge_behavior: recurringCharge.charge_behavior,
             charge_timing: recurringCharge.charge_timing,
             name: recurringCharge.name,
-          })
+          }),
         );
 
         if (values.usage_billing_frequency === "yearly") {

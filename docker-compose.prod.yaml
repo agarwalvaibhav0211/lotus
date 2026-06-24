@@ -1,3 +1,10 @@
+networks:
+  shared:
+    external: true
+    name: shared
+  lotus-internal:
+    driver: bridge
+
 services:
   db:
     image: timescale/timescaledb:latest-pg14
@@ -8,6 +15,8 @@ services:
       - pgdata_prod:/var/lib/postgresql/data
     env_file:
       - ./env/.env.prod
+    networks:
+      - lotus-internal
 
   svix-server:
     image: svix/svix-server:v0.74
@@ -17,8 +26,8 @@ services:
       SVIX_DB_DSN: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db
     env_file:
       - ./env/.env.prod
-    ports:
-      - "8071:8071"
+    expose:
+      - 8071
     depends_on:
     - db
     - redis
@@ -26,6 +35,8 @@ services:
     - db
     - redis
     restart: on-failure
+    networks:
+      - lotus-internal
 
   redpanda:
     image: docker.redpanda.com/vectorized/redpanda:v22.2.2
@@ -44,8 +55,12 @@ services:
       - 9092
       - 9644
       - 29092
+    networks:
+      - lotus-internal
 
   backend: &backend
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/backend:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     build:
@@ -62,8 +77,12 @@ services:
       - redis
       - redpanda
     restart: on-failure
+    networks:
+      - lotus-internal
 
   event-guidance:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/event-guidance:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     build:
@@ -76,8 +95,12 @@ services:
       - redis
       - redpanda
     restart: "on-failure:15"
+    networks:
+      - lotus-internal
 
   event-ingestion:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/event-ingestion:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     build:
@@ -91,8 +114,12 @@ services:
       - redpanda
       - backend
     restart: "on-failure:15"
+    networks:
+      - lotus-internal
 
   frontend:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/frontend:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     restart: always
     build:
       context: ./frontend
@@ -101,20 +128,27 @@ services:
     env_file:
       - ./env/.env.prod
     stdin_open: true
-    ports:
-      - 80:80
+    expose:
+      - 80
     volumes:
       - django_static_volume:/app/backend/server/django_staticfiles
     depends_on:
       - backend
+    networks:
+      - shared
+      - lotus-internal  # needs both to reach backend/event-ingestion internally
 
   redis:
     image: redis:7-alpine
     command: redis-server
     env_file:
       - ./env/.env.prod
+    networks:
+      - lotus-internal
 
   celery:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/backend:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     build:
@@ -126,8 +160,12 @@ services:
       - redis
       - backend
     restart: on-failure
+    networks:
+      - lotus-internal
 
   celery-beat:
+    image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/backend:${LOTUS_IMAGE_TAG:-latest}
+    pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
     restart: on-failure
@@ -140,6 +178,8 @@ services:
       - celery
       - backend
       - redis
+    networks:
+      - lotus-internal
 
 volumes:
   pgdata_prod:

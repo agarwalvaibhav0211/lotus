@@ -2,7 +2,7 @@
 # THIS IS A MATERIALIZED VIEW
 COUNTER_CAGG_QUERY = """
 CREATE MATERIALIZED VIEW IF NOT EXISTS {{ cagg_name }}
-WITH ( timescaledb.continuous ) AS
+WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
 SELECT
     "metering_billing_usageevent"."uuidv5_customer_id" AS uuidv5_customer_id
     , time_bucket('1 {{bucket_size}}', "metering_billing_usageevent"."time_created") AS bucket

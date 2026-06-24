@@ -12,10 +12,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL(
-            """
+        migrations.RunSQL("""
             DROP TRIGGER IF EXISTS event_insert_trigger ON metering_billing_usageevent;
             DROP FUNCTION IF EXISTS insert_event_with_idempotency_check();
-            """
-        ),
+            """),
     ]

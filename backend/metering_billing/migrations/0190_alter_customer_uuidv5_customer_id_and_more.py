@@ -4,20 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0189_hash_customer_ids'),
+        ("metering_billing", "0189_hash_customer_ids"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='customer',
-            name='uuidv5_customer_id',
-            field=models.UUIDField(help_text='The v5 UUID generated from the customer_id. This is used for efficient lookups in the database, specifically for the Events table'),
+            model_name="customer",
+            name="uuidv5_customer_id",
+            field=models.UUIDField(
+                help_text="The v5 UUID generated from the customer_id. This is used for efficient lookups in the database, specifically for the Events table"
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalcustomer',
-            name='uuidv5_customer_id',
-            field=models.UUIDField(help_text='The v5 UUID generated from the customer_id. This is used for efficient lookups in the database, specifically for the Events table'),
+            model_name="historicalcustomer",
+            name="uuidv5_customer_id",
+            field=models.UUIDField(
+                help_text="The v5 UUID generated from the customer_id. This is used for efficient lookups in the database, specifically for the Events table"
+            ),
         ),
     ]

@@ -1,7 +1,7 @@
 import { Modal, Form, Input, Select } from "antd";
 // @ts-ignore
 import React from "react";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import PricingUnitDropDown from "../PricingUnitDropDown";
 import { PaymentProcessorIntegration } from "../../api/api";
 import { PaymentProcessorStatusType } from "../../types/payment-processor-type";
@@ -37,7 +37,7 @@ function CreateCustomerForm(props: {
           .map((item) => item.payment_provider_name);
         setPaymentProviders(connectedProviders);
       },
-    }
+    },
   );
   return (
     <Modal

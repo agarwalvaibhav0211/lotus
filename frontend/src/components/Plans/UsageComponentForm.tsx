@@ -26,12 +26,12 @@ function resetValidationLogic(reset_unit, invoicing_unit) {
   if (invoicing_unit && reset_unit) {
     if (reset_unit === "week" && invoicing_unit === "day") {
       return Promise.reject(
-        "Reset interval unit must be less than or equal to invoicing interval unit"
+        "Reset interval unit must be less than or equal to invoicing interval unit",
       );
     }
     if (reset_unit === "month" && ["day", "week"].includes(invoicing_unit)) {
       return Promise.reject(
-        "Reset interval unit must be less than or equal to invoicing interval unit"
+        "Reset interval unit must be less than or equal to invoicing interval unit",
       );
     }
     if (
@@ -39,7 +39,7 @@ function resetValidationLogic(reset_unit, invoicing_unit) {
       ["day", "week", "month"].includes(invoicing_unit)
     ) {
       return Promise.reject(
-        "Reset interval unit must be less than or equal to invoicing interval unit"
+        "Reset interval unit must be less than or equal to invoicing interval unit",
       );
     }
   }
@@ -314,7 +314,7 @@ function UsageComponentForm({
     useState<number>(100);
 
   const [prepaid, setPrepaid] = useState<boolean>(
-    editComponentItem?.prepaid_charge ?? false
+    editComponentItem?.prepaid_charge ?? false,
   );
   console.log(prepaid);
   const backupDefaultFormValues = {
@@ -326,7 +326,7 @@ function UsageComponentForm({
   const initialData = Object.assign(
     {},
     backupDefaultFormValues,
-    editComponentItem
+    editComponentItem,
   );
   console.log(editComponentItem);
   const [errorMessage, setErrorMessage] = useState("");
@@ -338,11 +338,11 @@ function UsageComponentForm({
     },
   ];
   const [currentTiers, setCurrentTiers] = useState<Tier[]>(
-    editComponentItem?.tiers ?? initialTier
+    editComponentItem?.tiers ?? initialTier,
   );
   const [rangeEnd, setRangeEnd] = useState<number | undefined>(
     editComponentItem?.tiers[editComponentItem?.tiers.length - 1]?.range_end ??
-      undefined
+      undefined,
   );
 
   useEffect(() => {
@@ -358,7 +358,7 @@ function UsageComponentForm({
   useEffect(() => {
     setMetricGauge(
       metricObjects.find((metric) => metric.metric_name === selectedMetricName)
-        ?.metric_type === "gauge"
+        ?.metric_type === "gauge",
     );
   }, [selectedMetricName]);
 
@@ -400,7 +400,7 @@ function UsageComponentForm({
 
   const handleSelectMetric = (metric_name: string) => {
     const currentMetric = metricObjects.find(
-      (metric) => metric.metric_name === metric_name
+      (metric) => metric.metric_name === metric_name,
     );
     if (currentMetric && currentMetric.metric_type === "gauge") {
       if (currentMetric.granularity) {
@@ -416,7 +416,7 @@ function UsageComponentForm({
   const handleSave = (row: Tier) => {
     const newData = [...currentTiers];
     const index = newData.findIndex(
-      (item) => row.range_start === item.range_start
+      (item) => row.range_start === item.range_start,
     );
     if (row.type === "free") {
       row.cost_per_batch = 0;
@@ -441,7 +441,7 @@ function UsageComponentForm({
 
   const handleDelete = (range_start: React.Key) => {
     const newData = currentTiers.filter(
-      (item) => item.range_start !== range_start
+      (item) => item.range_start !== range_start,
     );
     setCurrentTiers(newData);
     setRangeEnd(newData[newData.length - 1].range_end);
@@ -562,7 +562,7 @@ function UsageComponentForm({
     if (validateTiers(currentTiers).some((item) => item.isValid === false)) {
       buttonRef.current ? (buttonRef.current.disabled = true) : null;
       const errorMessage = validateTiers(currentTiers).filter(
-        (item) => item.isValid === false
+        (item) => item.isValid === false,
       )[0].message;
       setErrorMessage(errorMessage);
     } else {
@@ -597,7 +597,7 @@ function UsageComponentForm({
               validateTiers(currentTiers).every((item) => item.isValid === true)
             ) {
               const currentMetric = metricObjects.find(
-                (metric) => metric.metric_name === form.getFieldValue("metric")
+                (metric) => metric.metric_name === form.getFieldValue("metric"),
               );
 
               handleComponentAdd({
@@ -831,11 +831,11 @@ function UsageComponentForm({
                       ({ getFieldValue }) => ({
                         validator(_, value) {
                           const invoicingIntervalUnit = getFieldValue(
-                            "invoicing_interval_unit"
+                            "invoicing_interval_unit",
                           );
                           return resetValidationLogic(
                             value,
-                            invoicingIntervalUnit
+                            invoicingIntervalUnit,
                           );
                         },
                       }),

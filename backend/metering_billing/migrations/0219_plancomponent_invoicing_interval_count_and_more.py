@@ -4,50 +4,65 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0218_remove_null_pricing_units'),
+        ("metering_billing", "0218_remove_null_pricing_units"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='plancomponent',
-            name='invoicing_interval_count',
+            model_name="plancomponent",
+            name="invoicing_interval_count",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='plancomponent',
-            name='invoicing_interval_unit',
-            field=models.PositiveSmallIntegerField(blank=True, choices=[(1, 'day'), (2, 'week'), (3, 'month'), (4, 'year')], null=True),
+            model_name="plancomponent",
+            name="invoicing_interval_unit",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                choices=[(1, "day"), (2, "week"), (3, "month"), (4, "year")],
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='plancomponent',
-            name='reset_interval_count',
+            model_name="plancomponent",
+            name="reset_interval_count",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='plancomponent',
-            name='reset_interval_unit',
-            field=models.PositiveSmallIntegerField(blank=True, choices=[(1, 'day'), (2, 'week'), (3, 'month'), (4, 'year')], null=True),
+            model_name="plancomponent",
+            name="reset_interval_unit",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                choices=[(1, "day"), (2, "week"), (3, "month"), (4, "year")],
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='recurringcharge',
-            name='invoicing_interval_count',
+            model_name="recurringcharge",
+            name="invoicing_interval_count",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='recurringcharge',
-            name='invoicing_interval_unit',
-            field=models.PositiveSmallIntegerField(blank=True, choices=[(1, 'day'), (2, 'week'), (3, 'month'), (4, 'year')], null=True),
+            model_name="recurringcharge",
+            name="invoicing_interval_unit",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                choices=[(1, "day"), (2, "week"), (3, "month"), (4, "year")],
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='recurringcharge',
-            name='reset_interval_count',
+            model_name="recurringcharge",
+            name="reset_interval_count",
             field=models.PositiveSmallIntegerField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='recurringcharge',
-            name='reset_interval_unit',
-            field=models.PositiveSmallIntegerField(blank=True, choices=[(1, 'day'), (2, 'week'), (3, 'month'), (4, 'year')], null=True),
+            model_name="recurringcharge",
+            name="reset_interval_unit",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                choices=[(1, "day"), (2, "week"), (3, "month"), (4, "year")],
+                null=True,
+            ),
         ),
     ]

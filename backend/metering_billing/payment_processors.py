@@ -42,6 +42,9 @@ BRAINTREE_LIVE_MERCHANT_ID = settings.BRAINTREE_LIVE_MERCHANT_ID
 BRAINTREE_LIVE_PUBLIC_KEY = settings.BRAINTREE_LIVE_PUBLIC_KEY
 BRAINTREE_LIVE_SECRET_KEY = settings.BRAINTREE_LIVE_SECRET_KEY
 BRAINTREE_TEST_MERCHANT_ID = settings.BRAINTREE_TEST_MERCHANT_ID
+
+MUNIM_API_KEY = settings.MUNIM_API_KEY
+MUNIM_BASE_URL = settings.MUNIM_BASE_URL
 BRAINTREE_TEST_PUBLIC_KEY = settings.BRAINTREE_TEST_PUBLIC_KEY
 BRAINTREE_TEST_SECRET_KEY = settings.BRAINTREE_TEST_SECRET_KEY
 
@@ -756,9 +759,9 @@ class StripeConnector(PaymentProcesor):
 
         invoice_payload = {}
         if not self.self_hosted:
-            invoice_payload[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            invoice_payload["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
         if organization.organization_type == Organization.OrganizationType.PRODUCTION:
             stripe.api_key = self.live_secret_key
         else:
@@ -774,9 +777,9 @@ class StripeConnector(PaymentProcesor):
 
         customer_payload = {}
         if not self.self_hosted:
-            customer_payload[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            customer_payload["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
         if organization.organization_type == Organization.OrganizationType.PRODUCTION:
             stripe.api_key = self.live_secret_key
         else:
@@ -813,9 +816,9 @@ class StripeConnector(PaymentProcesor):
             stripe.api_key = self.test_secret_key
         customer_payload = {}
         if not self.self_hosted:
-            customer_payload[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            customer_payload["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         try:
             cust = stripe.Customer.retrieve(external_id, **customer_payload)
@@ -890,9 +893,9 @@ class StripeConnector(PaymentProcesor):
 
         account_payload = {}
         if not self.self_hosted:
-            account_payload[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            account_payload["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
         if organization.organization_type == Organization.OrganizationType.PRODUCTION:
             stripe.api_key = self.live_secret_key
         else:
@@ -921,9 +924,9 @@ class StripeConnector(PaymentProcesor):
         stripe_cust_kwargs = {}
         if not self.self_hosted:
             # this is to get "on behalf" of someone
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
         try:
             stripe_customers_response = stripe.Customer.list(**stripe_cust_kwargs)
             for stripe_customer in stripe_customers_response.auto_paging_iter():
@@ -977,9 +980,9 @@ class StripeConnector(PaymentProcesor):
 
         payload = {}
         if not self.self_hosted:
-            payload[
-                "stripe_account"
-            ] = customer.organization.stripe_integration.stripe_account_id
+            payload["stripe_account"] = (
+                customer.organization.stripe_integration.stripe_account_id
+            )
         invoices = stripe.Invoice.list(
             customer=customer.stripe_integration.stripe_customer_id, **payload
         )
@@ -1173,9 +1176,9 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         stripe_subscriptions = stripe.Subscription.search(
             query="status:'active'", **stripe_cust_kwargs
@@ -1285,9 +1288,9 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         stripe_subscriptions = stripe.Subscription.search(
             query="status:'active'", **stripe_cust_kwargs
@@ -1333,9 +1336,9 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         stripe_id = customer.stripe_integration.stripe_customer_id
         stripe_subscriptions = stripe.Subscription.list(
@@ -1371,9 +1374,9 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         for stripe_sub_id in stripe_subscription_ids:
             stripe.Subscription.delete(
@@ -1392,14 +1395,348 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         for stripe_sub_id in stripe_subscription_ids:
             stripe.Subscription.modify(
                 stripe_sub_id, cancel_at_period_end=True, **stripe_cust_kwargs
             )
+
+
+class MunimConnector(PaymentProcesor):
+    """Payment processor connector for the Munim billing service.
+
+    Lotus calls the Munim REST API (see docs/munim-api.yaml) using a static
+    API key.  The API key + account ID are stored in the organisation's
+    MunimOrganizationIntegration record once the operator connects via the
+    Lotus settings page.
+    """
+
+    # MANAGEMENT METHODS
+
+    def __init__(self):
+        self.api_key = MUNIM_API_KEY
+        self.base_url = MUNIM_BASE_URL.rstrip("/")
+        self.account_id = None
+        self.account_name = None
+        if self.api_key:
+            try:
+                resp = requests.get(
+                    f"{self.base_url}/v1/account",
+                    headers={"Authorization": f"Bearer {self.api_key}"},
+                    timeout=5,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                self.account_id = data.get("account_id")
+                self.account_name = data.get("name")
+            except Exception as e:
+                logger.error("Munim startup validation failed: %s", e)
+
+    def _headers(self, organization=None) -> dict:
+        return {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+    def _get(self, path: str, organization=None, params=None):
+        url = f"{self.base_url}{path}"
+        resp = requests.get(url, headers=self._headers(organization), params=params)
+        resp.raise_for_status()
+        return resp.json()
+
+    def _post(self, path: str, organization=None, payload=None):
+        url = f"{self.base_url}{path}"
+        resp = requests.post(
+            url, headers=self._headers(organization), json=payload or {}
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+    def working(self) -> bool:
+        return self.api_key is not None and self.account_id is not None
+
+    def customer_connected(self, customer) -> bool:
+        return customer.munim_integration is not None
+
+    def organization_connected(self, organization) -> bool:
+        return organization.munim_integration is not None
+
+    def get_connection_id(self, organization) -> str:
+        return organization.organization_id.hex
+
+    def get_account_id(self, organization) -> str:
+        return self.account_id
+
+    # IMPORT METHODS
+
+    def import_customers(self, organization) -> int:
+        from metering_billing.models import Customer, MunimCustomerIntegration
+
+        num_added = 0
+        page = 1
+        while True:
+            try:
+                data = self._get(
+                    "/v1/customers",
+                    organization=organization,
+                    params={"page": page, "page_size": 100},
+                )
+            except Exception as e:
+                logger.error("Munim import_customers error: %s", e)
+                break
+
+            customers = data.get("customers", [])
+            if not customers:
+                break
+
+            for munim_customer in customers:
+                munim_id = munim_customer["customer_id"]
+                munim_email = munim_customer.get("email")
+                munim_name = munim_customer.get("name", "")
+
+                customer = Customer.objects.filter(
+                    Q(munim_integration__munim_customer_id=munim_id)
+                    | (Q(email=munim_email) & Q(email__isnull=False)),
+                    organization=organization,
+                ).first()
+
+                if customer:
+                    customer.payment_provider = PAYMENT_PROCESSORS.MUNIM
+                    customer.save()
+                else:
+                    try:
+                        integration = MunimCustomerIntegration.objects.create(
+                            munim_customer_id=munim_id,
+                            organization=organization,
+                        )
+                        Customer.objects.create(
+                            organization=organization,
+                            customer_name=munim_name,
+                            email=munim_email,
+                            payment_provider=PAYMENT_PROCESSORS.MUNIM,
+                            munim_integration=integration,
+                        )
+                        num_added += 1
+                    except Exception as e:
+                        logger.error("Munim import_customers create error: %s", e)
+                        continue
+
+            # Check if there are more pages
+            total = data.get("total", 0)
+            if page * 100 >= total:
+                break
+            page += 1
+
+        return num_added
+
+    def import_payment_objects(self, organization) -> dict:
+        # Not yet implemented — placeholder
+        return {}
+
+    def transfer_subscriptions(self, organization, end_now=False) -> int:
+        # Not yet implemented — placeholder
+        return 0
+
+    def update_payment_object_status(self, organization, payment_object_id: str):
+        from metering_billing.models import Invoice
+
+        try:
+            data = self._get(
+                f"/v1/invoices/{payment_object_id}", organization=organization
+            )
+            if data.get("status") == "paid":
+                return Invoice.PaymentStatus.PAID
+        except Exception as e:
+            logger.error("Munim update_payment_object_status error: %s", e)
+        return Invoice.PaymentStatus.UNPAID
+
+    def retrieve_customer_by_external_id(self, organization, external_id: str):
+        try:
+            return self._get(f"/v1/customers/{external_id}", organization=organization)
+        except Exception as e:
+            logger.error("Munim retrieve_customer_by_external_id error: %s", e)
+            return None
+
+    def has_payment_method(self, customer) -> bool:
+        # Munim does not support auto-charge — always return False
+        return False
+
+    def connect_customer(self, customer, external_id: str) -> bool:
+        from metering_billing.models import MunimCustomerIntegration
+
+        try:
+            self.retrieve_customer_by_external_id(customer.organization, external_id)
+            integration = MunimCustomerIntegration.objects.create(
+                organization=customer.organization,
+                munim_customer_id=external_id,
+            )
+            customer.munim_integration = integration
+            customer.save()
+            return True
+        except Exception as e:
+            logger.error("Munim connect_customer error: %s", e)
+            return False
+
+    def get_customer_address(self, customer, type: Literal["shipping", "billing"]):
+        from metering_billing.models import Address
+
+        munim_id = customer.munim_integration.munim_customer_id
+        try:
+            cust_data = self._get(
+                f"/v1/customers/{munim_id}", organization=customer.organization
+            )
+        except Exception as e:
+            logger.error("Munim get_customer_address error: %s", e)
+            return Address()
+
+        addr_key = "billing_address" if type == "billing" else "shipping_address"
+        addr = cust_data.get(addr_key) or {}
+        return Address(
+            city=addr.get("city"),
+            country=addr.get("country"),
+            line1=addr.get("line1"),
+            line2=addr.get("line2"),
+            postal_code=addr.get("postal_code"),
+            state=addr.get("state"),
+        )
+
+    def get_organization_address(self, organization):
+        from metering_billing.models import Address
+
+        try:
+            acct_data = self._get("/v1/account", organization=organization)
+        except Exception as e:
+            logger.error("Munim get_organization_address error: %s", e)
+            return Address()
+
+        addr = acct_data.get("address") or {}
+        return Address(
+            city=addr.get("city"),
+            country=addr.get("country"),
+            line1=addr.get("line1"),
+            line2=addr.get("line2"),
+            postal_code=addr.get("postal_code"),
+            state=addr.get("state"),
+        )
+
+    # EXPORT METHODS
+
+    def create_customer_flow(self, customer) -> None:
+        from metering_billing.models import MunimCustomerIntegration
+
+        gen_cust = getattr(
+            customer.organization, "gen_cust_in_munim_after_lotus", False
+        )
+        if not gen_cust or customer.munim_integration is not None:
+            return
+
+        try:
+            payload = {
+                "name": customer.customer_name or "",
+                "email": customer.email,
+            }
+            result = self._post(
+                "/v1/customers", organization=customer.organization, payload=payload
+            )
+            integration = MunimCustomerIntegration.objects.create(
+                munim_customer_id=result["customer_id"],
+                organization=customer.organization,
+            )
+            customer.munim_integration = integration
+            customer.save()
+        except Exception as e:
+            logger.error("Munim create_customer_flow error: %s", e)
+
+    def create_payment_object(self, invoice) -> Tuple[Optional[str], Optional[str]]:
+        assert (
+            invoice.external_payment_obj_id is None
+        ), "Invoice already has an external ID"
+
+        customer = invoice.customer
+        munim_customer_id = customer.munim_integration.munim_customer_id
+        assert munim_customer_id is not None, "Customer does not have a Munim ID"
+
+        line_items = []
+        for line_item in invoice.line_items.all().order_by(
+            F("associated_subscription_record").desc(nulls_last=True)
+        ):
+            quantity = convert_to_two_decimal_places(line_item.quantity or 1)
+            total_amount = convert_to_two_decimal_places(abs(line_item.base))
+            unit_amount = convert_to_two_decimal_places(total_amount / quantity)
+            kind = "debit" if line_item.base > 0 else "credit"
+            line_items.append(
+                {
+                    "name": line_item.name[:255],
+                    "description": line_item.name[:255],
+                    "quantity": float(quantity),
+                    "unit_amount": float(unit_amount),
+                    "total_amount": float(total_amount),
+                    "kind": kind,
+                }
+            )
+
+        payload = {
+            "customer_id": munim_customer_id,
+            "amount": float(convert_to_two_decimal_places(invoice.amount)),
+            "currency": invoice.currency.code if invoice.currency else "USD",
+            "line_items": line_items,
+        }
+
+        try:
+            result = self._post(
+                "/v1/invoices", organization=invoice.organization, payload=payload
+            )
+            invoice_id = result["invoice_id"]
+            invoice_status = result["status"]
+            invoice.external_payment_obj_id = invoice_id
+            invoice.external_payment_obj_status = invoice_status
+            invoice.save()
+            return invoice_id, invoice_status
+        except Exception as e:
+            logger.error("Munim create_payment_object error: %s", e)
+            return None, None
+
+    # FRONTEND REQUEST METHODS
+
+    def get_post_data_serializer(self) -> serializers.Serializer:
+        class MunimPostRequestDataSerializer(serializers.Serializer):
+            pass
+
+        return MunimPostRequestDataSerializer
+
+    def handle_post(self, data, organization) -> None:
+        from metering_billing.models import MunimOrganizationIntegration
+
+        if not self.working():
+            return Response(
+                {
+                    "payment_processor": PAYMENT_PROCESSORS.MUNIM,
+                    "success": False,
+                    "details": "Munim API key is not configured or could not be validated",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        integration, _ = MunimOrganizationIntegration.objects.get_or_create(
+            organization=organization,
+        )
+        organization.munim_integration = integration
+        organization.save()
+
+        response = {
+            "payment_processor": PAYMENT_PROCESSORS.MUNIM,
+            "success": True,
+            "details": f"Successfully connected to Munim account: {self.account_name or self.account_id}",
+        }
+        serializer = PaymentProcesorPostResponseSerializer(data=response)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+    def get_redirect_url(self, organization) -> str:
+        return ""
 
 
 PAYMENT_PROCESSOR_MAP = {}
@@ -1417,4 +1754,10 @@ except Exception as e:
     logger.error(e)
     sentry_sdk.capture_exception(e)
     pass
+try:
+    PAYMENT_PROCESSOR_MAP[PAYMENT_PROCESSORS.MUNIM] = MunimConnector()
+except Exception as e:
+    print("ERROR: ", e)
+    logger.error(e)
+    sentry_sdk.capture_exception(e)
     pass

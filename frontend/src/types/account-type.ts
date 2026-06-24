@@ -71,6 +71,7 @@ export interface UpdateOrganizationType {
   tax_providers?: TaxProviderType[];
   gen_cust_in_stripe_after_lotus?: boolean;
   gen_cust_in_braintree_after_lotus?: boolean;
+  gen_cust_in_munim_after_lotus?: boolean;
 }
 
 export interface ActionUserType extends UserType {

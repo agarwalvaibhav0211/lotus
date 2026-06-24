@@ -5,40 +5,51 @@ import metering_billing.utils.utils
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0187_remove_customer_tax_provider_and_more'),
+        ("metering_billing", "0187_remove_customer_tax_provider_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='customer',
-            name='uuidv5_customer_id',
-            field=models.UUIDField(help_text='The v5 UUID generated from the customer_id. This is used for efficient lookups in the database, specifically for the Events table', null=True),
+            model_name="customer",
+            name="uuidv5_customer_id",
+            field=models.UUIDField(
+                help_text="The v5 UUID generated from the customer_id. This is used for efficient lookups in the database, specifically for the Events table",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='historicalcustomer',
-            name='uuidv5_customer_id',
-            field=models.UUIDField(help_text='The v5 UUID generated from the customer_id. This is used for efficient lookups in the database, specifically for the Events table', null=True),
+            model_name="historicalcustomer",
+            name="uuidv5_customer_id",
+            field=models.UUIDField(
+                help_text="The v5 UUID generated from the customer_id. This is used for efficient lookups in the database, specifically for the Events table",
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='customer',
-            name='customer_id',
-            field=models.TextField(default=metering_billing.utils.utils.customer_uuid, help_text='The id provided when creating the customer, we suggest matching with your internal customer id in your backend'),
+            model_name="customer",
+            name="customer_id",
+            field=models.TextField(
+                default=metering_billing.utils.utils.customer_uuid,
+                help_text="The id provided when creating the customer, we suggest matching with your internal customer id in your backend",
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalcustomer',
-            name='customer_id',
-            field=models.TextField(default=metering_billing.utils.utils.customer_uuid, help_text='The id provided when creating the customer, we suggest matching with your internal customer id in your backend'),
+            model_name="historicalcustomer",
+            name="customer_id",
+            field=models.TextField(
+                default=metering_billing.utils.utils.customer_uuid,
+                help_text="The id provided when creating the customer, we suggest matching with your internal customer id in your backend",
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalplan',
-            name='taxjar_code',
+            model_name="historicalplan",
+            name="taxjar_code",
             field=models.TextField(blank=True, max_length=30, null=True),
         ),
         migrations.AlterField(
-            model_name='plan',
-            name='taxjar_code',
+            model_name="plan",
+            name="taxjar_code",
             field=models.TextField(blank=True, max_length=30, null=True),
         ),
     ]

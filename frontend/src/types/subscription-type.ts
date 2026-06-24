@@ -24,8 +24,10 @@ export interface SubscriptionType {
   billing_plan: LightweightPlanVersionType;
 }
 
-export interface CreateSubscriptionType
-  extends Omit<SubscriptionType, "customer" | "billing_plan" | "end_date"> {
+export interface CreateSubscriptionType extends Omit<
+  SubscriptionType,
+  "customer" | "billing_plan" | "end_date"
+> {
   customer_id: string;
   plan_id: string;
   end_date?: string;
@@ -61,8 +63,7 @@ export interface ChangeSubscriptionPlanType extends UpdateSubscriptionType {
   replace_plan_id: string;
 }
 
-export interface TurnSubscriptionAutoRenewOffType
-  extends UpdateSubscriptionType {
+export interface TurnSubscriptionAutoRenewOffType extends UpdateSubscriptionType {
   turn_off_auto_renew: true;
 }
 
@@ -85,8 +86,10 @@ export interface CancelCreateSubscriptionAddOnBody {
   usage_behavior: string;
   invoicing_behavior: string;
 }
-export interface CreateSubscriptionAddOnType
-  extends Omit<SubscriptionType, "start_date" | "end_date" | "customer"> {
+export interface CreateSubscriptionAddOnType extends Omit<
+  SubscriptionType,
+  "start_date" | "end_date" | "customer"
+> {
   addon: AddOnType;
   fully_billed: boolean;
   parent: SubscriptionType;

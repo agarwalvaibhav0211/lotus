@@ -20,7 +20,7 @@ export interface UseEventStreamProps {
 function spliceEvents(events: EventStream, newEvents: EventStream) {
   const idempotencySet = new Set(events.map((event) => event.idempotency_id));
   const uniqueEvents = newEvents.filter(
-    (event) => !idempotencySet.has(event.idempotency_id)
+    (event) => !idempotencySet.has(event.idempotency_id),
   );
   // sort events by dates
   return events.concat(uniqueEvents).sort((ev1, ev2) => {
@@ -77,7 +77,7 @@ export default function useEventStream({
         return Events.getEventPreviews(c);
       }
     },
-    [JSON.stringify(query)]
+    [JSON.stringify(query)],
   );
 
   // Polls for new event previews
@@ -121,7 +121,7 @@ export default function useEventStream({
     if (!streamEventPages) return;
 
     streamEventPages.results.forEach((newEvent) =>
-      idempotencySet.current.add(newEvent.idempotency_id)
+      idempotencySet.current.add(newEvent.idempotency_id),
     );
     setEvents(spliceEvents(events, streamEventPages.results));
   }, [streamEventPages]);
@@ -130,7 +130,7 @@ export default function useEventStream({
     if (!eventPages) return;
 
     eventPages.results.forEach((newEvent) =>
-      idempotencySet.current.add(newEvent.idempotency_id)
+      idempotencySet.current.add(newEvent.idempotency_id),
     );
     setEvents(spliceEvents(events, eventPages.results));
     setPageNext(parseCursor(decodeURIComponent(eventPages.next)));

@@ -50,13 +50,13 @@ interface PlanComponentsProps {
 
 const findAlertForComponent = (
   component: Component,
-  alerts: AlertType[] | undefined
+  alerts: AlertType[] | undefined,
 ): AlertType | undefined => {
   if (alerts === undefined) {
     return undefined;
   }
   return alerts.find(
-    (alert) => alert.metric.metric_id === component.billable_metric.metric_id
+    (alert) => alert.metric.metric_id === component.billable_metric.metric_id,
   );
 };
 
@@ -124,7 +124,7 @@ export function PlanSummary({
         toast.error("Error Updating TaxJar Code");
         setUpdatedTaxJarCode(currentTaxJarCode);
       },
-    }
+    },
   );
 
   return (
@@ -261,7 +261,7 @@ export function PlanSummary({
                           const orgTags = [...plan_tags];
 
                           const planTagsFromOrg = orgTags.filter(
-                            (el) => el.tag_name === tag.tag_name
+                            (el) => el.tag_name === tag.tag_name,
                           );
                           const tags = [...planTags, ...planTagsFromOrg];
 
@@ -273,7 +273,7 @@ export function PlanSummary({
                           const planTags = [...plan.tags];
 
                           const tags = planTags.filter(
-                            (el) => el.tag_name !== tag.tag_name
+                            (el) => el.tag_name !== tag.tag_name,
                           );
                           deleteTagMutation({
                             plan_id: plan.plan_id,
@@ -356,7 +356,7 @@ export function PlanInfo({ version, plan, activeKey }: PlanInfoProps) {
         queryClient.invalidateQueries(["plan_detail", plan.plan_id]);
         toast.success("Plan version archived successfully");
       },
-    }
+    },
   );
   const windowWidth = useMediaQuery();
   const menu = (
@@ -623,12 +623,12 @@ const PlanComponents: FC<PlanComponentsProps> = ({
         toast.success("Successfully created alert.");
         // window.location.reload(false);
       },
-    }
+    },
   );
 
   const returnInvoicingIntervalText = (
     unit: number | null,
-    interval: string | null
+    interval: string | null,
   ) => {
     if (interval === null) {
       return capitalize(plan.plan_duration);
@@ -662,7 +662,7 @@ const PlanComponents: FC<PlanComponentsProps> = ({
         refetch();
         // toast.success("Deleted alert");
       },
-    }
+    },
   );
   useEffect(() => {}, [plan]);
   const deleteAlert = (usage_alert_id: string) => {
@@ -731,7 +731,7 @@ const PlanComponents: FC<PlanComponentsProps> = ({
                   <div>
                     {returnInvoicingIntervalText(
                       component.invoicing_interval_count,
-                      component.invoicing_interval_unit
+                      component.invoicing_interval_unit,
                     )}
                   </div>
                 </div>
@@ -865,7 +865,7 @@ const PlanComponents: FC<PlanComponentsProps> = ({
                         ) {
                           const alert = findAlertForComponent(
                             component,
-                            alerts
+                            alerts,
                           );
                           setIsCreateAlert(false);
                           setAlertThreshold(alert!.threshold);

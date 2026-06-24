@@ -6,7 +6,7 @@ import {
   UseQueryResult,
   useQueryClient,
   useMutation,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import CustomerTable from "../components/Customers/CustomerTable";
 import {
@@ -49,7 +49,7 @@ const ViewCustomers: FC = () => {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
 
   const openCustomerModal = () => {

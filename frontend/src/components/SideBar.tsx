@@ -129,8 +129,8 @@ const SideBar: FC = () => {
       icon: <BookOutlined />,
       onClick: () =>
         window.open(
-          "https://docs.uselotus.io/docs/overview/why-lotus",
-          "_blank"
+          "https://livanatechnologiespvtltd.mintlify.app/overview/why-lotus",
+          "_blank",
         ),
     },
   ];
@@ -181,8 +181,8 @@ const SideBar: FC = () => {
       icon: <BookOutlined />,
       onClick: () =>
         window.open(
-          "https://docs.uselotus.io/docs/overview/why-lotus",
-          "_blank"
+          "https://livanatechnologiespvtltd.mintlify.app/overview/why-lotus",
+          "_blank",
         ),
     },
     {

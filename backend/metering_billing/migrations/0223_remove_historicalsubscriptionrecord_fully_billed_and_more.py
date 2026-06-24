@@ -4,34 +4,33 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0222_auto_20230302_2018'),
+        ("metering_billing", "0222_auto_20230302_2018"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='historicalsubscriptionrecord',
-            name='fully_billed',
+            model_name="historicalsubscriptionrecord",
+            name="fully_billed",
         ),
         migrations.RemoveField(
-            model_name='historicalsubscriptionrecord',
-            name='unadjusted_duration_microseconds',
+            model_name="historicalsubscriptionrecord",
+            name="unadjusted_duration_microseconds",
         ),
         migrations.RemoveField(
-            model_name='invoicelineitem',
-            name='associated_plan_component',
+            model_name="invoicelineitem",
+            name="associated_plan_component",
         ),
         migrations.RemoveField(
-            model_name='invoicelineitem',
-            name='associated_recurring_charge',
+            model_name="invoicelineitem",
+            name="associated_recurring_charge",
         ),
         migrations.RemoveField(
-            model_name='subscriptionrecord',
-            name='fully_billed',
+            model_name="subscriptionrecord",
+            name="fully_billed",
         ),
         migrations.RemoveField(
-            model_name='subscriptionrecord',
-            name='unadjusted_duration_microseconds',
+            model_name="subscriptionrecord",
+            name="unadjusted_duration_microseconds",
         ),
     ]

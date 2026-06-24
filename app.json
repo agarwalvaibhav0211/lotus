@@ -2,7 +2,7 @@
   "name": "Lotus",
   "description": "Open Source Metering, Billing and Pricing",
   "website": "https://www.uselotus.io",
-  "repository": "https://github.com/uselotus/lotus",
+  "repository": "https://github.com/agarwalvaibhav0211/lotus",
   "logo": "https://uploads-ssl.webflow.com/62e1ba3ad04d5942990d1f50/62e1bb93f43aa65fce59c887_Lotus-Brandmark-Logo-RGB-Black-Large%20(1).svg",
   "success_url": "/admin",
   "addons":[

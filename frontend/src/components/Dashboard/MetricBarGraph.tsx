@@ -1,7 +1,7 @@
 import { Column } from "@ant-design/plots";
 import React, { useState, useEffect } from "react";
 import { Select } from "antd";
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import LoadingSpinner from "../LoadingSpinner";
 import { MetricUsage } from "../../types/metric-type";
 import { Metrics } from "../../api/api";
@@ -27,8 +27,8 @@ function MetricBarGraph(props: { range: any }) {
       Metrics.getMetricUsage(
         props.range[0].format("YYYY-MM-DD"),
         props.range[1].format("YYYY-MM-DD"),
-        10
-      ).then((res) => res)
+        10,
+      ).then((res) => res),
     );
   const changeMetric = (value: string) => {
     const compressedArray: ChartDataType[] = [];
@@ -38,7 +38,7 @@ function MetricBarGraph(props: { range: any }) {
       const daily_data = data?.metrics[value].data;
 
       for (let i = 0; i < daily_data.length; i++) {
-        const {date} = daily_data[i];
+        const { date } = daily_data[i];
         for (const k in daily_data[i].customer_usages) {
           compressedArray.push({
             date,

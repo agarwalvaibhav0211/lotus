@@ -40,7 +40,7 @@ const MetricTable: FC<Props> = ({ metricArray }) => {
 
   const mergeFilters = (
     numeric_filters: any[] | undefined,
-    categorical_filters: any[] | undefined
+    categorical_filters: any[] | undefined,
   ) => {
     if (numeric_filters !== undefined && categorical_filters === undefined) {
       filters = numeric_filters.map((filter) => ({
@@ -67,7 +67,7 @@ const MetricTable: FC<Props> = ({ metricArray }) => {
         categorical_filters.map((filter) => ({
           ...filter,
           operator: operatorDisplayMap.get(filter.operator),
-        }))
+        })),
       );
     }
 
@@ -145,7 +145,7 @@ const MetricTable: FC<Props> = ({ metricArray }) => {
         {
           const filters = mergeFilters(
             record.numeric_filters,
-            record.categorical_filters
+            record.categorical_filters,
           );
           if (filters) {
             return (
@@ -160,12 +160,12 @@ const MetricTable: FC<Props> = ({ metricArray }) => {
                           .join(", ") +
                         "]"
                       : filter.operator === "=" ||
-                        filter.operator === ">=" ||
-                        filter.operator === "<=" ||
-                        filter.operator === ">" ||
-                        filter.operator === "<"
-                      ? filter.comparison_value
-                      : `"${filter.comparison_value}"`}
+                          filter.operator === ">=" ||
+                          filter.operator === "<=" ||
+                          filter.operator === ">" ||
+                          filter.operator === "<"
+                        ? filter.comparison_value
+                        : `"${filter.comparison_value}"`}
                   </Tag>
                 ))}
               </div>

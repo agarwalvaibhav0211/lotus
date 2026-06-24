@@ -32,7 +32,7 @@ const ExperimentDetails: FC<Props> = ({ data, kpi }) => {
   function getPlanData(planName: string) {
     if (revenuePerMetric !== undefined) {
       const matchingKey = Object.keys(revenuePerMetric).find(
-        (key) => key === planName
+        (key) => key === planName,
       );
       console.log(planName);
       if (matchingKey !== undefined) {

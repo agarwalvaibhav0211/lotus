@@ -5,7 +5,7 @@ import {
   useQuery,
   UseQueryResult,
   useQueryClient,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   Divider,
@@ -71,10 +71,10 @@ const GeneralTab: FC = () => {
     TaxProviderType[]
   >([]);
   const [taxProvider1, setTaxProvider1] = useState<TaxProviderType | null>(
-    null
+    null,
   );
   const [taxProvider2, setTaxProvider2] = useState<TaxProviderType | null>(
-    null
+    null,
   );
 
   const {
@@ -82,13 +82,13 @@ const GeneralTab: FC = () => {
     isLoading: pricingUnitsLoading,
   }: UseQueryResult<CurrencyType[]> = useQuery<CurrencyType[]>(
     ["pricing_unit_list"],
-    () => PricingUnits.list().then((res) => res)
+    () => PricingUnits.list().then((res) => res),
   );
 
   const { data: orgData, isLoading } = useQuery(
     ["organization"],
     () => Organization.get().then((res) => res[0]),
-    {}
+    {},
   );
 
   useEffect(() => {
@@ -123,7 +123,7 @@ const GeneralTab: FC = () => {
 
       setLine1(orgData.address ? orgData.address.line1 : "");
       setLine2(
-        orgData.address && orgData.address.line2 ? orgData.address.line2 : ""
+        orgData.address && orgData.address.line2 ? orgData.address.line2 : "",
       );
       setCity(orgData.address ? orgData.address.city : "");
       setState(orgData.address ? orgData.address.state : "");
@@ -165,13 +165,13 @@ const GeneralTab: FC = () => {
           toast.error(
             Array.isArray(error.response.data.email)
               ? error.response.data.email[0]
-              : error.response.data.email
+              : error.response.data.email,
           );
         } else {
           toast.error("Cannot send an invite now, try again later.");
         }
       },
-    }
+    },
   );
 
   const updateOrg = useMutation<
@@ -317,7 +317,7 @@ const GeneralTab: FC = () => {
             }
             const providers = [taxProvider1, taxProvider2];
             const organizationTaxProviders = providers.filter(
-              (provider) => provider !== null
+              (provider) => provider !== null,
             ) as TaxProviderType[];
             updateOrg.mutate({
               org_id: org.organization_id,
@@ -463,7 +463,7 @@ const GeneralTab: FC = () => {
                 options={[
                   { value: null, label: "-" },
                   ...TaxProviders.filter(
-                    (provider) => provider !== taxProvider2
+                    (provider) => provider !== taxProvider2,
                   ).map((provider) => ({ value: provider, label: provider })),
                 ]}
                 defaultValue={taxProvider1}
@@ -475,7 +475,7 @@ const GeneralTab: FC = () => {
                 options={[
                   { value: null, label: "-" },
                   ...TaxProviders.filter(
-                    (provider) => provider !== taxProvider1
+                    (provider) => provider !== taxProvider1,
                   ).map((provider) => ({ value: provider, label: provider })),
                 ]}
                 defaultValue={taxProvider2}

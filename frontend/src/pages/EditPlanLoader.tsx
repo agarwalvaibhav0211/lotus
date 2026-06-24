@@ -1,7 +1,7 @@
 // create react FC component called EditPlanLoader
 import React, { Fragment, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "antd";
 import { Plan } from "../api/api";
 import { PlanDetailType } from "../types/plan-type";
@@ -42,12 +42,12 @@ function EditPlanLoader({ type }: EditPlanLoaderProps) {
       if (type === "backtest") {
         setVersionIndex(
           plan.versions.findIndex(
-            (v) => v.version_id === replacementPlanVersion?.version_id
-          )
+            (v) => v.version_id === replacementPlanVersion?.version_id,
+          ),
         );
       } else if (type === "currency") {
         setVersionIndex(
-          plan.versions.findIndex((x) => x.version_id === versionId)
+          plan.versions.findIndex((x) => x.version_id === versionId),
         );
       } else {
         setVersionIndex(plan.versions.findIndex((x) => x.status === "active"));

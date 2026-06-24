@@ -34,7 +34,7 @@
   "topbarLinks": [
     {
       "name": "GitHub Repo",
-      "url": "https://github.com/uselotus/lotus"
+      "url": "https://github.com/agarwalvaibhav0211/lotus"
     }
   ],
   "anchors": [
@@ -51,7 +51,7 @@
     {
       "name": "Github",
       "icon": "github",
-      "url": "https://github.com/uselotus/lotus"
+      "url": "https://github.com/agarwalvaibhav0211/lotus"
     },
     {
       "name": "Community",
@@ -171,8 +171,7 @@
           "group": "Invoices",
           "pages": [
             "api-reference/invoices/list-invoices",
-            "api-reference/invoices/get-invoice",
-            "api-reference/invoices/get-invoice-pdf"
+            "api-reference/invoices/get-invoice"
           ]
         },
         {

@@ -42,7 +42,7 @@ const BraintreeIntegrationView: FC = () => {
           position: TOAST_POSITION,
         });
       },
-    }
+    },
   );
 
   const importPaymentsMutation = useMutation(
@@ -59,7 +59,7 @@ const BraintreeIntegrationView: FC = () => {
           position: TOAST_POSITION,
         });
       },
-    }
+    },
   );
 
   const resolveAfter3Sec = new Promise((resolve) => setTimeout(resolve, 3000));
@@ -92,7 +92,7 @@ const BraintreeIntegrationView: FC = () => {
           position: TOAST_POSITION,
         });
       },
-    }
+    },
   );
 
   // promises to handle toast loading messages

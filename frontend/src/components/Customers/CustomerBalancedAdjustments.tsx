@@ -54,7 +54,7 @@ const CustomerBalancedAdjustments: FC<Props> = ({ customerId }) => {
       () =>
         Credits.getCreditsByCustomer({
           customer_id: customerId,
-        }).then((res) => res)
+        }).then((res) => res),
     );
 
   const deleteCredit = useMutation(
@@ -71,7 +71,7 @@ const CustomerBalancedAdjustments: FC<Props> = ({ customerId }) => {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
 
   const columns: ColumnsType<CreditType> = [
@@ -245,7 +245,7 @@ const CustomerBalancedAdjustments: FC<Props> = ({ customerId }) => {
             selectedCurrency === "All"
               ? transformedData
               : transformedData.filter(
-                  (v) => v.currency.code === selectedCurrency
+                  (v) => v.currency.code === selectedCurrency,
                 )
           }
           pagination={{

@@ -9,7 +9,7 @@ interface Props {
   initialValues: CreateRecurringCharge | null;
   onCancel: () => void;
   onAddRecurringCharges: (
-    recurringCharge: components["schemas"]["PlanDetail"]["versions"][0]["recurring_charges"][number]
+    recurringCharge: components["schemas"]["PlanDetail"]["versions"][0]["recurring_charges"][number],
   ) => void;
   selectedCurrency: CurrencyType | null;
 }

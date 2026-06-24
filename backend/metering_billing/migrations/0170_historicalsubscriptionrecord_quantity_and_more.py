@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0169_historicalsubscriptionrecord_parent_and_more'),
+        ("metering_billing", "0169_historicalsubscriptionrecord_parent_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='historicalsubscriptionrecord',
-            name='quantity',
+            model_name="historicalsubscriptionrecord",
+            name="quantity",
             field=models.PositiveIntegerField(default=1),
         ),
         migrations.AddField(
-            model_name='subscriptionrecord',
-            name='quantity',
+            model_name="subscriptionrecord",
+            name="quantity",
             field=models.PositiveIntegerField(default=1),
         ),
     ]

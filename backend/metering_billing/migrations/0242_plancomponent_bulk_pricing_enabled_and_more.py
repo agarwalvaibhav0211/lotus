@@ -5,23 +5,35 @@ import django.db.models.expressions
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0241_alter_historicalorganization_payment_grace_period_and_more'),
+        (
+            "metering_billing",
+            "0241_alter_historicalorganization_payment_grace_period_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='plancomponent',
-            name='bulk_pricing_enabled',
+            model_name="plancomponent",
+            name="bulk_pricing_enabled",
             field=models.BooleanField(default=False),
         ),
         migrations.AddConstraint(
-            model_name='pricetier',
-            constraint=models.CheckConstraint(check=models.Q(('range_end__gte', django.db.models.expressions.F('range_start')), ('range_end__isnull', True), _connector='OR'), name='price_tier_type_valid'),
+            model_name="pricetier",
+            constraint=models.CheckConstraint(
+                check=models.Q(
+                    ("range_end__gte", django.db.models.expressions.F("range_start")),
+                    ("range_end__isnull", True),
+                    _connector="OR",
+                ),
+                name="price_tier_type_valid",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='pricetier',
-            constraint=models.UniqueConstraint(fields=('organization', 'plan_component', 'range_start'), name='unique_price_tier'),
+            model_name="pricetier",
+            constraint=models.UniqueConstraint(
+                fields=("organization", "plan_component", "range_start"),
+                name="unique_price_tier",
+            ),
         ),
     ]

@@ -43,7 +43,7 @@ interface SwitchVersionProps {
 function getPriceAdjustmentEnding(
   type: string | undefined,
   amount: number | undefined,
-  code: string
+  code: string,
 ) {
   switch (type) {
     case "percentage":
@@ -95,10 +95,10 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
       if (versions.length === 1) {
         const newVersion = [selectedVersion];
         setDeduplicatedVersions(
-          newVersion as components["schemas"]["PlanDetail"]["versions"]
+          newVersion as components["schemas"]["PlanDetail"]["versions"],
         );
         setDropDownVersions(
-          newVersion as components["schemas"]["PlanDetail"]["versions"]
+          newVersion as components["schemas"]["PlanDetail"]["versions"],
         );
         return [];
       }
@@ -119,10 +119,10 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
       setDropDownVersions(versions);
       const newVersions = [...v];
       setDeduplicatedVersions(
-        newVersions as components["schemas"]["PlanDetail"]["versions"]
+        newVersions as components["schemas"]["PlanDetail"]["versions"],
       );
     },
-    []
+    [],
   );
   useEffect(() => {
     removeDuplicateVersions(versions);
@@ -139,7 +139,7 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
         queryClient.invalidateQueries(["plan_list"]);
         queryClient.invalidateQueries(["plan_detail", plan.plan_id]);
       },
-    }
+    },
   );
   const deleteTag = useMutation(
     ({ plan_id, tags }: { plan_id: string; tags: PlanType["tags"] }) =>
@@ -151,7 +151,7 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
         queryClient.invalidateQueries(["plan_list"]);
         queryClient.invalidateQueries(["plan_detail", plan.plan_id]);
       },
-    }
+    },
   );
   useEffect(() => {
     setSelectedVersion(plan.versions.find((x) => x.status === "active")!);
@@ -191,7 +191,7 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
                     key="1"
                     onClick={() => {
                       navigate(
-                        `/add-currency/${plan.plan_id}/${version.version_id}`
+                        `/add-currency/${plan.plan_id}/${version.version_id}`,
                       );
                     }}
                   >
@@ -251,7 +251,7 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
                 (el) =>
                   el?.version === Number(version) &&
                   el.currency &&
-                  el.currency.symbol === symbol
+                  el.currency.symbol === symbol,
               );
               if (newSelectedVersion) {
                 setSelectedVersion(newSelectedVersion);

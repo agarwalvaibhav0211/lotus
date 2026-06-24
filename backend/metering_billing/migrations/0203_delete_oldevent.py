@@ -4,13 +4,12 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0202_auto_20230221_1857'),
+        ("metering_billing", "0202_auto_20230221_1857"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='OldEvent',
+            name="OldEvent",
         ),
     ]

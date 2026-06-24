@@ -45,17 +45,16 @@ export interface AddOnSubscriptionType {
   };
 }
 
-export interface CreateAddOnType
-  extends Omit<
-    AddOnType,
-    | "addon_id"
-    | "recurring_charges"
-    | "components"
-    | "features"
-    | "currency"
-    | "active_instances"
-    | "flat_rate"
-  > {
+export interface CreateAddOnType extends Omit<
+  AddOnType,
+  | "addon_id"
+  | "recurring_charges"
+  | "components"
+  | "features"
+  | "currency"
+  | "active_instances"
+  | "flat_rate"
+> {
   recurring_charges: CreateRecurringCharge[];
   components: CreateComponent[];
   features: string[];

@@ -53,7 +53,7 @@ interface Props {
 const ExperimentsTable: FC<Props> = ({ experiments }) => {
   const navigate = useNavigate();
   const navigateToExperiment = (
-    row: components["schemas"]["AnalysisSummary"]
+    row: components["schemas"]["AnalysisSummary"],
   ) => {
     navigate(`/experiment/${row.analysis_id}`);
   };

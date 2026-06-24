@@ -35,7 +35,7 @@ import {
   useQuery,
   useQueryClient,
   UseQueryResult,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
@@ -77,12 +77,12 @@ interface Props {
   plans: PlanType[] | undefined;
   onAutoRenewOff: (
     subscription_id: string,
-    props: components["schemas"]["SubscriptionRecordUpdateRequest"]
+    props: components["schemas"]["SubscriptionRecordUpdateRequest"],
   ) => void;
   onCancel: (props: CancelSubscriptionBody, subscription_id: string) => void;
   onPlanChange: (
     params: components["schemas"]["SubscriptionRecordSwitchPlanRequest"],
-    subscription_id: string
+    subscription_id: string,
   ) => void;
   onCreate: (props: CreateSubscriptionType) => void;
 }
@@ -311,7 +311,7 @@ const SubscriptionView: FC<Props> = ({
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
 
   const selectNewPlan = (plan_id: string) => {
@@ -364,35 +364,41 @@ const SubscriptionView: FC<Props> = ({
       const planObject = plans?.find((plan) => plan.plan_id == selectedPlan);
       const relevantVersions = planObject.versions;
       if (relevantVersions !== undefined) {
-        const versionMap = relevantVersions.reduce((acc, version) => {
-          acc[version.version_id] = version;
-          return acc;
-        }, {} as { [key: number]: PlanVersionType });
+        const versionMap = relevantVersions.reduce(
+          (acc, version) => {
+            acc[version.version_id] = version;
+            return acc;
+          },
+          {} as { [key: number]: PlanVersionType },
+        );
         const newVersionList: { label: string; value: string }[] =
-          relevantVersions.reduce((acc, version) => {
-            if (version.target_customers.length === 0) {
-              var label = version.version;
-              if (version.localized_name) {
-                label = label + " - " + version.localized_name;
-              }
-              acc.push({
-                label: label,
-                value: version.version_id,
-              });
-            } else {
-              if (
-                version.target_customers.some(
-                  (customer) => customer.customer_id === customer_id
-                )
-              ) {
+          relevantVersions.reduce(
+            (acc, version) => {
+              if (version.target_customers.length === 0) {
+                var label = version.version;
+                if (version.localized_name) {
+                  label = label + " - " + version.localized_name;
+                }
                 acc.push({
-                  label: version.plan_name,
+                  label: label,
                   value: version.version_id,
                 });
+              } else {
+                if (
+                  version.target_customers.some(
+                    (customer) => customer.customer_id === customer_id,
+                  )
+                ) {
+                  acc.push({
+                    label: version.plan_name,
+                    value: version.version_id,
+                  });
+                }
               }
-            }
-            return acc;
-          }, [] as { label: string; value: string }[]);
+              return acc;
+            },
+            [] as { label: string; value: string }[],
+          );
 
         setVersionList(newVersionList);
       }
@@ -401,10 +407,13 @@ const SubscriptionView: FC<Props> = ({
 
   useEffect(() => {
     if (plans !== undefined) {
-      const planMap = plans.reduce((acc, plan) => {
-        acc[plan.plan_id] = plan;
-        return acc;
-      }, {} as { [key: number]: PlanDetailType });
+      const planMap = plans.reduce(
+        (acc, plan) => {
+          acc[plan.plan_id] = plan;
+          return acc;
+        },
+        {} as { [key: number]: PlanDetailType },
+      );
       setIDtoPlan(planMap);
       const newplanList: { label: string; value: string }[] = plans.reduce(
         (acc, plan) => {
@@ -426,7 +435,7 @@ const SubscriptionView: FC<Props> = ({
           acc.push({ label: plan.plan_name, value: plan.plan_id });
           return acc;
         },
-        [] as { label: string; value: string }[]
+        [] as { label: string; value: string }[],
       );
       setPlanList(newplanList);
     }
@@ -489,7 +498,7 @@ const SubscriptionView: FC<Props> = ({
           .includes(searchQuery.toLowerCase()) ||
         subscription.billing_plan.plan_name
           .toLowerCase()
-          .includes(searchQuery.toLowerCase())
+          .includes(searchQuery.toLowerCase()),
     );
   }, [subscriptions, searchQuery]);
 
@@ -504,7 +513,7 @@ const SubscriptionView: FC<Props> = ({
           .includes(searchQuery.toLowerCase()) ||
         stripeSubscriptions.billing_plan.plan_name
           .toLowerCase()
-          .includes(searchQuery.toLowerCase())
+          .includes(searchQuery.toLowerCase()),
     );
   }, [stripeSubscriptions, searchQuery]);
 
@@ -617,7 +626,7 @@ const SubscriptionView: FC<Props> = ({
     fromUpcoming: boolean;
   }) {
     return (
-      (<div key={subPlan.billing_plan.plan_id + subPlan.subscription_filters}>
+      <div key={subPlan.billing_plan.plan_id + subPlan.subscription_filters}>
         <CustomerCard
           className={`shadow-none ${
             windowWidth > 2500 ? `h-[290px]` : "h-[270px]"
@@ -657,7 +666,7 @@ const SubscriptionView: FC<Props> = ({
                     <div>
                       {createShortenedText(
                         subPlan.subscription_id as string,
-                        windowWidth >= 2500
+                        windowWidth >= 2500,
                       )}
                     </div>
                     <CopyText
@@ -738,7 +747,7 @@ const SubscriptionView: FC<Props> = ({
                               (import.meta as any).env.VITE_IS_DEMO === "true"
                             ) {
                               toast.error(
-                                "This feature does not work in the demo"
+                                "This feature does not work in the demo",
                               );
                               return;
                             }
@@ -752,7 +761,7 @@ const SubscriptionView: FC<Props> = ({
                                 break;
                               case 1:
                                 setTitle(
-                                  `Attach Add-On to ${subPlan.billing_plan.plan_name}`
+                                  `Attach Add-On to ${subPlan.billing_plan.plan_name}`,
                                 );
 
                                 setShowModal(true);
@@ -779,7 +788,7 @@ const SubscriptionView: FC<Props> = ({
                     </DropdownComponent.Container>
                   ) : (
                     // from upcoming
-                    (<DropdownComponent.Container className="!bg-[#fff4e9] ">
+                    <DropdownComponent.Container className="!bg-[#fff4e9] ">
                       {subDropdownOptions.map((key, index) => (
                         <DropdownComponent.MenuItem
                           className="hover:text-black hover:bg-[#f8e8d7] whitespace-nowrap"
@@ -790,7 +799,7 @@ const SubscriptionView: FC<Props> = ({
                               (import.meta as any).env.VITE_IS_DEMO === "true"
                             ) {
                               toast.error(
-                                "This feature does not work in the demo"
+                                "This feature does not work in the demo",
                               );
                               return;
                             }
@@ -814,7 +823,7 @@ const SubscriptionView: FC<Props> = ({
                           {key}
                         </DropdownComponent.MenuItem>
                       ))}
-                    </DropdownComponent.Container>)
+                    </DropdownComponent.Container>
                   )}
                 </DropdownComponent>
                 <div className=" flex-row flex font-alliance  items-center border-inherit w-full">
@@ -866,7 +875,7 @@ const SubscriptionView: FC<Props> = ({
                       onClick={() => {
                         onChange(
                           cascaderOptions?.value as string,
-                          subPlan.subscription_id
+                          subPlan.subscription_id,
                         );
                         setShowModal(false);
                         setCascaderOptions(undefined);
@@ -876,114 +885,119 @@ const SubscriptionView: FC<Props> = ({
                     </Button>,
                   ]
                 : indexRef.current === "Attach Add-On"
-                ? [
-                    <Button key="back" onClick={() => setShowModal(false)}>
-                      Cancel
-                    </Button>,
+                  ? [
+                      <Button key="back" onClick={() => setShowModal(false)}>
+                        Cancel
+                      </Button>,
 
-                    <Button
-                      key="submit"
-                      type="primary"
-                      className="hover:!bg-primary-700"
-                      style={{
-                        background: "#C3986B",
-                        borderColor: "#C3986B",
-                      }}
-                      disabled={addOnId.length < 1}
-                      onClick={() => {
-                        submitAddOns(selectedSubPlan!.subscription_id);
-                      }}
-                    >
-                      Add
-                    </Button>,
-                  ]
-                : indexRef.current === "Cancel Renewal"
-                ? [
-                    <Button key="back" onClick={() => setShowModal(false)}>
-                      Back
-                    </Button>,
-                    <Button
-                      key="submit"
-                      type="primary"
-                      className="!bg-rose-600 border !border-rose-600"
-                      onClick={() => {
-                        turnAutoRenewOff(selectedSubPlan!.subscription_id);
-                      }}
-                    >
-                      Cancel Renewal
-                    </Button>,
-                  ]
-                : indexRef.current === "Cancel Now"
-                ? [
-                    <Button key="back" onClick={() => setShowModal(false)}>
-                      Back
-                    </Button>,
-                    <Button
-                      key="submit"
-                      type="primary"
-                      className="!bg-rose-600 border !border-rose-600"
-                      onClick={() => {
-                        if (selectedSubPlan?.stripe_subscription_id) {
-                          PaymentProcessor.cancelStripeSubscriptions({
-                            customer_id:
-                              selectedSubPlan?.customer.customer_id || "",
-                            stripe_subscription_ids: [
-                              selectedSubPlan.stripe_subscription_id,
-                            ],
-                          });
-                          setShowModal(false);
-                          queryClient.invalidateQueries([
-                            "customer_detail",
-                            customer_id,
-                          ]);
-                        } else {
-                          cancelSubscription(selectedSubPlan!.subscription_id);
-                        }
-                      }}
-                    >
-                      Cancel Plan
-                    </Button>,
-                  ]
-                : // : indexRef.current === 5
-                  // ? [
-                  //     <Button
-                  //       key="back"
-                  //       onClick={() => {
-                  //         setShowModal(false);
-                  //         setSubStartDate("");
-                  //       }}
-                  //     >
-                  //       Back
-                  //     </Button>,
-                  //     <Button
-                  //       key="submit"
-                  //       type="primary"
-                  //       className="hover:!bg-primary-700"
-                  //       onClick={() => {
-                  //         handleAttachPlanSubmit();
-                  //         setShowModal(false);
-                  //       }}
-                  //     >
-                  //       Start Subscription
-                  //     </Button>,
-                  //   ]
-                  // : indexRef.current === 6
-                  // ? [
-                  //     <Button key="back" onClick={() => setShowModal(false)}>
-                  //       Back
-                  //     </Button>,
-                  //     <Button
-                  //       key="submit"
-                  //       type="primary"
-                  //       className="!bg-rose-600 border !border-rose-600"
-                  //       onClick={() => {
-                  //         cancelAllSubscriptions();
-                  //       }}
-                  //     >
-                  //       Cancel All Subscriptions
-                  //     </Button>,
-                  //   ]
-                  null
+                      <Button
+                        key="submit"
+                        type="primary"
+                        className="hover:!bg-primary-700"
+                        style={{
+                          background: "#C3986B",
+                          borderColor: "#C3986B",
+                        }}
+                        disabled={addOnId.length < 1}
+                        onClick={() => {
+                          submitAddOns(selectedSubPlan!.subscription_id);
+                        }}
+                      >
+                        Add
+                      </Button>,
+                    ]
+                  : indexRef.current === "Cancel Renewal"
+                    ? [
+                        <Button key="back" onClick={() => setShowModal(false)}>
+                          Back
+                        </Button>,
+                        <Button
+                          key="submit"
+                          type="primary"
+                          className="!bg-rose-600 border !border-rose-600"
+                          onClick={() => {
+                            turnAutoRenewOff(selectedSubPlan!.subscription_id);
+                          }}
+                        >
+                          Cancel Renewal
+                        </Button>,
+                      ]
+                    : indexRef.current === "Cancel Now"
+                      ? [
+                          <Button
+                            key="back"
+                            onClick={() => setShowModal(false)}
+                          >
+                            Back
+                          </Button>,
+                          <Button
+                            key="submit"
+                            type="primary"
+                            className="!bg-rose-600 border !border-rose-600"
+                            onClick={() => {
+                              if (selectedSubPlan?.stripe_subscription_id) {
+                                PaymentProcessor.cancelStripeSubscriptions({
+                                  customer_id:
+                                    selectedSubPlan?.customer.customer_id || "",
+                                  stripe_subscription_ids: [
+                                    selectedSubPlan.stripe_subscription_id,
+                                  ],
+                                });
+                                setShowModal(false);
+                                queryClient.invalidateQueries([
+                                  "customer_detail",
+                                  customer_id,
+                                ]);
+                              } else {
+                                cancelSubscription(
+                                  selectedSubPlan!.subscription_id,
+                                );
+                              }
+                            }}
+                          >
+                            Cancel Plan
+                          </Button>,
+                        ]
+                      : // : indexRef.current === 5
+                        // ? [
+                        //     <Button
+                        //       key="back"
+                        //       onClick={() => {
+                        //         setShowModal(false);
+                        //         setSubStartDate("");
+                        //       }}
+                        //     >
+                        //       Back
+                        //     </Button>,
+                        //     <Button
+                        //       key="submit"
+                        //       type="primary"
+                        //       className="hover:!bg-primary-700"
+                        //       onClick={() => {
+                        //         handleAttachPlanSubmit();
+                        //         setShowModal(false);
+                        //       }}
+                        //     >
+                        //       Start Subscription
+                        //     </Button>,
+                        //   ]
+                        // : indexRef.current === 6
+                        // ? [
+                        //     <Button key="back" onClick={() => setShowModal(false)}>
+                        //       Back
+                        //     </Button>,
+                        //     <Button
+                        //       key="submit"
+                        //       type="primary"
+                        //       className="!bg-rose-600 border !border-rose-600"
+                        //       onClick={() => {
+                        //         cancelAllSubscriptions();
+                        //       }}
+                        //     >
+                        //       Cancel All Subscriptions
+                        //     </Button>,
+                        //   ]
+                        null
             }
           >
             <div className="flex flex-col justify-center items-center gap-4">
@@ -1085,7 +1099,7 @@ const SubscriptionView: FC<Props> = ({
             </div>
           </Modal>
         ) : null}
-      </div>)
+      </div>
     );
   }
 
@@ -1143,7 +1157,7 @@ const SubscriptionView: FC<Props> = ({
                     <div>
                       {createShortenedText(
                         sub.stripe_subscription_id as string,
-                        windowWidth >= 2500
+                        windowWidth >= 2500,
                       )}
                     </div>
                     <CopyText
@@ -1321,7 +1335,7 @@ const SubscriptionView: FC<Props> = ({
                               stripe_subscription_ids: [
                                 selectedSubPlan.stripe_subscription_id,
                               ],
-                            }
+                            },
                           );
                           setShowModal(false);
                           queryClient.invalidateQueries([

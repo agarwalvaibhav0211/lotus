@@ -53,15 +53,20 @@ jobs:
       SELF_HOSTED: "${{ secrets.SELF_HOSTED }}"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: start redpanda
-        uses: redpanda-data/github-action@v0.1.3
-        with:
-          version: "latest"
+        run: |
+          docker run -d --name redpanda \
+            -p 9092:9092 \
+            docker.redpanda.com/redpandadata/redpanda:v22.2.2 \
+            redpanda start --overprovisioned --smp 1 --memory 1G \
+            --reserve-memory 0M --node-id 0 --check=false \
+            --kafka-addr PLAINTEXT://0.0.0.0:9092 \
+            --advertise-kafka-addr PLAINTEXT://localhost:9092
 
       - name: Set up Python 3.9
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: "3.9"
 
@@ -70,15 +75,28 @@ jobs:
           python -m pip install --upgrade poetry wheel
 
       - id: cache-poetry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
 
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y libcairo2-dev postgresql-client
+
       - name: Install dependencies
         if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
-          poetry install
+          poetry install --no-root
+
+      - name: Create TimescaleDB template database
+        run: |
+          psql -h localhost -U lotus -c "CREATE DATABASE template_timescale;"
+          psql -h localhost -U lotus -d template_timescale -c "CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;"
+          psql -h localhost -U lotus -c "UPDATE pg_database SET datistemplate = true WHERE datname = 'template_timescale';"
+          psql -h localhost -U lotus -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'template_timescale' AND pid <> pg_backend_pid();"
+          psql -h localhost -U lotus -c "UPDATE pg_database SET datallowconn = false WHERE datname = 'template_timescale';"
+        env:
+          PGPASSWORD: lotus
 
       - name: Migrate
         run: |

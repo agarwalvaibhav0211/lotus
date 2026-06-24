@@ -3,7 +3,7 @@
 ### FIRST ALL DELTA QUERIES
 GAUGE_DELTA_CUMULATIVE_SUM = """
 CREATE MATERIALIZED VIEW IF NOT EXISTS {{ cagg_name }}
-WITH (timescaledb.continuous) AS
+WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
 SELECT
     "metering_billing_usageevent"."uuidv5_customer_id" AS uuidv5_customer_id
     {%- for group_by_field in group_by %}
@@ -797,7 +797,7 @@ GROUP BY
 ### THEN ALL TOTAL QUERIES
 GAUGE_TOTAL_CUMULATIVE_SUM = """
 CREATE MATERIALIZED VIEW IF NOT EXISTS {{ cagg_name }}
-WITH (timescaledb.continuous) AS
+WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
 SELECT
     "metering_billing_usageevent"."uuidv5_customer_id" AS uuidv5_customer_id
     {%- for group_by_field in group_by %}

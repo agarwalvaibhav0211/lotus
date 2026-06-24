@@ -64,6 +64,10 @@ def integration_test_common_setup(
 
 
 @pytest.mark.django_db(transaction=True)
+@pytest.mark.skipif(
+    not settings.STRIPE_TEST_SECRET_KEY,
+    reason="STRIPE_TEST_SECRET_KEY not configured",
+)
 class TestStripeIntegration:
     def test_stripe_self_hosted_working_and_connected(
         self, integration_test_common_setup

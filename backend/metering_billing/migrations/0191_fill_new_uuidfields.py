@@ -58,12 +58,10 @@ class Migration(migrations.Migration):
         """,
             ]
         ),
-        migrations.RunSQL(
-            """
+        migrations.RunSQL("""
             CREATE TRIGGER update_uuid_fields_trigger
             BEFORE INSERT OR UPDATE ON metering_billing_usageevent
             FOR EACH ROW
             EXECUTE FUNCTION update_uuid_fields_function();
-        """
-        ),
+        """),
     ]

@@ -242,7 +242,7 @@ const QuickstartPage: FC = () => {
   const [currentItem, setCurrentItem] = useState(0);
   const org = useGlobalStore((state) => state.org);
   const setQuickStartProgress = useGlobalStore(
-    (state) => state.setQuickStartProgress
+    (state) => state.setQuickStartProgress,
   );
   const {
     hasAPIKey,
@@ -368,7 +368,7 @@ const QuickstartPage: FC = () => {
             icon: "ri-star-line",
             time: "1 min",
             userAction: "star_cta_clicked",
-            link: "https://github.com/uselotus/lotus",
+            link: "https://github.com/agarwalvaibhav0211/lotus",
           })}
         </div>
       </div>

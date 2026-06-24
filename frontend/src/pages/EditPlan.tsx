@@ -6,7 +6,7 @@ import {
   useQuery,
   useQueryClient,
   UseQueryResult,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { compact, noop, sortBy } from "lodash";
 import UsageComponentForm from "../components/Plans/UsageComponentForm";
@@ -78,7 +78,7 @@ function EditPlan({ type, plan, versionIndex }: Props) {
   ]);
   const [priceAdjustmentType, setPriceAdjustmentType] = useState<string>(
     plan.versions[versionIndex].price_adjustment?.price_adjustment_type ??
-      "none"
+      "none",
   );
   const [editRecurringChargeItemIdx, setEditRecurringChargeItemIdx] = useState<
     number | null
@@ -88,7 +88,7 @@ function EditPlan({ type, plan, versionIndex }: Props) {
 
   const latestVersion = sortBy(
     plan.versions.filter((v) => typeof v.version === "number"),
-    "version"
+    "version",
   ).reverse()[0];
 
   const [selectedCurrency, setSelectedCurrency] = useState<CurrencyType>(
@@ -96,7 +96,7 @@ function EditPlan({ type, plan, versionIndex }: Props) {
       symbol: "",
       code: "",
       name: "",
-    }
+    },
   );
 
   const [recurringCharges, setRecurringCharges] = useState<
@@ -105,13 +105,13 @@ function EditPlan({ type, plan, versionIndex }: Props) {
 
   const { data: customers }: UseQueryResult<any[]> = useQuery<any[]>(
     ["customer_list"],
-    () => Customer.getCustomers().then((res) => res)
+    () => Customer.getCustomers().then((res) => res),
   );
 
   const queryClient = useQueryClient();
 
   const [planFeatures, setPlanFeatures] = useState<FeatureType[]>(
-    plan.versions[versionIndex].features
+    plan.versions[versionIndex].features,
   );
 
   const [nextVersion, setNextVersion] = useState<number>();
@@ -144,7 +144,7 @@ function EditPlan({ type, plan, versionIndex }: Props) {
         invoicing_interval_unit: component.invoicing_interval_unit,
         reset_interval_count: component.reset_interval_count,
         reset_interval_unit: component.reset_interval_unit,
-      })
+      }),
     );
     setRecurringCharges(plan.versions[versionIndex].recurring_charges);
     setComponentsData(initialComponents);
@@ -182,7 +182,7 @@ function EditPlan({ type, plan, versionIndex }: Props) {
           });
         }
       },
-    }
+    },
   );
 
   const createPlanMutation = useMutation(
@@ -204,14 +204,14 @@ function EditPlan({ type, plan, versionIndex }: Props) {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
 
   const addFeatures = (newFeatures: FeatureType[]) => {
     for (let i = 0; i < newFeatures.length; i++) {
       if (
         planFeatures.some(
-          (feat) => feat.feature_name === newFeatures[i].feature_name
+          (feat) => feat.feature_name === newFeatures[i].feature_name,
         )
       ) {
       } else {
@@ -223,14 +223,14 @@ function EditPlan({ type, plan, versionIndex }: Props) {
 
   const editFeatures = (featureName: string) => {
     const currentFeature = planFeatures.filter(
-      (item) => item.feature_name === featureName
+      (item) => item.feature_name === featureName,
     )[0];
     setFeatureVisible(true);
   };
 
   const removeFeature = (featureName: string) => {
     setPlanFeatures(
-      planFeatures.filter((item) => item.feature_name !== featureName)
+      planFeatures.filter((item) => item.feature_name !== featureName),
     );
   };
 
@@ -252,7 +252,7 @@ function EditPlan({ type, plan, versionIndex }: Props) {
     // if not then add the new data to the componentsData
 
     const metricComponentExists = componentsData.some(
-      (item) => item.metric_id === newData.metric_id
+      (item) => item.metric_id === newData.metric_id,
     );
 
     if (metricComponentExists && !editComponentItem) {
@@ -264,7 +264,7 @@ function EditPlan({ type, plan, versionIndex }: Props) {
 
     if (editComponentItem) {
       const index = componentsData.findIndex(
-        (item) => item.metric_id === editComponentItem.metric_id
+        (item) => item.metric_id === editComponentItem.metric_id,
       );
       old[index] = newData;
       setComponentsData(old);
@@ -285,7 +285,7 @@ function EditPlan({ type, plan, versionIndex }: Props) {
 
   const handleComponentEdit = (name: string) => {
     const currentComponent = componentsData.filter(
-      (item) => item.metric_id === name
+      (item) => item.metric_id === name,
     )[0];
 
     setEditComponentsItem(currentComponent);

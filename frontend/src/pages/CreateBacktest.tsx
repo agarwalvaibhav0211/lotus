@@ -1,11 +1,11 @@
 import React, { FC, useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Form, Button, Input, Radio, Select, Modal } from "antd";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import { PlanDetailType, PlanType, PlanVersionType } from "../types/plan-type";
-import { Plan , Backtests } from "../api/api";
+import { Plan, Backtests } from "../api/api";
 import { PageLayout } from "../components/base/PageLayout";
 import { CreateBacktestType, Substitution } from "../types/experiment-type";
 import { usePlanState, usePlanUpdater } from "../context/PlanContext";
@@ -53,7 +53,7 @@ const CreateBacktest: FC = () => {
     isLoading,
     isError,
   } = useQuery<PlanType[]>(["plan_list"], () =>
-    Plan.getPlans().then((res) => res)
+    Plan.getPlans().then((res) => res),
   );
 
   const {
@@ -61,7 +61,7 @@ const CreateBacktest: FC = () => {
     isLoading: planDetailsLoading,
     isError: planDetailsError,
   } = useQuery<PlanDetailType>(["plan_details", planInFocus?.plan_id], () =>
-    Plan.getPlan(planInFocus?.plan_id || "11").then((res) => res)
+    Plan.getPlan(planInFocus?.plan_id || "11").then((res) => res),
   );
 
   const mutation = useMutation(
@@ -76,7 +76,7 @@ const CreateBacktest: FC = () => {
       onError: (e) => {
         toast.error("Error creating backtest");
       },
-    }
+    },
   );
 
   const runBacktest = () => {
@@ -157,7 +157,7 @@ const CreateBacktest: FC = () => {
   const addCurrentPlanVersion = (version_id: string) => {
     if (planDetails) {
       const current = planDetails.versions.find(
-        (version) => version.version_id === version_id
+        (version) => version.version_id === version_id,
       );
       if (current) {
         setCurrentPlanVersion(current);
@@ -168,7 +168,7 @@ const CreateBacktest: FC = () => {
   const addReplacementPlanVersion = (version_id: string) => {
     if (planDetails) {
       const replacement = planDetails.versions.find(
-        (version) => version.version_id === version_id
+        (version) => version.version_id === version_id,
       );
       if (replacement) {
         setReplacementPlanVersion(replacement);
@@ -222,8 +222,8 @@ const CreateBacktest: FC = () => {
             runBacktest();
           }}
           initialValues={{
-            "backtest_name": experimentName,
-            "date_range": dateRange,
+            backtest_name: experimentName,
+            date_range: dateRange,
           }}
         >
           <div className="border-b border-gray-200 bg-white px-4 py-5 sm:px-6">
@@ -305,15 +305,15 @@ const CreateBacktest: FC = () => {
                 </Button>
                 <div>
                   {substitutions.map((substitution, index) => (
-                      <div key={index}>
-                        <div className="flex flex-col rounded-lg text-xl bg-[#FAFAFA] py-3 px-2 items-center">
-                          <p>Plan</p>
-                          <span className="font-bold">
-                            {substitution.original_plan_names[0]}
-                          </span>
-                        </div>
+                    <div key={index}>
+                      <div className="flex flex-col rounded-lg text-xl bg-[#FAFAFA] py-3 px-2 items-center">
+                        <p>Plan</p>
+                        <span className="font-bold">
+                          {substitution.original_plan_names[0]}
+                        </span>
                       </div>
-                    ))}
+                    </div>
+                  ))}
                 </div>
                 <div className="mt-4">
                   {currentPlan && currentPlanVersion && (
@@ -337,17 +337,17 @@ const CreateBacktest: FC = () => {
                 </Button>
                 <div>
                   {substitutions.map((substitution, index) => (
-                      <div key={index}>
-                        <p>
-                          <div className="flex flex-col rounded-lg text-xl bg-[#FAFAFA] py-3 px-2 items-center">
-                            <p>Plan</p>
-                            <span className="font-bold">
-                              {substitution.new_plan_name}
-                            </span>
-                          </div>
-                        </p>
-                      </div>
-                    ))}
+                    <div key={index}>
+                      <p>
+                        <div className="flex flex-col rounded-lg text-xl bg-[#FAFAFA] py-3 px-2 items-center">
+                          <p>Plan</p>
+                          <span className="font-bold">
+                            {substitution.new_plan_name}
+                          </span>
+                        </div>
+                      </p>
+                    </div>
+                  ))}
                 </div>
                 <div className="mt-4">
                   {replacementPlan && replacementPlanVersion && (
@@ -414,7 +414,7 @@ const CreateBacktest: FC = () => {
             key="submit"
             type="primary"
             onClick={() => {
-              navigate(`/backtest-plan/${  replacementPlan?.plan_id}`);
+              navigate(`/backtest-plan/${replacementPlan?.plan_id}`);
             }}
           >
             Edit

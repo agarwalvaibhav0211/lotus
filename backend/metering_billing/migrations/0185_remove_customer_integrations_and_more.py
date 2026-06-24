@@ -4,26 +4,25 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0184_transfer_pp_info'),
+        ("metering_billing", "0184_transfer_pp_info"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='customer',
-            name='integrations',
+            model_name="customer",
+            name="integrations",
         ),
         migrations.RemoveField(
-            model_name='historicalcustomer',
-            name='integrations',
+            model_name="historicalcustomer",
+            name="integrations",
         ),
         migrations.RemoveField(
-            model_name='historicalorganization',
-            name='payment_provider_ids',
+            model_name="historicalorganization",
+            name="payment_provider_ids",
         ),
         migrations.RemoveField(
-            model_name='organization',
-            name='payment_provider_ids',
+            model_name="organization",
+            name="payment_provider_ids",
         ),
     ]

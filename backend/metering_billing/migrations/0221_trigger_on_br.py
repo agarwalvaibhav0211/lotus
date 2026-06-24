@@ -36,11 +36,9 @@ class Migration(migrations.Migration):
             DROP FUNCTION IF EXISTS update_billing_record();
             """,
         ),
-        migrations.RunSQL(
-            """
+        migrations.RunSQL("""
             CREATE TRIGGER billing_record_trigger
             BEFORE INSERT OR UPDATE ON metering_billing_billingrecord
             FOR EACH ROW EXECUTE FUNCTION update_billing_record();
-            """
-        ),
+            """),
     ]

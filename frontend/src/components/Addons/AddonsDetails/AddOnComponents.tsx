@@ -18,13 +18,13 @@ interface AddOnsComponentsProps {
 }
 const findAlertForComponent = (
   component: Component,
-  alerts: AlertType[] | undefined
+  alerts: AlertType[] | undefined,
 ): AlertType | undefined => {
   if (alerts === undefined) {
     return undefined;
   }
   return alerts.find(
-    (alert) => alert.metric.metric_id === component.billable_metric.metric_id
+    (alert) => alert.metric.metric_id === component.billable_metric.metric_id,
   );
 };
 
@@ -76,7 +76,7 @@ const AddOnComponents: FC<AddOnsComponentsProps> = ({
         toast.success("Successfully created alert.");
         // window.location.reload(false);
       },
-    }
+    },
   );
 
   const deleteAlertMutation = useMutation(
@@ -88,7 +88,7 @@ const AddOnComponents: FC<AddOnsComponentsProps> = ({
         refetch();
         // toast.success("Deleted alert");
       },
-    }
+    },
   );
 
   const deleteAlert = (usage_alert_id: string) => {

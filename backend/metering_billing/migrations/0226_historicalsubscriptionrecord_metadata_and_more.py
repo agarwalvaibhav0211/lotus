@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0225_remove_recurringcharge_plan_component_and_more'),
+        ("metering_billing", "0225_remove_recurringcharge_plan_component_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='historicalsubscriptionrecord',
-            name='metadata',
+            model_name="historicalsubscriptionrecord",
+            name="metadata",
             field=models.JSONField(blank=True, default=dict),
         ),
         migrations.AddField(
-            model_name='subscriptionrecord',
-            name='metadata',
+            model_name="subscriptionrecord",
+            name="metadata",
             field=models.JSONField(blank=True, default=dict),
         ),
     ]

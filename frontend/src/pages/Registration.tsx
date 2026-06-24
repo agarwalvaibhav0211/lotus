@@ -61,7 +61,7 @@ const Register: React.FC = () => {
       onError: (error: QueryErrors) => {
         toast.error(error.response.data.detail);
       },
-    }
+    },
   );
 
   const handleSignUp = (user: {

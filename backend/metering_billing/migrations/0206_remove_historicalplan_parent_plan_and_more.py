@@ -4,26 +4,28 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0205_planversion_is_custom_planversion_target_customers_and_more'),
+        (
+            "metering_billing",
+            "0205_planversion_is_custom_planversion_target_customers_and_more",
+        ),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='historicalplan',
-            name='parent_plan',
+            model_name="historicalplan",
+            name="parent_plan",
         ),
         migrations.RemoveField(
-            model_name='historicalplan',
-            name='target_customer',
+            model_name="historicalplan",
+            name="target_customer",
         ),
         migrations.RemoveField(
-            model_name='plan',
-            name='parent_plan',
+            model_name="plan",
+            name="parent_plan",
         ),
         migrations.RemoveField(
-            model_name='plan',
-            name='target_customer',
+            model_name="plan",
+            name="target_customer",
         ),
     ]

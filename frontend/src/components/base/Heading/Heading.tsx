@@ -52,7 +52,8 @@ const Heading: React.FC<HeadingProps> = ({
               className="hover:!bg-primary-700 mr-8"
               style={{ background: "#C3986B", borderColor: "#C3986B" }}
               onClick={() => {
-                window.location.href = "https://github.com/uselotus/lotus";
+                window.location.href =
+                  "https://github.com/agarwalvaibhav0211/lotus";
               }}
             >
               Star Us On Github

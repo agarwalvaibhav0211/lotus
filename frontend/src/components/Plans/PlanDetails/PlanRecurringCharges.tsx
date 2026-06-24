@@ -50,7 +50,7 @@ const PlanRecurringCharges: FC<PlanRecurringChargesProps> = ({
                   </div>
                   <div className="!text-card-grey">
                     {capitalize(
-                      removeUnderscore(recurringCharge.charge_timing)
+                      removeUnderscore(recurringCharge.charge_timing),
                     )}
                   </div>
                 </div>

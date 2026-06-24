@@ -4,7 +4,7 @@
 import React, { FC, Fragment, useEffect, useState } from "react";
 import "./StateTabs.css";
 import { Tooltip, Modal, Select } from "antd";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plan } from "../../../api/api";
 
 interface StateTabsProps {
@@ -42,7 +42,7 @@ const StateTabs: FC<StateTabsProps> = ({
       onSuccess: () => {
         queryClient.invalidateQueries(["plan_detail"]);
       },
-    }
+    },
   );
 
   const setActiveModal = () => {
