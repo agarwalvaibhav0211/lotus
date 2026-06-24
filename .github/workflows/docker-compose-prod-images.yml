@@ -42,8 +42,8 @@ jobs:
           tags: |
             ${{ steps.vars.outputs.registry }}/backend:sha-${{ github.sha }}
             ${{ steps.vars.outputs.registry }}/backend:latest
-          cache-from: type=gha,scope=backend
-          cache-to: type=gha,mode=max,scope=backend
+          cache-from: type=registry,ref=${{ steps.vars.outputs.registry }}/backend:cache
+          cache-to: type=registry,ref=${{ steps.vars.outputs.registry }}/backend:cache,mode=max,image-manifest=true
 
       - name: Build and push frontend
         uses: docker/build-push-action@v6
@@ -56,8 +56,8 @@ jobs:
           tags: |
             ${{ steps.vars.outputs.registry }}/frontend:sha-${{ github.sha }}
             ${{ steps.vars.outputs.registry }}/frontend:latest
-          cache-from: type=gha,scope=frontend
-          cache-to: type=gha,mode=max,scope=frontend
+          cache-from: type=registry,ref=${{ steps.vars.outputs.registry }}/frontend:cache
+          cache-to: type=registry,ref=${{ steps.vars.outputs.registry }}/frontend:cache,mode=max,image-manifest=true
 
       - name: Build and push event-guidance
         uses: docker/build-push-action@v6
@@ -69,8 +69,8 @@ jobs:
           tags: |
             ${{ steps.vars.outputs.registry }}/event-guidance:sha-${{ github.sha }}
             ${{ steps.vars.outputs.registry }}/event-guidance:latest
-          cache-from: type=gha,scope=event-guidance
-          cache-to: type=gha,mode=max,scope=event-guidance
+          cache-from: type=registry,ref=${{ steps.vars.outputs.registry }}/event-guidance:cache
+          cache-to: type=registry,ref=${{ steps.vars.outputs.registry }}/event-guidance:cache,mode=max,image-manifest=true
 
       - name: Build and push event-ingestion
         uses: docker/build-push-action@v6
@@ -82,5 +82,5 @@ jobs:
           tags: |
             ${{ steps.vars.outputs.registry }}/event-ingestion:sha-${{ github.sha }}
             ${{ steps.vars.outputs.registry }}/event-ingestion:latest
-          cache-from: type=gha,scope=event-ingestion
-          cache-to: type=gha,mode=max,scope=event-ingestion
+          cache-from: type=registry,ref=${{ steps.vars.outputs.registry }}/event-ingestion:cache
+          cache-to: type=registry,ref=${{ steps.vars.outputs.registry }}/event-ingestion:cache,mode=max,image-manifest=true
