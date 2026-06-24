@@ -27,14 +27,14 @@ function FeatureForm(props: {
     isError,
   }: UseQueryResult<FeatureType[]> = useQuery<FeatureType[]>(
     ["feature_list"],
-    () => Features.getFeatures().then((res) => res)
+    () => Features.getFeatures().then((res) => res),
   );
 
   const addExistingFeatureToList = (feature_add_list: string[]) => {
     const newFeatureList: FeatureType[] = [];
     for (let i = 0; i < feature_add_list.length; i++) {
       const feature = features?.find(
-        (f) => f.feature_name === feature_add_list[i]
+        (f) => f.feature_name === feature_add_list[i],
       );
       if (feature) {
         newFeatureList.push(feature);
@@ -46,7 +46,8 @@ function FeatureForm(props: {
   const addnewFeatureToList = () => {
     if (createdFeatureName !== "") {
       const featureExists = newFeatures?.find(
-        (f) => f.feature_name.toLowerCase() === createdFeatureName.toLowerCase()
+        (f) =>
+          f.feature_name.toLowerCase() === createdFeatureName.toLowerCase(),
       );
       if (featureExists) {
         message.error("Feature already exists");

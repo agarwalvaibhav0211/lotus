@@ -52,7 +52,7 @@ export default function PlanProvider({ children }: ProviderProps) {
       setDateRange: (data: string | null) => dispatch(setDateRange(data)),
       init: () => dispatch(init()),
     }),
-    []
+    [],
   );
 
   return (

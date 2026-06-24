@@ -130,7 +130,7 @@ const SideBar: FC = () => {
       onClick: () =>
         window.open(
           "https://livanatechnologiespvtltd.mintlify.app/overview/why-lotus",
-          "_blank"
+          "_blank",
         ),
     },
   ];
@@ -182,7 +182,7 @@ const SideBar: FC = () => {
       onClick: () =>
         window.open(
           "https://livanatechnologiespvtltd.mintlify.app/overview/why-lotus",
-          "_blank"
+          "_blank",
         ),
     },
     {

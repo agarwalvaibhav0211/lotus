@@ -12,7 +12,7 @@ import {
   useQuery,
   useQueryClient,
   UseQueryResult,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import { PlusOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import { PageLayout } from "../../base/PageLayout";
@@ -57,7 +57,7 @@ const PlanDetails: FC = () => {
         // roll back since it failed
         queryClient.setQueryData(
           ["plan_detail", planId],
-          context?.previousPlan
+          context?.previousPlan,
         );
         toast.error("Failed to create Plan external links", {
           position: toast.POSITION.TOP_CENTER,
@@ -66,7 +66,7 @@ const PlanDetails: FC = () => {
       onSettled: () => {
         queryClient.invalidateQueries(["plan_detail", planId]);
       },
-    }
+    },
   );
 
   const deleteExternalLinkMutation = useMutation(
@@ -82,7 +82,7 @@ const PlanDetails: FC = () => {
         // roll back since it failed
         queryClient.setQueryData(
           ["plan_detail", planId],
-          context?.previousPlan
+          context?.previousPlan,
         );
         toast.error("Failed to delete Plan external links", {
           position: toast.POSITION.TOP_CENTER,
@@ -91,7 +91,7 @@ const PlanDetails: FC = () => {
       onSettled: () => {
         queryClient.invalidateQueries(["plan_detail", planId]);
       },
-    }
+    },
   );
   async function optimisticMutateCreateHandler(newExternalLink) {
     // Cancel any outgoing refetches
@@ -128,7 +128,7 @@ const PlanDetails: FC = () => {
     queryClient.setQueryData(["plan_detail", planId], (old) => {
       const typed_old = old as PlanDetailType;
       const updated_data = typed_old.external_links.filter(
-        (link) => link.external_plan_id !== newExternalLink.external_plan_id
+        (link) => link.external_plan_id !== newExternalLink.external_plan_id,
       );
       typed_old.external_links = updated_data;
       return typed_old;
@@ -166,7 +166,7 @@ const PlanDetails: FC = () => {
   } = useQuery<components["schemas"]["PlanDetail"]>(
     ["plan_detail", planId],
     () => Plan.getPlan(planId as string, "public_only").then((res) => res),
-    { refetchOnMount: "always" }
+    { refetchOnMount: "always" },
   );
   const {
     data: customPlanData,
@@ -181,7 +181,7 @@ const PlanDetails: FC = () => {
         setCustomPlans(plan.versions);
         setSelectedCustomPlan(plan.versions[0]);
       },
-    }
+    },
   );
   const changeTab = (activeKey: string) => {
     setActiveKey(activeKey);
@@ -286,7 +286,7 @@ const PlanDetails: FC = () => {
                       className=""
                       onChange={(e) => {
                         const selectedType = customPlans?.find(
-                          (el) => el.plan_name === e
+                          (el) => el.plan_name === e,
                         );
 
                         setSelectedCustomPlan(selectedType);

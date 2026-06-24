@@ -68,7 +68,7 @@ const AddOnsCard: FC<AddOnCardProps> = ({ add_on }) => {
           <div className="text-card-grey font-main">
             {" "}
             {constructBillType(
-              capitalize(add_on.versions[0].billing_frequency)
+              capitalize(add_on.versions[0].billing_frequency),
             )}
           </div>
         </div>

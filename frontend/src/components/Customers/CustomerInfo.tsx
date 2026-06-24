@@ -5,7 +5,7 @@
 /* eslint-disable camelcase */
 import React, { FC, useEffect } from "react";
 import { Column } from "@ant-design/plots";
-import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 
 import { Select, Form, Typography, Tooltip } from "antd";
 import dayjs from "dayjs";
@@ -56,7 +56,7 @@ const CustomerInfoView: FC<CustomerInfoViewProps> = ({
   >([]);
   const [form] = Form.useForm();
   const [currentCurrency, setCurrentCurrency] = React.useState<string>(
-    data.default_currency.code ? data.default_currency.code : ""
+    data.default_currency.code ? data.default_currency.code : "",
   );
   const [taxRate, setTaxRate] = React.useState(0);
   const [customerName, setCustomerName] = React.useState(data.customer_name);
@@ -95,7 +95,7 @@ const CustomerInfoView: FC<CustomerInfoViewProps> = ({
         obj.tax_rate,
         obj.timezone,
         obj.customer_name,
-        obj.new_customer_id
+        obj.new_customer_id,
       ),
     {
       onSuccess: () => {
@@ -109,7 +109,7 @@ const CustomerInfoView: FC<CustomerInfoViewProps> = ({
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
   const makeEditable = () => {
     setIsEditing(true);
@@ -311,7 +311,7 @@ const CustomerInfoView: FC<CustomerInfoViewProps> = ({
                         <div>
                           {createShortenedText(
                             data.customer_id as string,
-                            windowWidth >= 2500
+                            windowWidth >= 2500,
                           )}
                         </div>
                         <CopyText
@@ -465,7 +465,7 @@ const CustomerInfoView: FC<CustomerInfoViewProps> = ({
                       <div>
                         {createShortenedText(
                           data?.email || ("" as string),
-                          windowWidth >= 2500
+                          windowWidth >= 2500,
                         )}
                       </div>
                       <CopyText

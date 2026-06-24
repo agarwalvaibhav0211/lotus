@@ -470,12 +470,14 @@ class WebhookViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_webhook",
                 properties={"organization": organization.organization_name},
@@ -725,12 +727,14 @@ class MetricViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_metric",
                 properties={"organization": organization.organization_name},
@@ -800,12 +804,14 @@ class FeatureViewSet(
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_feature",
                 properties={"organization": organization.organization_name},
@@ -889,12 +895,14 @@ class PlanVersionViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_plan_version",
                 properties={"organization": organization.organization_name},
@@ -1933,12 +1941,14 @@ class BacktestViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_backtest",
                 properties={"organization": organization.organization_name},
@@ -1997,12 +2007,14 @@ class AnalysisViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_analysis",
                 properties={"organization": organization.organization_name},
@@ -2042,12 +2054,14 @@ class ProductViewSet(viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_product",
                 properties={"organization": organization.organization_name},
@@ -2117,12 +2131,14 @@ class ExternalPlanLinkViewSet(viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_external_plan_link",
                 properties={"organization": organization.organization_name},
@@ -2473,12 +2489,14 @@ class AddOnVersionViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 username = None
             organization = self.request.organization
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (API Key)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (API Key)"
+                    )
                 ),
                 event=f"{self.action}_plan_version",
                 properties={"organization": organization.organization_name},

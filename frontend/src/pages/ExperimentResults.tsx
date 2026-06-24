@@ -204,7 +204,7 @@ const ExperimentResults: FC = () => {
   }: UseQueryResult<components["schemas"]["AnalysisDetail"]> = useQuery<
     components["schemas"]["AnalysisDetail"]
   >(["experiment_results", experimentId], () =>
-    Experiments.getAnalysis(experimentId).then((res) => res)
+    Experiments.getAnalysis(experimentId).then((res) => res),
   );
 
   const [selectedKPI, setSelectedKPI] = React.useState<string>();
@@ -230,7 +230,7 @@ const ExperimentResults: FC = () => {
         i++
       ) {
         console.log(
-          experiment.analysis_results.analysis_summary[i].kpis[0].kpi
+          experiment.analysis_results.analysis_summary[i].kpis[0].kpi,
         );
         let kpiName =
           experiment.analysis_results.analysis_summary[i].kpis[0].kpi;
@@ -332,7 +332,7 @@ const ExperimentResults: FC = () => {
                     </div>
                   </div>
                 );
-              }
+              },
             )}
           </div>
 

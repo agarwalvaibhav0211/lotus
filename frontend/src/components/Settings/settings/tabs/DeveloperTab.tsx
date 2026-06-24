@@ -116,7 +116,7 @@ export function DeveloperTab() {
 
   const { data: apiKeyData, refetch: refetchAPIKey } = useQuery(
     ["api_keys"],
-    () => APIKey.getKeys()
+    () => APIKey.getKeys(),
   );
 
   const createWebhookMutation = useMutation(
@@ -143,7 +143,7 @@ export function DeveloperTab() {
       onError: (error) => {
         toast.error(error.response.title);
       },
-    }
+    },
   );
 
   const createAPIKeyMutation = useMutation(
@@ -162,7 +162,7 @@ export function DeveloperTab() {
       onError: (error) => {
         toast.error(error.response.title);
       },
-    }
+    },
   );
 
   const handleAddUrl = () => {

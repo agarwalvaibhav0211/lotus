@@ -50,7 +50,7 @@ const ViewPlans: FC = () => {
   >([]);
   const [allPlans, setAllPlans] = useState<components["schemas"]["Plan"][]>([]);
   const [allCustom, setAllCustom] = useState<components["schemas"]["Plan"][]>(
-    []
+    [],
   );
 
   const [activeKey, setActiveKey] = useState("0");
@@ -74,7 +74,7 @@ const ViewPlans: FC = () => {
   const setPlans = useCallback(
     (
       data: components["schemas"]["Plan"][],
-      tabPane?: "Monthly" | "Yearly" | "Quarterly" | "All"
+      tabPane?: "Monthly" | "Yearly" | "Quarterly" | "All",
     ) => {
       if (tabPane) {
         // go through all possible matches and set state
@@ -86,58 +86,59 @@ const ViewPlans: FC = () => {
           case "Monthly":
             setMonthlyPlans(
               data.filter(
-                (plan) => plan.plan_duration === "monthly" && !plan.parent_plan
-              )
+                (plan) => plan.plan_duration === "monthly" && !plan.parent_plan,
+              ),
             );
             setMonthlyCustom(
               data.filter(
-                (plan) => plan.plan_duration === "monthly" && plan.parent_plan
-              )
+                (plan) => plan.plan_duration === "monthly" && plan.parent_plan,
+              ),
             );
             return;
           case "Yearly":
             setYearlyPlans(
               data.filter(
-                (plan) => plan.plan_duration === "yearly" && !plan.parent_plan
-              )
+                (plan) => plan.plan_duration === "yearly" && !plan.parent_plan,
+              ),
             );
             setYearlyCustom(
               data.filter(
-                (plan) => plan.plan_duration === "yearly" && plan.parent_plan
-              )
+                (plan) => plan.plan_duration === "yearly" && plan.parent_plan,
+              ),
             );
             return;
           default:
             setQuarterlyPlans(
               data.filter(
                 (plan) =>
-                  plan.plan_duration === "quarterly" && !plan.parent_plan
-              )
+                  plan.plan_duration === "quarterly" && !plan.parent_plan,
+              ),
             );
             setQuarterlyCustom(
               data.filter(
-                (plan) => plan.plan_duration === "quarterly" && plan.parent_plan
-              )
+                (plan) =>
+                  plan.plan_duration === "quarterly" && plan.parent_plan,
+              ),
             );
         }
       } else {
         const yearlystandard = data.filter(
-          (plan) => plan.plan_duration === "yearly" && !plan.parent_plan
+          (plan) => plan.plan_duration === "yearly" && !plan.parent_plan,
         );
         const yearlycustom = data.filter(
-          (plan) => plan.plan_duration === "yearly" && plan.parent_plan
+          (plan) => plan.plan_duration === "yearly" && plan.parent_plan,
         );
         const monthlystandard = data.filter(
-          (plan) => plan.plan_duration === "monthly" && !plan.parent_plan
+          (plan) => plan.plan_duration === "monthly" && !plan.parent_plan,
         );
         const monthlycustom = data.filter(
-          (plan) => plan.plan_duration === "monthly" && plan.parent_plan
+          (plan) => plan.plan_duration === "monthly" && plan.parent_plan,
         );
         const quarterlystandard = data.filter(
-          (plan) => plan.plan_duration === "quarterly" && !plan.parent_plan
+          (plan) => plan.plan_duration === "quarterly" && !plan.parent_plan,
         );
         const quarterlycustom = data.filter(
-          (plan) => plan.plan_duration === "quarterly" && plan.parent_plan
+          (plan) => plan.plan_duration === "quarterly" && plan.parent_plan,
         );
         const allplans = data.filter((plan) => !plan.parent_plan);
         const allcustom = data.filter((plan) => plan.parent_plan);
@@ -152,7 +153,7 @@ const ViewPlans: FC = () => {
         setQuarterlyCustom(quarterlycustom);
       }
     },
-    []
+    [],
   );
   const { data }: UseQueryResult<components["schemas"]["Plan"][]> = useQuery<
     components["schemas"]["Plan"][]
@@ -168,7 +169,7 @@ const ViewPlans: FC = () => {
         setPlans(data);
       },
       refetchOnMount: "always",
-    }
+    },
   );
   const createTag = useMutation(
     ({
@@ -188,7 +189,7 @@ const ViewPlans: FC = () => {
           const oldData = [...data];
           const index = oldData.findIndex((plan) => plan.plan_id === plan_id);
           const changedElement = oldData.find(
-            (plan) => plan.plan_id === plan_id
+            (plan) => plan.plan_id === plan_id,
           );
           if (index && changedElement) {
             changedElement.tags = newData.tags as PlanType["tags"];
@@ -200,7 +201,7 @@ const ViewPlans: FC = () => {
         queryClient.invalidateQueries(["plan_detail", plan_id]);
         queryClient.invalidateQueries(["organization"]);
       },
-    }
+    },
   );
 
   const getFilteredPlans = useCallback(() => {
@@ -212,7 +213,7 @@ const ViewPlans: FC = () => {
         return allPlans.filter(
           (plan) =>
             plan.plan_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            plan.plan_name.toLowerCase().includes(searchQuery.toLowerCase())
+            plan.plan_name.toLowerCase().includes(searchQuery.toLowerCase()),
         );
 
       case "1":
@@ -222,7 +223,7 @@ const ViewPlans: FC = () => {
         return monthlyPlans.filter(
           (plan) =>
             plan.plan_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            plan.plan_name.toLowerCase().includes(searchQuery.toLowerCase())
+            plan.plan_name.toLowerCase().includes(searchQuery.toLowerCase()),
         );
       case "2":
         if (!searchQuery) {
@@ -231,7 +232,7 @@ const ViewPlans: FC = () => {
         return quarterlyPlans.filter(
           (plan) =>
             plan.plan_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            plan.plan_name.toLowerCase().includes(searchQuery.toLowerCase())
+            plan.plan_name.toLowerCase().includes(searchQuery.toLowerCase()),
         );
       default:
         if (!searchQuery) {
@@ -240,7 +241,7 @@ const ViewPlans: FC = () => {
         return yearlyPlans.filter(
           (plan) =>
             plan.plan_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            plan.plan_name.toLowerCase().includes(searchQuery.toLowerCase())
+            plan.plan_name.toLowerCase().includes(searchQuery.toLowerCase()),
         );
     }
   }, [
@@ -338,7 +339,7 @@ const ViewPlans: FC = () => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, tagSearchQuery]
+    [data, tagSearchQuery],
   );
 
   useEffect(() => {
@@ -440,7 +441,7 @@ const ViewPlans: FC = () => {
               onSelectHandler={(tag, remove) => {
                 if (remove) {
                   const filter = tagSearchQuery.filter(
-                    (t) => t !== tag.tag_name.toLowerCase()
+                    (t) => t !== tag.tag_name.toLowerCase(),
                   )[0];
                   if (!filter) {
                     setTagSearchQuery([]);
@@ -455,15 +456,15 @@ const ViewPlans: FC = () => {
                   }
                   setPlansWithTagsFilter(
                     plansWithTagsFilter.filter(
-                      (plan) => plan.plan_name === result?.plan_name
-                    )
+                      (plan) => plan.plan_name === result?.plan_name,
+                    ),
                   );
                   setTagSearchQuery((prev) =>
-                    prev.filter((t) => t !== tag.tag_name.toLowerCase())
+                    prev.filter((t) => t !== tag.tag_name.toLowerCase()),
                   );
                 } else {
                   const result = getFilteredTagsAllPlans(
-                    tag.tag_name.toLowerCase()
+                    tag.tag_name.toLowerCase(),
                   );
                   if (result === undefined) {
                     return;
@@ -471,10 +472,10 @@ const ViewPlans: FC = () => {
                   setPlansWithTagsFilter((prev) =>
                     prev
                       .filter((prev) => prev.from === true)
-                      .concat(result as Plan)
+                      .concat(result as Plan),
                   );
                   setTagSearchQuery((prev) =>
-                    prev.concat(tag.tag_name.toLowerCase())
+                    prev.concat(tag.tag_name.toLowerCase()),
                   );
                 }
               }}
@@ -538,7 +539,7 @@ const ViewPlans: FC = () => {
               onSelectHandler={(tag, remove) => {
                 if (remove) {
                   const filter = tagSearchQuery.filter(
-                    (t) => t !== tag.tag_name.toLowerCase()
+                    (t) => t !== tag.tag_name.toLowerCase(),
                   )[0];
                   if (!filter) {
                     setTagSearchQuery([]);
@@ -552,15 +553,15 @@ const ViewPlans: FC = () => {
                   }
                   setPlansWithTagsFilter(
                     plansWithTagsFilter.filter(
-                      (plan) => plan.plan_name === result?.plan_name
-                    )
+                      (plan) => plan.plan_name === result?.plan_name,
+                    ),
                   );
                   setTagSearchQuery((prev) =>
-                    prev.filter((t) => t !== tag.tag_name.toLowerCase())
+                    prev.filter((t) => t !== tag.tag_name.toLowerCase()),
                   );
                 } else {
                   const result = getFilteredTagsAllPlans(
-                    tag.tag_name.toLowerCase()
+                    tag.tag_name.toLowerCase(),
                   );
                   if (result === undefined) {
                     return;
@@ -568,10 +569,10 @@ const ViewPlans: FC = () => {
                   setPlansWithTagsFilter((prev) =>
                     prev
                       .filter((prev) => prev.from === true)
-                      .concat(result as Plan)
+                      .concat(result as Plan),
                   );
                   setTagSearchQuery((prev) =>
-                    prev.concat(tag.tag_name.toLowerCase())
+                    prev.concat(tag.tag_name.toLowerCase()),
                   );
                 }
               }}
@@ -634,7 +635,7 @@ const ViewPlans: FC = () => {
             onSelectHandler={(tag, remove) => {
               if (remove) {
                 const filter = tagSearchQuery.filter(
-                  (t) => t !== tag.tag_name.toLowerCase()
+                  (t) => t !== tag.tag_name.toLowerCase(),
                 )[0];
                 if (!filter) {
                   setTagSearchQuery([]);
@@ -648,15 +649,15 @@ const ViewPlans: FC = () => {
                 }
                 setPlansWithTagsFilter(
                   plansWithTagsFilter.filter(
-                    (plan) => plan.plan_name === result?.plan_name
-                  )
+                    (plan) => plan.plan_name === result?.plan_name,
+                  ),
                 );
                 setTagSearchQuery((prev) =>
-                  prev.filter((t) => t !== tag.tag_name.toLowerCase())
+                  prev.filter((t) => t !== tag.tag_name.toLowerCase()),
                 );
               } else {
                 const result = getFilteredTagsAllPlans(
-                  tag.tag_name.toLowerCase()
+                  tag.tag_name.toLowerCase(),
                 );
                 if (result === undefined) {
                   return;
@@ -664,10 +665,10 @@ const ViewPlans: FC = () => {
                 setPlansWithTagsFilter((prev) =>
                   prev
                     .filter((prev) => prev.from === true)
-                    .concat(result as Plan)
+                    .concat(result as Plan),
                 );
                 setTagSearchQuery((prev) =>
-                  prev.concat(tag.tag_name.toLowerCase())
+                  prev.concat(tag.tag_name.toLowerCase()),
                 );
               }
             }}
@@ -729,7 +730,7 @@ const ViewPlans: FC = () => {
             onSelectHandler={(tag, remove) => {
               if (remove) {
                 const filter = tagSearchQuery.filter(
-                  (t) => t !== tag.tag_name.toLowerCase()
+                  (t) => t !== tag.tag_name.toLowerCase(),
                 )[0];
                 if (!filter) {
                   setTagSearchQuery([]);
@@ -743,15 +744,15 @@ const ViewPlans: FC = () => {
                 }
                 setPlansWithTagsFilter(
                   plansWithTagsFilter.filter(
-                    (plan) => plan.plan_name === result?.plan_name
-                  )
+                    (plan) => plan.plan_name === result?.plan_name,
+                  ),
                 );
                 setTagSearchQuery((prev) =>
-                  prev.filter((t) => t !== tag.tag_name.toLowerCase())
+                  prev.filter((t) => t !== tag.tag_name.toLowerCase()),
                 );
               } else {
                 const result = getFilteredTagsAllPlans(
-                  tag.tag_name.toLowerCase()
+                  tag.tag_name.toLowerCase(),
                 );
                 if (result === undefined) {
                   return;
@@ -759,10 +760,10 @@ const ViewPlans: FC = () => {
                 setPlansWithTagsFilter((prev) =>
                   prev
                     .filter((prev) => prev.from === true)
-                    .concat(result as Plan)
+                    .concat(result as Plan),
                 );
                 setTagSearchQuery((prev) =>
-                  prev.concat(tag.tag_name.toLowerCase())
+                  prev.concat(tag.tag_name.toLowerCase()),
                 );
               }
             }}

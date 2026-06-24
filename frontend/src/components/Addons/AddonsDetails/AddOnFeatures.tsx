@@ -29,7 +29,7 @@ const AddOnFeatures: FC<AddOnFeaturesFeaturesProps> = ({ features }) => {
                   <div>
                     {createShortenedText(
                       feature.feature_id,
-                      windowWidth >= 2500
+                      windowWidth >= 2500,
                     )}
                   </div>
                   <CopyText showIcon onlyIcon textToCopy={feature.feature_id} />

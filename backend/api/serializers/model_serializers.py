@@ -2653,9 +2653,11 @@ class AddOnSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
         version = obj.versions.first()
         return PricingUnitSerializer(version.currency).data
 
-    def get_flat_rate(
-        self, obj
-    ) -> serializers.DecimalField(decimal_places=10, max_digits=20, min_value=0,):
+    def get_flat_rate(self, obj) -> serializers.DecimalField(
+        decimal_places=10,
+        max_digits=20,
+        min_value=0,
+    ):
         version = obj.versions.first()
         return sum(x.amount for x in version.recurring_charges.all())
 

@@ -16,7 +16,10 @@ import LinkExternalIds from "../LinkExternalIds";
 
 const fields = ["name", "plan_duration"];
 
-export const validate = async (form: FormInstance<any>, type?: string): Promise<boolean> => {
+export const validate = async (
+  form: FormInstance<any>,
+  type?: string,
+): Promise<boolean> => {
   try {
     await form.validateFields(fields);
     return true;
@@ -94,7 +97,9 @@ const PlanInformation = ({ form, ...props }: StepProps) => {
                       ]}
                     >
                       <Radio.Group
-                        disabled={props.disabledFields?.includes("plan_duration")}
+                        disabled={props.disabledFields?.includes(
+                          "plan_duration",
+                        )}
                         onChange={(e) => {
                           if (e.target.value === "monthly") {
                             props.setAvailableBillingTypes([
@@ -102,7 +107,7 @@ const PlanInformation = ({ form, ...props }: StepProps) => {
                             ]);
                             form.setFieldValue(
                               "usage_billing_frequency",
-                              "monthly"
+                              "monthly",
                             );
                           } else if (e.target.value === "quarterly") {
                             props.setAvailableBillingTypes([
@@ -111,7 +116,7 @@ const PlanInformation = ({ form, ...props }: StepProps) => {
                             ]);
                             form.setFieldValue(
                               "usage_billing_frequency",
-                              "quarterly"
+                              "quarterly",
                             );
                           } else {
                             props.setAvailableBillingTypes([
@@ -121,7 +126,7 @@ const PlanInformation = ({ form, ...props }: StepProps) => {
                             ]);
                             form.setFieldValue(
                               "usage_billing_frequency",
-                              "yearly"
+                              "yearly",
                             );
                           }
                         }}

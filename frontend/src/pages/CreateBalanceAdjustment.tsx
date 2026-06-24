@@ -6,7 +6,7 @@ import {
   useQueryClient,
   UseQueryResult,
   useQuery,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import { Credits, PricingUnits } from "../api/api";
@@ -30,10 +30,10 @@ function CreateCredit({ customerId, visible, onCancel, onSubmit }: Params) {
     CurrencyType[]
   >(["pricing_unit_list"], () => PricingUnits.list().then((res) => res));
   const [amount_paid, setAmountPaid] = useState(
-    form.getFieldValue("amount_paid")
+    form.getFieldValue("amount_paid"),
   );
   const [amount_paid_currency, setAmountPaidCurrency] = useState(
-    form.getFieldValue("amount_paid_currency")
+    form.getFieldValue("amount_paid_currency"),
   );
 
   const handleAmountPaidChange = (value) => {
@@ -63,7 +63,7 @@ function CreateCredit({ customerId, visible, onCancel, onSubmit }: Params) {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
 
   const submit = () => {

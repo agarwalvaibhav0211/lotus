@@ -3,7 +3,7 @@
 import { Button, Card, Form, Input, InputNumber, Select } from "antd";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import {
   CreateComponent,
@@ -59,7 +59,7 @@ function CreateAddOns() {
   const [addon_name, setAddOnName] = useState<string | null>(null!);
   const [description, setDescription] = useState<string | null>(null);
   const [billing_frequency, setBillingFrequency] = useState<string | null>(
-    "one_time"
+    "one_time",
   );
   const [addon_type, setAddOnType] = useState<AddOnTypeOption>("flat_fee");
   const [base_cost, setBaseCost] = useState<number | null>(0.0);
@@ -110,14 +110,14 @@ function CreateAddOns() {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
 
   const addFeatures = (newFeatures: FeatureType[]) => {
     for (let i = 0; i < newFeatures.length; i++) {
       if (
         planFeatures.some(
-          (feat) => feat.feature_id === newFeatures[i].feature_id
+          (feat) => feat.feature_id === newFeatures[i].feature_id,
         )
       ) {
         //
@@ -130,14 +130,14 @@ function CreateAddOns() {
 
   const editFeatures = (feature_name: string) => {
     const currentFeature = planFeatures.filter(
-      (item) => item.feature_name === feature_name
+      (item) => item.feature_name === feature_name,
     )[0];
     setFeatureVisible(true);
   };
 
   const removeFeature = (feature_id: string) => {
     setPlanFeatures(
-      planFeatures.filter((item) => item.feature_id !== feature_id)
+      planFeatures.filter((item) => item.feature_id !== feature_id),
     );
   };
 
@@ -156,7 +156,7 @@ function CreateAddOns() {
 
     if (editComponentItem) {
       const index = componentsData.findIndex(
-        (item) => item.id === editComponentItem.id
+        (item) => item.id === editComponentItem.id,
       );
       old[index] = newData;
       setComponentsData(old);
@@ -183,7 +183,7 @@ function CreateAddOns() {
 
   const deleteComponent = (metric_id: string) => {
     setComponentsData(
-      componentsData.filter((item) => item.metric_id !== metric_id)
+      componentsData.filter((item) => item.metric_id !== metric_id),
     );
   };
   const hideFeatureModal = () => {
@@ -415,7 +415,7 @@ function CreateAddOns() {
                     className="w-full"
                     onChange={(value) => {
                       const selectedCurrency = allCurrencies.find(
-                        (currency) => currency.code === value
+                        (currency) => currency.code === value,
                       );
                       if (selectedCurrency) {
                         setSelectedCurrency(selectedCurrency);

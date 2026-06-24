@@ -75,7 +75,7 @@ const Login: FC<LoginProps> = (props) => {
           posthog.identify(
             user.email, // distinct_id, required
             { organization_id: user.organization_id }, // $set, optional
-            { username: user.username } // $set_once, optional
+            { username: user.username }, // $set_once, optional
           );
         }
 
@@ -93,7 +93,7 @@ const Login: FC<LoginProps> = (props) => {
           toast.error(error.response.data.detail);
         }
       },
-    }
+    },
   );
 
   const handleLogin = (event: React.FormEvent<FormElements>) => {

@@ -5,7 +5,7 @@ import { Paper } from "../base/Paper";
 
 const computePercentageChange = (
   current: number | undefined,
-  previous: number | undefined
+  previous: number | undefined,
 ): number => {
   if (previous === 0 || current === undefined || previous === undefined) {
     return 0;
@@ -62,7 +62,7 @@ function NumberDisplay(props: {
   useEffect(() => {
     if (props.metric_1 !== undefined && props.metric_2 !== undefined) {
       setPercentageChange(
-        computePercentageChange(props.metric_1, props.metric_2)
+        computePercentageChange(props.metric_1, props.metric_2),
       );
     }
   }, [props.metric_1, props.metric_2]);

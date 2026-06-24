@@ -10,7 +10,7 @@ type GlobalStoreState = {
   setOrgInfo: (org: components["schemas"]["Organization"]) => void;
   setQuickStartProgress: (quickStartProgress: IQuickStartStoreType) => void;
   setEnvironmentType: (
-    environmentType: "Production" | "Development" | "Demo" | "Internal Demo"
+    environmentType: "Production" | "Development" | "Demo" | "Internal Demo",
   ) => void;
 };
 
@@ -38,7 +38,7 @@ const useGlobalStore = create<GlobalStoreState>((set) => ({
   setQuickStartProgress: (quickStartProgress: IQuickStartStoreType) =>
     set({ quickStartProgress }),
   setEnvironmentType: (
-    environmentType: "Production" | "Development" | "Demo" | "Internal Demo"
+    environmentType: "Production" | "Development" | "Demo" | "Internal Demo",
   ) => set({ environmentType }),
 }));
 export default useGlobalStore;

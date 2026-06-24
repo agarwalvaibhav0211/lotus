@@ -759,9 +759,9 @@ class StripeConnector(PaymentProcesor):
 
         invoice_payload = {}
         if not self.self_hosted:
-            invoice_payload[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            invoice_payload["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
         if organization.organization_type == Organization.OrganizationType.PRODUCTION:
             stripe.api_key = self.live_secret_key
         else:
@@ -777,9 +777,9 @@ class StripeConnector(PaymentProcesor):
 
         customer_payload = {}
         if not self.self_hosted:
-            customer_payload[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            customer_payload["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
         if organization.organization_type == Organization.OrganizationType.PRODUCTION:
             stripe.api_key = self.live_secret_key
         else:
@@ -816,9 +816,9 @@ class StripeConnector(PaymentProcesor):
             stripe.api_key = self.test_secret_key
         customer_payload = {}
         if not self.self_hosted:
-            customer_payload[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            customer_payload["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         try:
             cust = stripe.Customer.retrieve(external_id, **customer_payload)
@@ -893,9 +893,9 @@ class StripeConnector(PaymentProcesor):
 
         account_payload = {}
         if not self.self_hosted:
-            account_payload[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            account_payload["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
         if organization.organization_type == Organization.OrganizationType.PRODUCTION:
             stripe.api_key = self.live_secret_key
         else:
@@ -924,9 +924,9 @@ class StripeConnector(PaymentProcesor):
         stripe_cust_kwargs = {}
         if not self.self_hosted:
             # this is to get "on behalf" of someone
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
         try:
             stripe_customers_response = stripe.Customer.list(**stripe_cust_kwargs)
             for stripe_customer in stripe_customers_response.auto_paging_iter():
@@ -980,9 +980,9 @@ class StripeConnector(PaymentProcesor):
 
         payload = {}
         if not self.self_hosted:
-            payload[
-                "stripe_account"
-            ] = customer.organization.stripe_integration.stripe_account_id
+            payload["stripe_account"] = (
+                customer.organization.stripe_integration.stripe_account_id
+            )
         invoices = stripe.Invoice.list(
             customer=customer.stripe_integration.stripe_customer_id, **payload
         )
@@ -1176,9 +1176,9 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         stripe_subscriptions = stripe.Subscription.search(
             query="status:'active'", **stripe_cust_kwargs
@@ -1288,9 +1288,9 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         stripe_subscriptions = stripe.Subscription.search(
             query="status:'active'", **stripe_cust_kwargs
@@ -1336,9 +1336,9 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         stripe_id = customer.stripe_integration.stripe_customer_id
         stripe_subscriptions = stripe.Subscription.list(
@@ -1374,9 +1374,9 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         for stripe_sub_id in stripe_subscription_ids:
             stripe.Subscription.delete(
@@ -1395,9 +1395,9 @@ class StripeConnector(PaymentProcesor):
 
         stripe_cust_kwargs = {}
         if not self.self_hosted:
-            stripe_cust_kwargs[
-                "stripe_account"
-            ] = organization.stripe_integration.stripe_account_id
+            stripe_cust_kwargs["stripe_account"] = (
+                organization.stripe_integration.stripe_account_id
+            )
 
         for stripe_sub_id in stripe_subscription_ids:
             stripe.Subscription.modify(

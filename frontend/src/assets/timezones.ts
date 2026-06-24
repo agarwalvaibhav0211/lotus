@@ -433,7 +433,7 @@ export const timezones: [
   "US/Hawaii",
   "US/Mountain",
   "US/Pacific",
-  "UTC"
+  "UTC",
 ] = [
   "Africa/Abidjan",
   "Africa/Accra",

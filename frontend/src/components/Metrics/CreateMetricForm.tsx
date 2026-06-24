@@ -55,7 +55,7 @@ function CreateMetricForm(props: {
   const [filters, setFilters] = useState<MixedFilterType[]>([]);
   const [expandForm, setExpandForm] = useState(false);
   const [customSQL, setCustomSQL] = useState<null | string>(
-    "SELECT COUNT(*) as usage_qty FROM events"
+    "SELECT COUNT(*) as usage_qty FROM events",
   );
   const [selectedGranularity, setSelectedGranularity] =
     useState<TimePeriodType | null>(null);
@@ -197,17 +197,17 @@ function CreateMetricForm(props: {
     // Run api call and sets the options upon initialization
     Events.getEventProperties().then((res) => {
       const eventEntries = Object.entries(res.event_name_to_props).map(
-        ([key, val]) => [key, val ? val : []]
+        ([key, val]) => [key, val ? val : []],
       );
       setEventProperties(Object.fromEntries(eventEntries));
       setEventNameOptions(
-        res.event_names.map((name) => ({ value: name, label: name }))
+        res.event_names.map((name) => ({ value: name, label: name })),
       );
       setEventPropOptions(
         [...new Set(eventEntries.flatMap((entry) => entry[1]))].map((prop) => ({
           value: prop,
           label: prop,
-        }))
+        })),
       );
     });
   }, []);
@@ -218,7 +218,7 @@ function CreateMetricForm(props: {
         eventProperties[currEventName].map((prop) => ({
           label: prop,
           value: prop,
-        }))
+        })),
       );
     } else {
       setEventPropOptions([]);
@@ -292,7 +292,7 @@ function CreateMetricForm(props: {
                   property_name: values.filters[i].property_name,
                   operator: values.filters[i].operator,
                   comparison_value: parseFloat(
-                    values.filters[i].comparison_value
+                    values.filters[i].comparison_value,
                   ),
                 });
               }
@@ -519,7 +519,7 @@ function CreateMetricForm(props: {
                         validator: (_, value) => {
                           if (eventType == "rate" && value === "unique") {
                             return Promise.reject(
-                              new Error("Cannot use unique with rate")
+                              new Error("Cannot use unique with rate"),
                             );
                           }
                           return Promise.resolve();
@@ -824,7 +824,7 @@ function CreateMetricForm(props: {
                                             return Promise.resolve();
                                           }
                                           return Promise.reject(
-                                            "Please select at least one value for this filter."
+                                            "Please select at least one value for this filter.",
                                           );
                                         } else if (
                                           value === undefined ||
@@ -834,7 +834,7 @@ function CreateMetricForm(props: {
                                             value.length === 0)
                                         ) {
                                           return Promise.reject(
-                                            "Please input a comparison value or delete this filter."
+                                            "Please input a comparison value or delete this filter.",
                                           );
                                         }
                                         return Promise.resolve();

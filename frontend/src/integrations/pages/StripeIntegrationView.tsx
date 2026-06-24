@@ -46,7 +46,7 @@ const StripeIntegrationView: FC = () => {
           position: TOAST_POSITION,
         });
       },
-    }
+    },
   );
 
   const importPaymentsMutation = useMutation(
@@ -63,7 +63,7 @@ const StripeIntegrationView: FC = () => {
           position: TOAST_POSITION,
         });
       },
-    }
+    },
   );
 
   const resolveAfter3Sec = new Promise((resolve) => setTimeout(resolve, 3000));
@@ -81,7 +81,7 @@ const StripeIntegrationView: FC = () => {
           position: TOAST_POSITION,
         });
       },
-    }
+    },
   );
 
   const updateGenCustomerInStripeSetting = useMutation(
@@ -110,7 +110,7 @@ const StripeIntegrationView: FC = () => {
           position: TOAST_POSITION,
         });
       },
-    }
+    },
   );
 
   // promises to handle toast loading messages

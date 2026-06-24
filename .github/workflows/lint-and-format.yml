@@ -22,7 +22,7 @@ jobs:
       # - name: Lint with ESLint
       #   run: yarn lint
       - name: Run Prettier
-        run: cd frontend/frontend && yarn pretty
+        run: cd frontend/frontend && yarn pretty:check
 
   format-py:
     runs-on: ubuntu-latest
@@ -38,4 +38,4 @@ jobs:
         run: pip install black
 
       - name: Run black
-        run: black backend/
+        run: black --check backend/

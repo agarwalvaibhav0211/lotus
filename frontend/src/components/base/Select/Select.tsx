@@ -11,19 +11,18 @@ interface SelectProps {
 function Select({ children }: PropsWithChildren) {
   return <div>{children}</div>;
 }
-function SelectLabel({
-  children,
-  className,
-}: PropsWithChildren<SelectProps>) {
-  return <label
-    className={
-      !className
-        ? "block text-sm font-medium text-gray-700"
-        : ["block text-sm font-medium text-gray-700", className].join(" ")
-    }
-  >
-    {children}
-  </label>
+function SelectLabel({ children, className }: PropsWithChildren<SelectProps>) {
+  return (
+    <label
+      className={
+        !className
+          ? "block text-sm font-medium text-gray-700"
+          : ["block text-sm font-medium text-gray-700", className].join(" ")
+      }
+    >
+      {children}
+    </label>
+  );
 }
 const SelectElement = forwardRef<SelectRef, PropsWithChildren<SelectProps>>(
   ({ children, className = "", onChange, disabled }, ref) => (
@@ -42,11 +41,15 @@ const SelectElement = forwardRef<SelectRef, PropsWithChildren<SelectProps>>(
     >
       {children}
     </select>
-  )
+  ),
 );
 
 function SelectOption({ children, selected }: PropsWithChildren<SelectProps>) {
-  return selected ? <option selected>{children}</option> : <option>{children}</option>
+  return selected ? (
+    <option selected>{children}</option>
+  ) : (
+    <option>{children}</option>
+  );
 }
 
 Select.Label = SelectLabel;

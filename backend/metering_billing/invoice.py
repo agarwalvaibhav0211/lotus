@@ -94,9 +94,9 @@ def generate_invoice(
             "issue_date": issue_date,
             "organization": organization,
             "customer": customer,
-            "payment_status": Invoice.PaymentStatus.DRAFT
-            if draft
-            else Invoice.PaymentStatus.UNPAID,
+            "payment_status": (
+                Invoice.PaymentStatus.DRAFT if draft else Invoice.PaymentStatus.UNPAID
+            ),
             "currency": currency,
             "due_date": due_date,
         }
@@ -700,9 +700,9 @@ def generate_balance_adjustment_invoice(balance_adjustment, draft=False):
         "issue_date": issue_date,
         "organization": organization,
         "customer": customer,
-        "payment_status": Invoice.PaymentStatus.DRAFT
-        if draft
-        else Invoice.PaymentStatus.UNPAID,
+        "payment_status": (
+            Invoice.PaymentStatus.DRAFT if draft else Invoice.PaymentStatus.UNPAID
+        ),
         "currency": balance_adjustment.amount_paid_currency,
         "due_date": due_date,
     }

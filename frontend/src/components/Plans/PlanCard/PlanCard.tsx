@@ -182,7 +182,7 @@ const PlanCard: FC<PlanCardProps> = ({ plan, createTagMutation, pane }) => {
                         const orgTags = [...plan_tags];
 
                         const planTagsFromOrg = orgTags.filter(
-                          (el) => el.tag_name === tag.tag_name
+                          (el) => el.tag_name === tag.tag_name,
                         );
                         const tags = [...planTags, ...planTagsFromOrg];
 
@@ -195,7 +195,7 @@ const PlanCard: FC<PlanCardProps> = ({ plan, createTagMutation, pane }) => {
                         const planTags = [...plan.tags];
 
                         const tags = planTags.filter(
-                          (el) => el.tag_name !== tag.tag_name
+                          (el) => el.tag_name !== tag.tag_name,
                         );
                         createTagMutation({
                           plan_id: plan.plan_id,

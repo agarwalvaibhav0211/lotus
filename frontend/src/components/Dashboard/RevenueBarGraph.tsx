@@ -22,7 +22,7 @@ function RevenueBarGraph(props: {
     if (props.data) {
       const compressedArray: RevenueChartData[] = [];
       for (let i = 0; i < props.data.length; i++) {
-        const {metric} = props.data[i];
+        const { metric } = props.data[i];
         for (const k in props.data[i].data) {
           compressedArray.push({
             day: props.data[i].data[k].date,

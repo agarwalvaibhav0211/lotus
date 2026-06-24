@@ -11,7 +11,7 @@ import {
 const StripeRedirect: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [connected, setConnected] = useState<string | boolean>(
-    "Not Yet Connected"
+    "Not Yet Connected",
   );
   const navigate = useNavigate();
 

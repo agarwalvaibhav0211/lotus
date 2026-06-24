@@ -42,7 +42,7 @@ const SalesforceIntegrationView: FC = () => {
         toast.success(
           `Customer Information Source of Truth set to ${
             checked ? "Salesforce" : "Lotus"
-          }`
+          }`,
         );
         setIsChecked(checked);
       })

@@ -1,5 +1,5 @@
 import React from "react";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import { GetSubscriptions } from "../../api/api";
 import { SubscriptionTotals } from "../../types/subscription-type";
 import { Paper } from "../base/Paper";
@@ -16,8 +16,8 @@ function SubscriptionStatistics(props: { range: any[] }) {
         props.range[0].format("YYYY-MM-DD"),
         props.range[1].format("YYYY-MM-DD"),
         props.range[0].subtract(1, "month").format("YYYY-MM-DD"),
-        props.range[1].subtract(1, "month").format("YYYY-MM-DD")
-      ).then((res) => res)
+        props.range[1].subtract(1, "month").format("YYYY-MM-DD"),
+      ).then((res) => res),
   );
   if (isLoading || !data) {
     return <div>Loading...</div>;

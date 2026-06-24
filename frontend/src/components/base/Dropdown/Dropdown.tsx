@@ -22,11 +22,11 @@ function Dropdown({ children }: PropsWithChildren<DropdownProps>) {
       setSelected(selected);
       setIsOpen(false);
     },
-    []
+    [],
   );
   const value = React.useMemo(
     () => ({ isOpen, openHandler, closeHandler, selected }),
-    [isOpen]
+    [isOpen],
   );
   const handleClick = (e: MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -53,7 +53,7 @@ const useDropdownContext = () => {
   const context = React.useContext(DropdownContext);
   if (!context) {
     throw new Error(
-      `Toggle compound components cannot be rendered outside the Toggle component`
+      `Toggle compound components cannot be rendered outside the Toggle component`,
     );
   }
   return context;

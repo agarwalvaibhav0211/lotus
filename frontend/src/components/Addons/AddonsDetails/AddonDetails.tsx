@@ -2,7 +2,7 @@ import React, { FC } from "react";
 
 import { Button } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import { PageLayout } from "../../base/PageLayout";
 import { AddOn } from "../../../api/api";
 import LoadingSpinner from "../../LoadingSpinner";
@@ -28,7 +28,7 @@ const AddOnDetails: FC = () => {
   } = useQuery<components["schemas"]["AddOnDetail"]>(
     ["addon_detail", addOnId],
     () => AddOn.getAddOn(addOnId as string).then((res) => res),
-    { refetchOnMount: "always" }
+    { refetchOnMount: "always" },
   );
 
   return (

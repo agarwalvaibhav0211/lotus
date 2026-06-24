@@ -242,7 +242,7 @@ const QuickstartPage: FC = () => {
   const [currentItem, setCurrentItem] = useState(0);
   const org = useGlobalStore((state) => state.org);
   const setQuickStartProgress = useGlobalStore(
-    (state) => state.setQuickStartProgress
+    (state) => state.setQuickStartProgress,
   );
   const {
     hasAPIKey,

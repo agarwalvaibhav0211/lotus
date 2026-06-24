@@ -8,7 +8,7 @@ import LoadingSpinner from "../LoadingSpinner";
 export function CustomerByPlanPie() {
   const { data, isLoading }: UseQueryResult<any> = useQuery<any>(
     ["customer_by_plan_pie"],
-    () => PlansByCustomer.getPlansByCustomer().then((res) => res)
+    () => PlansByCustomer.getPlansByCustomer().then((res) => res),
   );
 
   const config = {

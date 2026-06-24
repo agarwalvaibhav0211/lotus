@@ -71,7 +71,7 @@ const ViewMetrics: FC = () => {
       onSettled: () => {
         toast.dismiss();
       },
-    }
+    },
   );
   const createMetricButton = () => {
     setMetricState(defaultMetricState);

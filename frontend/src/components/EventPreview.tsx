@@ -33,7 +33,7 @@ const EventPreview: FC = () => {
       }),
     {
       refetchInterval: 30000,
-    }
+    },
   );
 
   useEffect(() => {
@@ -151,7 +151,7 @@ const EventPreview: FC = () => {
                       <p className="infoValue">
                         {" "}
                         {dayjs(event.time_created).format(
-                          "YYYY/MM/DD HH:mm:ss"
+                          "YYYY/MM/DD HH:mm:ss",
                         )}
                       </p>
                     </div>

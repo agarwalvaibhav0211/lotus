@@ -33,8 +33,8 @@ export function AppCard({
   const link = title.toLowerCase().includes("stripe")
     ? "stripe"
     : title.toLowerCase().includes("braintree")
-    ? "braintree"
-    : title.toLowerCase();
+      ? "braintree"
+      : title.toLowerCase();
   return (
     <div>
       <Card
@@ -57,7 +57,7 @@ export function AppCard({
                     ? handleClickConnect
                     : () => {
                         toast.error(
-                          "Upgrade to get access to this integration"
+                          "Upgrade to get access to this integration",
                         );
                       }
                 }

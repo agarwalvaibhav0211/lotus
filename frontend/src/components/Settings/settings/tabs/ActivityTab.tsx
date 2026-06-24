@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState } from "react";
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
 import { Typography } from "antd";
 import { Paper } from "../../../base/Paper";
@@ -28,7 +28,7 @@ export default function ActivityStream() {
 
     {
       refetchOnMount: "always",
-    }
+    },
   );
   const queryClient = useQueryClient();
 
@@ -98,7 +98,7 @@ export default function ActivityStream() {
                       </h3>
                       <h3 className=" text-gray-500">
                         {dayjs(activityItem.timestamp).format(
-                          "YYYY/MM/DD HH:mm:ss"
+                          "YYYY/MM/DD HH:mm:ss",
                         )}
                       </h3>
                     </div>

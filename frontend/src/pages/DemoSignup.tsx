@@ -71,7 +71,7 @@ const DemoSignup: React.FC = () => {
         });
         navigate("/login");
       },
-    }
+    },
   );
 
   const handleUserNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,5 +1,5 @@
 import React, { FC, useState } from "react";
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Table, Typography, Input, Button, Form, Tag, Modal } from "antd";
 import { toast } from "react-toastify";
@@ -26,7 +26,7 @@ const TeamTab: FC = () => {
     isError,
     refetch,
   } = useQuery(["organization"], () =>
-    Organization.get().then((res) => res[0])
+    Organization.get().then((res) => res[0]),
   );
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,13 +50,13 @@ const TeamTab: FC = () => {
           toast.error(
             Array.isArray(error.response.data.email)
               ? error.response.data.email[0]
-              : error.response.data.email
+              : error.response.data.email,
           );
         } else {
           toast.error("Cannot send an invite now, try again later.");
         }
       },
-    }
+    },
   );
 
   const inviteLinkMutation = useMutation(
@@ -77,7 +77,7 @@ const TeamTab: FC = () => {
           toast.error("Cannot generate an invite link now, try again later.");
         }
       },
-    }
+    },
   );
 
   const handleInvite = () => {

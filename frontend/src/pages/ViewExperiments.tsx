@@ -29,7 +29,7 @@ const ViewExperiments: FC = () => {
     {
       // Refetch the data every second
       refetchInterval: 5000,
-    }
+    },
   );
 
   const navigateCreateExperiment = () => {

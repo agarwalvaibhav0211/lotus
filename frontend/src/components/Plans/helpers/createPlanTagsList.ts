@@ -2,7 +2,7 @@ import { components } from "../../../gen-types";
 
 const createPlanTagsList = (
   planTags: any,
-  orgPlanTypes: components["schemas"]["PlanDetail"]["tags"]
+  orgPlanTypes: components["schemas"]["PlanDetail"]["tags"],
 ) => {
   const pt = [...planTags].map((el) => ({
     ...el,
@@ -14,12 +14,12 @@ const createPlanTagsList = (
   const t = [...pt, ...opt];
   // get non-distinct tag name values
   const nonDistinctTags = t.filter(
-    (val) => val.from === "org" && !flat.includes(val.tag_name)
+    (val) => val.from === "org" && !flat.includes(val.tag_name),
   );
 
   // get distinct tag name values
   const distinctTags = t.filter((val) =>
-    pt.find((el) => el.tag_name === val.tag_name && val.from === "plans")
+    pt.find((el) => el.tag_name === val.tag_name && val.from === "plans"),
   );
 
   const tags = [...nonDistinctTags, ...distinctTags];

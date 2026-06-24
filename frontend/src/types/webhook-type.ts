@@ -10,15 +10,16 @@ export interface WebhookTrigger {
   trigger_name: string;
 }
 
-export interface WebhookEndpointCreate
-  extends Omit<
-    WebhookEndpoint,
-    "triggers" | "webhook_secret" | "webhook_endpoint_id"
-  > {
+export interface WebhookEndpointCreate extends Omit<
+  WebhookEndpoint,
+  "triggers" | "webhook_secret" | "webhook_endpoint_id"
+> {
   triggers_in: string[];
 }
 
-export interface WebhookEndpointUpdate
-  extends Omit<WebhookEndpoint, "triggers"> {
+export interface WebhookEndpointUpdate extends Omit<
+  WebhookEndpoint,
+  "triggers"
+> {
   triggers_in: string[];
 }

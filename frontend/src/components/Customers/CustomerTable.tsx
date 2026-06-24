@@ -3,7 +3,11 @@ import React, { FC, useState, useEffect } from "react";
 import type { ProColumns } from "@ant-design/pro-components";
 import { ProTable } from "@ant-design/pro-components";
 import { Button, Input, Tag } from "antd";
-import { useQuery, UseQueryResult, useQueryClient } from '@tanstack/react-query';
+import {
+  useQuery,
+  UseQueryResult,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   CustomerSummary,
@@ -26,7 +30,7 @@ function getHighlightedText(text: string, highlight: string) {
             <span className="highlightText">{part}</span>
           ) : (
             part
-          )
+          ),
         )}
       </span>
     );
@@ -64,7 +68,7 @@ const CustomerTable: FC<Props> = ({ customerArray, totals }) => {
           const customer_info = customerArray[i];
           const total =
             totals.find(
-              (total) => total.customer_id === customer_info.customer_id
+              (total) => total.customer_id === customer_info.customer_id,
             )?.total_amount_due ?? 0.0;
           const entry: CustomerTableItem = {
             ...customer_info,
@@ -88,7 +92,7 @@ const CustomerTable: FC<Props> = ({ customerArray, totals }) => {
 
   const { data, isLoading }: UseQueryResult<PlanType[]> = useQuery<PlanType[]>(
     ["plan_list"],
-    () => Plan.getPlans().then((res) => res)
+    () => Plan.getPlans().then((res) => res),
   );
 
   const columns: ProColumns<CustomerTableItem>[] = [
@@ -224,7 +228,7 @@ const CustomerTable: FC<Props> = ({ customerArray, totals }) => {
       (item) =>
         item.customer_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.customer_name &&
-          item.customer_name.toLowerCase().includes(searchQuery.toLowerCase()))
+          item.customer_name.toLowerCase().includes(searchQuery.toLowerCase())),
     );
   };
 

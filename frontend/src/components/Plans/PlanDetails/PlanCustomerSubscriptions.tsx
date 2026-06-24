@@ -36,7 +36,7 @@ const PlanCustomerSubscriptions: FC<PlanCustomerSubscriptionProps> = ({
         queryClient.invalidateQueries(["plan_detail", plan_id]);
       },
       refetchOnMount: "always",
-    }
+    },
   );
 
   return (

@@ -33,18 +33,17 @@ export type LightweightCustomerType = Omit<
   | "integrations"
 >;
 
-export interface CustomerCreateType
-  extends Omit<
-    CustomerType,
-    | "invoices"
-    | "subscriptions"
-    | "default_currency"
-    | "customer_name"
-    | "payment_provider"
-    | "total_amount_due"
-    | "integrations"
-    | "has_payment_method"
-  > {
+export interface CustomerCreateType extends Omit<
+  CustomerType,
+  | "invoices"
+  | "subscriptions"
+  | "default_currency"
+  | "customer_name"
+  | "payment_provider"
+  | "total_amount_due"
+  | "integrations"
+  | "has_payment_method"
+> {
   customer_name?: string;
   payment_provider?: string;
   payment_provider_id?: string;

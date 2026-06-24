@@ -34,7 +34,7 @@ jobs:
       KAFKA_URL: redpanda:29092
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: start-all
         run: |

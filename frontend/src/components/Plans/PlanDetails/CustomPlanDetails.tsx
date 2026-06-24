@@ -29,7 +29,7 @@ interface CustomPlanDetailsProps {
 function getPriceAdjustmentEnding(
   type: string | undefined,
   amount: number | undefined,
-  code: string
+  code: string,
 ) {
   switch (type) {
     case "percentage":
@@ -82,7 +82,7 @@ const CustomPlanDetails: FC<CustomPlanDetailsProps> = ({
         queryClient.invalidateQueries(["plan_list"]);
         queryClient.invalidateQueries(["plan_detail", plan.plan_id]);
       },
-    }
+    },
   );
   const deleteTag = useMutation(
     ({ plan_id, tags }: { plan_id: string; tags: PlanType["tags"] }) =>
@@ -94,7 +94,7 @@ const CustomPlanDetails: FC<CustomPlanDetailsProps> = ({
         queryClient.invalidateQueries(["plan_list"]);
         queryClient.invalidateQueries(["plan_detail", plan.plan_id]);
       },
-    }
+    },
   );
 
   return (
@@ -135,7 +135,7 @@ const CustomPlanDetails: FC<CustomPlanDetailsProps> = ({
             {getPriceAdjustmentEnding(
               version.price_adjustment?.price_adjustment_type,
               version.price_adjustment?.price_adjustment_amount,
-              version.currency?.symbol
+              version.currency?.symbol,
             )}
           </Typography.Title>
         </div>

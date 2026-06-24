@@ -11,8 +11,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             sql=[
-                (
-                    "CREATE TABLE public.metering_billing_usageevent ( \
+                "CREATE TABLE public.metering_billing_usageevent ( \
                     event_name varchar(100) NOT NULL, \
                     time_created timestamp with time zone NOT NULL, \
                     properties jsonb, \
@@ -25,8 +24,7 @@ class Migration(migrations.Migration):
                         PRIMARY KEY (idempotency_id, time_created) \
                 ); \
                 SELECT create_hypertable('metering_billing_usageevent', 'time_created');"
-                )
             ],
-            reverse_sql=[("DROP TABLE public.metering_billing_usageevent;")],
+            reverse_sql=["DROP TABLE public.metering_billing_usageevent;"],
         )
     ]

@@ -28,12 +28,15 @@ const MunimIntegrationView: FC = () => {
         setIsConnecting(false);
       },
       onError: () => {
-        toast.error("Failed to connect to Munim. Ensure MUNIM_API_KEY is set on the server.", {
-          position: TOAST_POSITION,
-        });
+        toast.error(
+          "Failed to connect to Munim. Ensure MUNIM_API_KEY is set on the server.",
+          {
+            position: TOAST_POSITION,
+          },
+        );
         setIsConnecting(false);
       },
-    }
+    },
   );
 
   const importCustomersMutation = useMutation(
@@ -45,7 +48,7 @@ const MunimIntegrationView: FC = () => {
       onError: () => {
         toast.error("Failed to Import Customers", { position: TOAST_POSITION });
       },
-    }
+    },
   );
 
   const handleConnect = () => {
@@ -68,11 +71,7 @@ const MunimIntegrationView: FC = () => {
         </h2>
         <div className="grid grid-cols-2 justify-start items-center gap-6 border-2 border-solid rounded border-[#EAEAEB] px-6 py-10">
           <h3>Connect Munim:</h3>
-          <Button
-            type="primary"
-            loading={isConnecting}
-            onClick={handleConnect}
-          >
+          <Button type="primary" loading={isConnecting} onClick={handleConnect}>
             Connect
           </Button>
           <h3>Import Munim Customers:</h3>

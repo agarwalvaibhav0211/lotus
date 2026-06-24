@@ -487,12 +487,14 @@ class CustomerViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             organization = self.request.organization or self.request.user.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_customer",
                     properties={"organization": organization.organization_name},
@@ -689,12 +691,14 @@ class PlanViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             organization = self.request.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_plan",
                     properties={"organization": organization.organization_name},
@@ -1346,9 +1350,11 @@ class SubscriptionViewSet(
 
         try:
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (organization.organization_name + " (Unknown)"),
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (organization.organization_name + " (Unknown)")
+                ),
                 event="DEPRECATED_add_subscription",
                 properties={
                     "organization": organization.organization_name,
@@ -1399,9 +1405,11 @@ class SubscriptionViewSet(
 
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (organization.organization_name + " (Unknown)"),
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (organization.organization_name + " (Unknown)")
+                    ),
                     event="DEPRECATED_cancel_subscription",
                     properties={
                         "organization": organization.organization_name,
@@ -1519,9 +1527,11 @@ class SubscriptionViewSet(
 
         try:
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (organization.organization_name + " (Unknown)"),
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (organization.organization_name + " (Unknown)")
+                ),
                 event="DEPRECATED_update_subscription",
                 properties={
                     "organization": organization.organization_name,
@@ -1543,12 +1553,14 @@ class SubscriptionViewSet(
             organization = self.request.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_subscription",
                     properties={"organization": organization.organization_name},
@@ -1676,12 +1688,14 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             organization = self.request.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_invoice",
                     properties={"organization": organization.organization_name},
@@ -1918,12 +1932,14 @@ class CustomerBalanceAdjustmentViewSet(
             organization = self.request.organization
             try:
                 posthog.capture(
-                    POSTHOG_PERSON
-                    if POSTHOG_PERSON
-                    else (
-                        username
-                        if username
-                        else organization.organization_name + " (API Key)"
+                    (
+                        POSTHOG_PERSON
+                        if POSTHOG_PERSON
+                        else (
+                            username
+                            if username
+                            else organization.organization_name + " (API Key)"
+                        )
                     ),
                     event=f"{self.action}_balance_adjustment",
                     properties={"organization": organization.organization_name},
@@ -2340,9 +2356,9 @@ def track_event(request):
             # If the datetime object is naive, replace its tzinfo with UTC
             tc = tc.replace(tzinfo=pytz.UTC)
         if not (now - relativedelta(days=30) <= tc <= now + relativedelta(days=1)):
-            bad_events[
-                idempotency_id
-            ] = "Time created too far in the past or future. Events must be within 30 days before or 1 day ahead of current time."
+            bad_events[idempotency_id] = (
+                "Time created too far in the past or future. Events must be within 30 days before or 1 day ahead of current time."
+            )
             continue
         data["time_created"] = tc.isoformat()
         try:
@@ -2513,9 +2529,11 @@ class GetCustomerFeatureAccessView(APIView):
             username = None
         try:
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (username if username else result + " (Unknown)"),
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (username if username else result + " (Unknown)")
+                ),
                 event="DEPRECATED_get_feature_access",
                 properties={"organization": organization.organization_name},
             )
@@ -2597,12 +2615,14 @@ class GetCustomerEventAccessView(APIView):
             username = None
         try:
             posthog.capture(
-                POSTHOG_PERSON
-                if POSTHOG_PERSON
-                else (
-                    username
-                    if username
-                    else organization.organization_name + " (Unknown)"
+                (
+                    POSTHOG_PERSON
+                    if POSTHOG_PERSON
+                    else (
+                        username
+                        if username
+                        else organization.organization_name + " (Unknown)"
+                    )
                 ),
                 event="DEPRECATED_get_metric_access",
                 properties={"organization": organization.organization_name},

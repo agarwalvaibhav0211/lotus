@@ -61,8 +61,10 @@ export interface Component {
 export type CreateComponentRequestType =
   components["schemas"]["PlanComponentCreateRequest"];
 
-export interface CreateComponent
-  extends Omit<Component, "billable_metric" | "pricing_unit"> {
+export interface CreateComponent extends Omit<
+  Component,
+  "billable_metric" | "pricing_unit"
+> {
   metric_id: string;
 }
 
@@ -93,11 +95,10 @@ export interface InitialExternalLinks {
   source: string;
   external_plan_id: string;
 }
-export interface PlanVersionType
-  extends Omit<
-    CreatePlanVersionType,
-    "components" | "currency_code" | "features" | "recurring_charges"
-  > {
+export interface PlanVersionType extends Omit<
+  CreatePlanVersionType,
+  "components" | "currency_code" | "features" | "recurring_charges"
+> {
   description: string;
   plan_id: string;
   flat_fee_billing_type: string;
@@ -201,8 +202,7 @@ export interface PlanVersionUpdateType {
   transition_to_plan_id: string;
 }
 // update description
-export interface PlanVersionUpdateDescriptionType
-  extends PlanVersionUpdateType {
+export interface PlanVersionUpdateDescriptionType extends PlanVersionUpdateType {
   description: string;
 }
 export interface PlanFeaturesAdd {

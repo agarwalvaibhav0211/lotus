@@ -1,7 +1,7 @@
 // @ts-ignore
 import React, { FC } from "react";
 import { Tabs } from "antd";
-import { useNavigate , useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import IntegrationsTab from "../components/Settings/settings/tabs/IntegrationsTab";
 import { DeveloperTab } from "../components/Settings/settings/tabs/DeveloperTab";
 import TeamTab from "../components/Settings/settings/tabs/TeamTab";

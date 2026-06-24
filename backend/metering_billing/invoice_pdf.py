@@ -475,9 +475,11 @@ class InvoicePDF:
                     line_item["name"],
                     line_item["start_date"],
                     line_item["end_date"],
-                    line_item["quantity"].normalize()
-                    if isinstance(line_item["quantity"], Decimal)
-                    else line_item["quantity"],
+                    (
+                        line_item["quantity"].normalize()
+                        if isinstance(line_item["quantity"], Decimal)
+                        else line_item["quantity"]
+                    ),
                     line_item["base"].normalize(),
                     self.invoice.currency.symbol,
                     line_item["billing_type"],

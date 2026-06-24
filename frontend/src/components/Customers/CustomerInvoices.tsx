@@ -4,7 +4,7 @@
 import { Button, Dropdown, Menu, Table, Tag, Tooltip } from "antd";
 import React, { FC, useEffect } from "react";
 import dayjs from "dayjs";
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { MoreOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -24,7 +24,7 @@ const downloadFile = async (s3link) => {
 };
 
 const getPdfUrl = async (
-  invoice: components["schemas"]["CustomerDetail"]["invoices"][0]
+  invoice: components["schemas"]["CustomerDetail"]["invoices"][0],
 ) => {
   try {
     const response = await Invoices.getInvoiceUrl(invoice.invoice_id);
@@ -60,7 +60,7 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
 
   const sendToPaymentProcessor = useMutation(
@@ -78,7 +78,7 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    }
+    },
   );
 
   useEffect(() => {
@@ -115,8 +115,8 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
                       record.external_payment_obj_type === "stripe"
                         ? integrationsMap.stripe.icon
                         : record.external_payment_obj_type === "braintree"
-                        ? integrationsMap.braintree.icon
-                        : lotusUrl
+                          ? integrationsMap.braintree.icon
+                          : lotusUrl
                     }
                     alt={`${record.external_payment_obj_type} icon`}
                   />
@@ -191,7 +191,7 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
       key: "status",
       render: (
         _,
-        record: components["schemas"]["CustomerDetail"]["invoices"][0]
+        record: components["schemas"]["CustomerDetail"]["invoices"][0],
       ) => (
         <div className="flex">
           {record.external_payment_obj_type ? (
@@ -283,7 +283,7 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
                               "This feature is disabled in the demo",
                               {
                                 position: toast.POSITION.TOP_CENTER,
-                              }
+                              },
                             );
                           } else {
                             if (selectedRecord === record) {

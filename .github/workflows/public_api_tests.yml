@@ -49,6 +49,7 @@ jobs:
       PYTHONDONTWRITEBYTECODE: 1
       SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       SELF_HOSTED: "${{ secrets.SELF_HOSTED }}"
+      POSTMAN_API_KEY: ${{ secrets.postmanApiKey }}
 
     steps:
       - uses: actions/checkout@v4
@@ -143,8 +144,6 @@ jobs:
       - name: Run Postman
         if: ${{ env.POSTMAN_API_KEY != '' }}
         id: run-newman
-        env:
-          POSTMAN_API_KEY: ${{ secrets.postmanApiKey }}
         uses: anthonyvscode/newman-action@v1
         with:
           apiKey: ${{ secrets.postmanApiKey }}
@@ -154,6 +153,4 @@ jobs:
 
       - name: Output summary to console
         if: ${{ env.POSTMAN_API_KEY != '' }}
-        env:
-          POSTMAN_API_KEY: ${{ secrets.postmanApiKey }}
         run: echo ${{ steps.run-newman.outputs.summary }}

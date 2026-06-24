@@ -123,10 +123,10 @@ const BacktestSubstitution: FC<Props> = ({ substitution }) => {
 
       for (let j = 0; j < newRevPerMetric.length; j++) {
         newRevPerMetric[j].original_plan_revenue = dataFormatterNumber(
-          newRevPerMetric[j].original_plan_revenue
+          newRevPerMetric[j].original_plan_revenue,
         );
         newRevPerMetric[j].new_plan_revenue = dataFormatterNumber(
-          newRevPerMetric[j].new_plan_revenue
+          newRevPerMetric[j].new_plan_revenue,
         );
       }
 
@@ -185,7 +185,7 @@ const BacktestSubstitution: FC<Props> = ({ substitution }) => {
                       <Bold>{dataFormatter(item.value)}</Bold>{" "}
                     </Text>
                   </ListItem>
-                )
+                ),
               )}
             </List>
           </div>
@@ -200,7 +200,7 @@ const BacktestSubstitution: FC<Props> = ({ substitution }) => {
                       <Bold>{dataFormatter(item.value)}</Bold>{" "}
                     </Text>
                   </ListItem>
-                )
+                ),
               )}
             </List>
           </div>
@@ -216,7 +216,7 @@ const BacktestSubstitution: FC<Props> = ({ substitution }) => {
                       {"% "}
                     </Text>
                   </ListItem>
-                )
+                ),
               )}
             </List>
           </div>
@@ -232,7 +232,7 @@ const BacktestSubstitution: FC<Props> = ({ substitution }) => {
                       {"% "}
                     </Text>
                   </ListItem>
-                )
+                ),
               )}
             </List>
           </div>

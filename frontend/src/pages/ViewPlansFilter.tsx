@@ -65,7 +65,7 @@ const ViewPlansFilter = ({
                   if (tag.from) {
                     tag.from = false;
                     setInternalTags((prevTags) =>
-                      prevTags.filter((t) => t.tag_name !== tag.tag_name)
+                      prevTags.filter((t) => t.tag_name !== tag.tag_name),
                     );
                     onSelectHandler(tag, true);
                   } else {

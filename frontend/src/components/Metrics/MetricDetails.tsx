@@ -43,7 +43,7 @@ const MetricDetails: FC<MetricDetailsProps> = ({ metric, onclose }) => {
       onError: (error: any) => {
         toast.error(error.response.data.detail);
       },
-    }
+    },
   );
   return (
     <Modal

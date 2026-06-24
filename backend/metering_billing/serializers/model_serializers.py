@@ -1222,10 +1222,10 @@ class RecurringChargeCreateSerializer(TimezoneFieldMixin, serializers.ModelSeria
             raise serializers.ValidationError(
                 f"Invalid charge_behavior: {attrs.get('charge_behavior')}"
             )
-        attrs[
-            "invoicing_interval_unit"
-        ] = RecurringCharge.convert_length_label_to_value(
-            attrs.get("invoicing_interval_unit")
+        attrs["invoicing_interval_unit"] = (
+            RecurringCharge.convert_length_label_to_value(
+                attrs.get("invoicing_interval_unit")
+            )
         )
         attrs["reset_interval_unit"] = RecurringCharge.convert_length_label_to_value(
             attrs.get("reset_interval_unit")

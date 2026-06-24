@@ -46,7 +46,7 @@ const SlideOver: React.FC<SlideOverProps> = () => {
       Organization.createOrg(
         organization_name,
         default_currency_code,
-        organization_type
+        organization_type,
       ),
     {
       onSuccess: () => {
@@ -57,7 +57,7 @@ const SlideOver: React.FC<SlideOverProps> = () => {
       onError: (error: ErrorResponseMessage) => {
         toast.error(error.response.data.detail);
       },
-    }
+    },
   );
   const switchOrgMutation = useMutation(
     (org_id: string) => Organization.switchOrg(org_id),
@@ -69,7 +69,7 @@ const SlideOver: React.FC<SlideOverProps> = () => {
       onError: (error: ErrorResponseMessage) => {
         toast.error(error.response.data.detail);
       },
-    }
+    },
   );
   const switchOrgHandler = (org_id: string) => {
     switchOrgMutation.mutate(org_id);

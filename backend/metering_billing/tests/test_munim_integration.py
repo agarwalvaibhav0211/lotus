@@ -4,6 +4,7 @@ Tests for the Munim payment processor integration.
 All HTTP calls to the Munim API are mocked via unittest.mock.patch so
 these tests run offline without a real Munim instance.
 """
+
 import uuid
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -23,7 +24,6 @@ from metering_billing.models import (
 )
 from metering_billing.payment_processors import MunimConnector
 from metering_billing.utils.enums import PAYMENT_PROCESSORS
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers / shared fixtures
