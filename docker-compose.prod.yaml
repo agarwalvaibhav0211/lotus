@@ -55,6 +55,9 @@ services:
       - 9092
       - 9644
       - 29092
+    volumes:
+      - redpanda_prod:/var/lib/redpanda/data
+    restart: unless-stopped
     networks:
       - lotus-internal
 
@@ -184,3 +187,4 @@ services:
 volumes:
   pgdata_prod:
   django_static_volume:
+  redpanda_prod:

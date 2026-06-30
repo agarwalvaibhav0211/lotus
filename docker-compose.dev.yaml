@@ -32,6 +32,9 @@ services:
       - 9092:9092
       - 9644:9644
       - 29092:29092
+    volumes:
+      - redpanda_dev:/var/lib/redpanda/data
+    restart: on-failure
 
   svix-server:
     image: svix/svix-server:v0.74
@@ -156,3 +159,4 @@ services:
 
 volumes:
   pgdata_dev:
+  redpanda_dev:
