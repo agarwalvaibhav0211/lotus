@@ -120,11 +120,9 @@ const CustomerInvoiceView: FC<Props> = ({
                   <img
                     className="sourceIcon"
                     src={
-                      record.external_payment_obj_type === "stripe"
-                        ? integrationsMap.stripe.icon
-                        : record.external_payment_obj_type === "braintree"
-                        ? integrationsMap.braintree.icon
-                        : lotusUrl
+                      integrationsMap[
+                        record.external_payment_obj_type as keyof typeof integrationsMap
+                      ]?.icon || lotusUrl
                     }
                     alt={`${record.external_payment_obj_type} icon`}
                   />
@@ -133,9 +131,9 @@ const CustomerInvoiceView: FC<Props> = ({
                 <img
                   className="sourceIcon"
                   src={
-                    record.external_payment_obj_type === "stripe"
-                      ? integrationsMap.stripe.icon
-                      : integrationsMap.braintree.icon
+                    integrationsMap[
+                      record.external_payment_obj_type as keyof typeof integrationsMap
+                    ]?.icon || lotusUrl
                   }
                   alt={`${record.external_payment_obj_type} icon`}
                 />
@@ -181,8 +179,11 @@ const CustomerInvoiceView: FC<Props> = ({
       title: "Amount",
       dataIndex: "cost_due",
       key: "cost_due",
-      render: (_, { cost_due }) => (
-        <span>${parseFloat(String(cost_due)).toFixed(2)}</span>
+      render: (_, { cost_due, currency }) => (
+        <span>
+          {currency?.symbol}
+          {parseFloat(String(cost_due)).toFixed(2)}
+        </span>
       ),
     },
     {

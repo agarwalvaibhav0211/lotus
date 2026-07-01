@@ -548,27 +548,17 @@ const CustomerInfoView: FC<CustomerInfoViewProps> = ({
                           >
                             <img
                               width={25}
-                              src={
-                                data.payment_provider === "stripe"
-                                  ? integrationsMap.stripe.icon
-                                  : integrationsMap.braintree.icon
-                              }
+                              src={integrationsMap[data.payment_provider]?.icon}
                               alt="payment provider logo"
                             />
                           </a>
                         ) : (
                           <div className="Inter">
-                            {data.payment_provider === "stripe" ? (
+                            {integrationsMap[data.payment_provider] ? (
                               <img
                                 width={25}
-                                src={integrationsMap.stripe.icon}
-                                alt="stripe logo"
-                              />
-                            ) : data.payment_provider === "braintree" ? (
-                              <img
-                                width={25}
-                                src={integrationsMap.braintree.icon}
-                                alt="braintree logo"
+                                src={integrationsMap[data.payment_provider].icon}
+                                alt={`${data.payment_provider} logo`}
                               />
                             ) : (
                               "N/A"
