@@ -739,7 +739,6 @@ def generate_one_off_invoice(
     currency,
     issue_date=None,
     due_date=None,
-    send_to_processor=False,
 ):
     """
     Generate a one-off invoice for a customer, outside of the subscription billing flow.
@@ -786,8 +785,7 @@ def generate_one_off_invoice(
 
     finalize_invoice_amount(invoice, draft=False)
 
-    if send_to_processor:
-        generate_external_payment_obj(invoice)
+    generate_external_payment_obj(invoice)
     invoice_created_webhook(invoice, organization)
     if kafka_producer:
         kafka_producer.produce_invoice(invoice)

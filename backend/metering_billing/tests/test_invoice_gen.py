@@ -436,7 +436,6 @@ class TestOneOffInvoice:
         payload = {
             "customer_id": setup_dict["customer"].customer_id,
             "currency_code": "USD",
-            "send_to_processor": True,
             "line_items": [{"name": "Setup fee", "amount": "100.00"}],
         }
         with mock.patch(

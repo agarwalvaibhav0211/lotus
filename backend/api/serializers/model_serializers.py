@@ -2452,7 +2452,6 @@ class OneOffInvoiceCreateSerializer(
     )
     issue_date = serializers.DateTimeField(required=False)
     due_date = serializers.DateTimeField(required=False)
-    send_to_processor = serializers.BooleanField(required=False, default=False)
     line_items = OneOffInvoiceLineItemCreateSerializer(many=True, required=True)
 
     def validate_line_items(self, value):
@@ -2478,7 +2477,6 @@ class OneOffInvoiceCreateSerializer(
             currency=validated_data["currency"],
             issue_date=validated_data.get("issue_date"),
             due_date=validated_data.get("due_date"),
-            send_to_processor=validated_data.get("send_to_processor", False),
         )
 
 

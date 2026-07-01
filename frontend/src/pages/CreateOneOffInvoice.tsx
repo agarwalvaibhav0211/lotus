@@ -1,6 +1,5 @@
 import {
   Button,
-  Checkbox,
   DatePicker,
   Form,
   Input,
@@ -63,7 +62,6 @@ function CreateOneOffInvoice({
           due_date: values.due_date
             ? dayjs(values.due_date).toISOString()
             : undefined,
-          send_to_processor: values.send_to_processor ?? false,
           line_items: (values.line_items ?? []).map((li) => ({
             name: li.name,
             quantity: li.quantity ?? undefined,
@@ -99,7 +97,6 @@ function CreateOneOffInvoice({
             pricing_unit_code: null,
             issue_date: null,
             due_date: null,
-            send_to_processor: false,
             line_items: [
               { name: "", quantity: null, amount: null, tax_rate: null },
             ],
@@ -120,13 +117,6 @@ function CreateOneOffInvoice({
                 }
                 setCurrentSymbol={() => null}
               />
-            </Form.Item>
-            <Form.Item
-              name="send_to_processor"
-              valuePropName="checked"
-              label=" "
-            >
-              <Checkbox>Send to payment processor immediately</Checkbox>
             </Form.Item>
             <Form.Item
               valuePropName="date"

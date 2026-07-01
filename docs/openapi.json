@@ -7148,10 +7148,6 @@
               "$ref": "#/components/schemas/OneOffInvoiceLineItemCreateRequest"
             },
             "type": "array"
-          },
-          "send_to_processor": {
-            "default": false,
-            "type": "boolean"
           }
         },
         "required": [
