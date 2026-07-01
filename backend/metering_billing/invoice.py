@@ -804,7 +804,9 @@ def generate_external_payment_obj(invoice):
 
     customer = invoice.customer
     pp = customer.payment_provider
-    if pp in PAYMENT_PROCESSOR_MAP and PAYMENT_PROCESSOR_MAP[pp].working():
+    if pp in PAYMENT_PROCESSOR_MAP and PAYMENT_PROCESSOR_MAP[pp].working(
+        invoice.organization
+    ):
         pp_connector = PAYMENT_PROCESSOR_MAP[pp]
         customer_conn = pp_connector.customer_connected(customer)
         org_conn = pp_connector.organization_connected(invoice.organization)

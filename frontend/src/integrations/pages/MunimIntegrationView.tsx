@@ -1,6 +1,6 @@
 import React, { FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "antd";
+import { Button, Input } from "antd";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { PageLayout } from "../../components/base/PageLayout";
@@ -15,6 +15,7 @@ const TOAST_POSITION = toast.POSITION.TOP_CENTER;
 
 const MunimIntegrationView: FC = () => {
   const navigate = useNavigate();
+  const [apiKey, setApiKey] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
 
   const connectMutation = useMutation(
@@ -28,12 +29,9 @@ const MunimIntegrationView: FC = () => {
         setIsConnecting(false);
       },
       onError: () => {
-        toast.error(
-          "Failed to connect to Munim. Ensure MUNIM_API_KEY is set on the server.",
-          {
-            position: TOAST_POSITION,
-          },
-        );
+        toast.error("Failed to connect to Munim. Check that your API key is valid.", {
+          position: TOAST_POSITION,
+        });
         setIsConnecting(false);
       },
     },
@@ -52,10 +50,16 @@ const MunimIntegrationView: FC = () => {
   );
 
   const handleConnect = () => {
+    if (!apiKey) {
+      toast.error("Enter your Munim API key first", {
+        position: TOAST_POSITION,
+      });
+      return;
+    }
     setIsConnecting(true);
     const ppInfo: PaymentProcessorConnectionRequestType = {
       payment_processor: "munim",
-      data: {},
+      data: { api_key: apiKey },
     };
     connectMutation.mutate(ppInfo);
   };
@@ -70,6 +74,12 @@ const MunimIntegrationView: FC = () => {
           Charge and invoice your customers through your Munim account
         </h2>
         <div className="grid grid-cols-2 justify-start items-center gap-6 border-2 border-solid rounded border-[#EAEAEB] px-6 py-10">
+          <h3>Munim API Key:</h3>
+          <Input.Password
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="Enter your Munim API key"
+          />
           <h3>Connect Munim:</h3>
           <Button type="primary" loading={isConnecting} onClick={handleConnect}>
             Connect

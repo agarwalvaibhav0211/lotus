@@ -1657,7 +1657,7 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         ):
             pp = invoice.external_payment_obj_type
             connector = PAYMENT_PROCESSOR_MAP.get(pp)
-            if connector and connector.working():
+            if connector and connector.working(invoice.organization):
                 try:
                     new_status = connector.update_payment_object_status(
                         invoice.organization, invoice.external_payment_obj_id

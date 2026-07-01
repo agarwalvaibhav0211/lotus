@@ -26,6 +26,7 @@ from django.db.models import Count, F, FloatField, Q, Sum
 from django.db.models.constraints import CheckConstraint, UniqueConstraint
 from django.db.models.functions import Cast, Coalesce
 from django.utils.translation import gettext_lazy as _
+from django_cryptography.fields import encrypt
 from metering_billing.exceptions.exceptions import (
     ExternalConnectionFailure,
     NotEditable,
@@ -4058,6 +4059,9 @@ class MunimOrganizationIntegration(models.Model):
         on_delete=models.CASCADE,
         related_name="munim_organization_links",
     )
+    api_key = encrypt(models.TextField(null=True, blank=True))
+    account_id = models.TextField(null=True, blank=True)
+    account_name = models.TextField(null=True, blank=True)
     created = models.DateTimeField(default=now_utc)
 
 

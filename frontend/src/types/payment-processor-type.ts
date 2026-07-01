@@ -22,6 +22,7 @@ export interface PaymentProcessorConnectionRequestType {
   data:
     | StripeConnectionRequestType
     | BraintreeConnectionRequestType
+    | MunimConnectionRequestType
     | Record<string, never>;
 }
 
@@ -32,6 +33,10 @@ export interface StripeConnectionRequestType {
 export interface BraintreeConnectionRequestType {
   merchant_id?: string;
   nango_connected: boolean;
+}
+
+export interface MunimConnectionRequestType {
+  api_key: string;
 }
 
 export interface PaymentProcessorImportCustomerResponse {

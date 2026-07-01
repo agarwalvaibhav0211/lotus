@@ -2,7 +2,9 @@
 Tests for the Munim payment processor integration.
 
 All HTTP calls to the Munim API are mocked via unittest.mock.patch so
-these tests run offline without a real Munim instance.
+these tests run offline without a real Munim instance. Munim credentials
+are per-organization (stored, encrypted, on MunimOrganizationIntegration)
+rather than a single instance-wide API key.
 """
 
 import uuid
@@ -34,14 +36,24 @@ MUNIM_CUSTOMER_ID = "munim_cust_abc"
 MUNIM_INVOICE_ID = "munim_inv_xyz"
 
 
-def _make_connector(api_key="test-munim-key", account_id=MUNIM_ACCOUNT_ID):
-    """Return a MunimConnector with a known API key (bypasses startup HTTP call)."""
-    connector = MunimConnector.__new__(MunimConnector)
-    connector.api_key = api_key
-    connector.base_url = "https://api.munim.io"
-    connector.account_id = account_id
-    connector.account_name = "Test Org"
-    return connector
+def _make_connector():
+    """Return a plain MunimConnector (no per-instance credentials anymore)."""
+    return MunimConnector()
+
+
+def _connect_org_to_munim(
+    org, api_key="test-munim-key", account_id=MUNIM_ACCOUNT_ID, account_name="Test Org"
+):
+    """Attach a MunimOrganizationIntegration (per-org credentials) to an org."""
+    integration = MunimOrganizationIntegration.objects.create(
+        organization=org,
+        api_key=api_key,
+        account_id=account_id,
+        account_name=account_name,
+    )
+    org.munim_integration = integration
+    org.save()
+    return integration
 
 
 def _make_munim_customer_response(**kwargs):
@@ -90,6 +102,8 @@ def munim_setup(generate_org_and_api_key, add_customers_to_org):
     customer.email = "test@example.com"
     customer.save()
 
+    _connect_org_to_munim(org)
+
     connector = _make_connector()
 
     return {
@@ -106,17 +120,29 @@ def munim_setup(generate_org_and_api_key, add_customers_to_org):
 
 @pytest.mark.django_db
 class TestMunimConnectorManagement:
-    def test_working_returns_true_when_api_key_and_account_id_set(self):
-        connector = _make_connector(api_key="some-key", account_id="munim_acct_123")
-        assert connector.working() is True
+    def test_working_returns_true_when_org_connected(self, munim_setup):
+        connector = munim_setup["connector"]
+        org = munim_setup["org"]
+        assert connector.working(org) is True
 
-    def test_working_returns_false_when_no_api_key(self):
-        connector = _make_connector(api_key=None, account_id=None)
+    def test_working_returns_false_when_no_organization_given(self):
+        connector = _make_connector()
         assert connector.working() is False
 
-    def test_working_returns_false_when_startup_validation_failed(self):
-        connector = _make_connector(api_key="some-key", account_id=None)
-        assert connector.working() is False
+    def test_working_returns_false_when_org_not_connected(
+        self, generate_org_and_api_key
+    ):
+        connector = _make_connector()
+        org, _ = generate_org_and_api_key()
+        assert connector.working(org) is False
+
+    def test_working_returns_false_when_account_id_missing(
+        self, generate_org_and_api_key
+    ):
+        connector = _make_connector()
+        org, _ = generate_org_and_api_key()
+        _connect_org_to_munim(org, account_id=None)
+        assert connector.working(org) is False
 
     def test_customer_connected_false_without_integration(self, munim_setup):
         connector = munim_setup["connector"]
@@ -136,19 +162,16 @@ class TestMunimConnectorManagement:
 
         assert connector.customer_connected(customer) is True
 
-    def test_organization_connected_false_without_integration(self, munim_setup):
-        connector = munim_setup["connector"]
-        org = munim_setup["org"]
+    def test_organization_connected_false_without_integration(
+        self, generate_org_and_api_key
+    ):
+        connector = _make_connector()
+        org, _ = generate_org_and_api_key()
         assert connector.organization_connected(org) is False
 
     def test_organization_connected_true_with_integration(self, munim_setup):
         connector = munim_setup["connector"]
         org = munim_setup["org"]
-
-        integration = MunimOrganizationIntegration.objects.create(organization=org)
-        org.munim_integration = integration
-        org.save()
-
         assert connector.organization_connected(org) is True
 
     def test_get_connection_id_returns_org_uuid(self, munim_setup):
@@ -156,43 +179,17 @@ class TestMunimConnectorManagement:
         org = munim_setup["org"]
         assert connector.get_connection_id(org) == org.organization_id.hex
 
-    def test_get_account_id_returns_startup_account_id(self, munim_setup):
-        # account_id comes from the startup GET /account call, stored on the connector
+    def test_get_account_id_returns_orgs_account_id(self, munim_setup):
         connector = munim_setup["connector"]
         org = munim_setup["org"]
         assert connector.get_account_id(org) == MUNIM_ACCOUNT_ID
 
-    def test_get_account_id_returns_none_when_startup_failed(self, munim_setup):
-        connector = _make_connector(account_id=None)
-        org = munim_setup["org"]
+    def test_get_account_id_returns_none_when_not_connected(
+        self, generate_org_and_api_key
+    ):
+        connector = _make_connector()
+        org, _ = generate_org_and_api_key()
         assert connector.get_account_id(org) is None
-
-    def test_startup_validation_stores_account_info(self):
-        """__init__ calls GET /account and caches account_id + account_name."""
-        account_response = {
-            "account_id": "munim_acct_startup",
-            "name": "Startup Org",
-        }
-        with patch(
-            "metering_billing.payment_processors.MUNIM_API_KEY", "startup-key"
-        ), patch("metering_billing.payment_processors.requests.get") as mock_get:
-            mock_get.return_value.raise_for_status = lambda: None
-            mock_get.return_value.json = lambda: account_response
-            connector = MunimConnector()
-
-        assert connector.account_id == "munim_acct_startup"
-        assert connector.account_name == "Startup Org"
-
-    def test_startup_validation_failure_leaves_account_id_none(self):
-        """If GET /account fails, account_id stays None and working() is False."""
-        with patch(
-            "metering_billing.payment_processors.requests.get",
-            side_effect=Exception("connection refused"),
-        ):
-            connector = MunimConnector()
-
-        assert connector.account_id is None
-        assert connector.working() is False
 
     def test_get_redirect_url_returns_empty_string(self, munim_setup):
         connector = munim_setup["connector"]
@@ -698,17 +695,30 @@ class TestMunimGetOrganizationAddress:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 11. handle_post (connect org to Munim from frontend)
+# 11. handle_post (connect org to Munim from frontend, with an org-supplied key)
 # ─────────────────────────────────────────────────────────────────────────────
 
 
 @pytest.mark.django_db
 class TestMunimHandlePost:
-    def test_handle_post_creates_integration_and_returns_success(self, munim_setup):
-        connector = munim_setup["connector"]
-        org = munim_setup["org"]
+    def test_handle_post_creates_integration_and_returns_success(
+        self, generate_org_and_api_key
+    ):
+        connector = _make_connector()
+        org, _ = generate_org_and_api_key()
 
-        response = connector.handle_post({}, org)
+        account_response = MagicMock()
+        account_response.raise_for_status = lambda: None
+        account_response.json = lambda: {
+            "accountId": MUNIM_ACCOUNT_ID,
+            "name": "Test Org",
+        }
+
+        with patch(
+            "metering_billing.payment_processors.requests.get",
+            return_value=account_response,
+        ):
+            response = connector.handle_post({"api_key": "new-org-key"}, org)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["success"] is True
@@ -716,29 +726,51 @@ class TestMunimHandlePost:
 
         org.refresh_from_db()
         assert org.munim_integration is not None
+        assert org.munim_integration.api_key == "new-org-key"
+        assert org.munim_integration.account_id == MUNIM_ACCOUNT_ID
 
-    def test_handle_post_is_idempotent(self, munim_setup):
+    def test_handle_post_is_idempotent(self, generate_org_and_api_key):
         """Calling handle_post twice must not create a duplicate integration."""
-        connector = munim_setup["connector"]
-        org = munim_setup["org"]
+        connector = _make_connector()
+        org, _ = generate_org_and_api_key()
 
-        connector.handle_post({}, org)
-        response = connector.handle_post({}, org)
+        account_response = MagicMock()
+        account_response.raise_for_status = lambda: None
+        account_response.json = lambda: {
+            "accountId": MUNIM_ACCOUNT_ID,
+            "name": "Test Org",
+        }
+
+        with patch(
+            "metering_billing.payment_processors.requests.get",
+            return_value=account_response,
+        ):
+            connector.handle_post({"api_key": "new-org-key"}, org)
+            response = connector.handle_post({"api_key": "new-org-key"}, org)
 
         assert response.status_code == status.HTTP_200_OK
         assert (
             MunimOrganizationIntegration.objects.filter(organization=org).count() == 1
         )
 
-    def test_handle_post_returns_400_when_api_key_not_validated(self, munim_setup):
-        """If startup GET /account failed, working() is False and handle_post rejects."""
-        connector = _make_connector(api_key="bad-key", account_id=None)
-        org = munim_setup["org"]
+    def test_handle_post_returns_400_when_api_key_invalid(
+        self, generate_org_and_api_key
+    ):
+        """If the org-supplied API key fails Munim's own validation, reject the connect."""
+        connector = _make_connector()
+        org, _ = generate_org_and_api_key()
 
-        response = connector.handle_post({}, org)
+        with patch(
+            "metering_billing.payment_processors.requests.get",
+            side_effect=Exception("unauthorized"),
+        ):
+            response = connector.handle_post({"api_key": "bad-key"}, org)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data["success"] is False
+
+        org.refresh_from_db()
+        assert org.munim_integration is None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -748,12 +780,16 @@ class TestMunimHandlePost:
 
 @pytest.mark.django_db
 class TestMunimGetPostDataSerializer:
-    def test_serializer_accepts_empty_data(self):
-        """No input fields required — connection is validated via startup API call."""
+    def test_serializer_requires_api_key(self):
         connector = _make_connector()
         SerializerClass = connector.get_post_data_serializer()
-        serializer = SerializerClass(data={})
-        assert serializer.is_valid()
+
+        empty_serializer = SerializerClass(data={})
+        assert not empty_serializer.is_valid()
+        assert "api_key" in empty_serializer.errors
+
+        filled_serializer = SerializerClass(data={"api_key": "some-key"})
+        assert filled_serializer.is_valid()
 
 
 # ─────────────────────────────────────────────────────────────────────────────

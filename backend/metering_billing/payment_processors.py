@@ -43,7 +43,6 @@ BRAINTREE_LIVE_PUBLIC_KEY = settings.BRAINTREE_LIVE_PUBLIC_KEY
 BRAINTREE_LIVE_SECRET_KEY = settings.BRAINTREE_LIVE_SECRET_KEY
 BRAINTREE_TEST_MERCHANT_ID = settings.BRAINTREE_TEST_MERCHANT_ID
 
-MUNIM_API_KEY = settings.MUNIM_API_KEY
 MUNIM_BASE_URL = settings.MUNIM_BASE_URL
 BRAINTREE_TEST_PUBLIC_KEY = settings.BRAINTREE_TEST_PUBLIC_KEY
 BRAINTREE_TEST_SECRET_KEY = settings.BRAINTREE_TEST_SECRET_KEY
@@ -66,8 +65,8 @@ class PaymentProcesor(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def working(self) -> bool:
-        """In order to prevent errors on object creation, this method will be called to decide whether this payment processor is connected to this instance of Lotus."""
+    def working(self, organization=None) -> bool:
+        """In order to prevent errors on object creation, this method will be called to decide whether this payment processor is connected to this instance of Lotus. Connectors whose credentials are per-organization (e.g. Munim) should use the organization argument; others may ignore it."""
         pass
 
     @abc.abstractmethod
@@ -187,7 +186,7 @@ class BraintreeConnector(PaymentProcesor):
         self.config_key = "braintree-sandbox"
         self.scopes = "address:create, address:update, address:find, customer:create, customer:update, customer:find, customer:search, payment_method:find, transaction:sale, transaction:find, transaction:search, view_facilitated_transaction_metrics, read_facilitated_transactions, merchant_account:all,merchant_account:find, payment_method_nonce:find"
 
-    def working(self) -> bool:
+    def working(self, organization=None) -> bool:
         if self.self_hosted:
             return (
                 self.live_merchant_id is not None
@@ -692,7 +691,7 @@ class StripeConnector(PaymentProcesor):
             except Exception as e:
                 logger.error(e)
 
-    def working(self) -> bool:
+    def working(self, organization=None) -> bool:
         return self.live_secret_key is not None or self.test_secret_key is not None
 
     def customer_connected(self, customer) -> bool:
@@ -1408,46 +1407,31 @@ class StripeConnector(PaymentProcesor):
 class MunimConnector(PaymentProcesor):
     """Payment processor connector for the Munim billing service.
 
-    Lotus calls the Munim REST API (see docs/munim-api.yaml) using a static
-    API key.  The API key + account ID are stored in the organisation's
-    MunimOrganizationIntegration record once the operator connects via the
-    Lotus settings page.
+    Unlike Stripe/Braintree, Munim credentials are not a single instance-wide
+    secret. Each organization brings its own Munim API key, entered via the
+    Lotus settings page, validated live against Munim's API, and stored
+    (encrypted) on that organization's MunimOrganizationIntegration record.
+    This lets separate Lotus organizations connect to separate Munim accounts.
     """
 
     # MANAGEMENT METHODS
 
     def __init__(self):
-        self.api_key = MUNIM_API_KEY
         self.base_url = MUNIM_BASE_URL.rstrip("/")
-        self.account_id = None
-        self.account_name = None
-        if self.api_key:
-            try:
-                resp = requests.get(
-                    f"{self.base_url}/v1/account",
-                    headers={"Authorization": f"Bearer {self.api_key}"},
-                    timeout=5,
-                )
-                resp.raise_for_status()
-                data = resp.json()
-                self.account_id = data.get("accountId")
-                self.account_name = data.get("name")
-            except Exception as e:
-                logger.error("Munim startup validation failed: %s", e)
 
-    def _headers(self, organization=None) -> dict:
+    def _headers(self, organization) -> dict:
         return {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {organization.munim_integration.api_key}",
             "Content-Type": "application/json",
         }
 
-    def _get(self, path: str, organization=None, params=None):
+    def _get(self, path: str, organization, params=None):
         url = f"{self.base_url}{path}"
         resp = requests.get(url, headers=self._headers(organization), params=params)
         resp.raise_for_status()
         return resp.json()
 
-    def _post(self, path: str, organization=None, payload=None):
+    def _post(self, path: str, organization, payload=None):
         url = f"{self.base_url}{path}"
         resp = requests.post(
             url, headers=self._headers(organization), json=payload or {}
@@ -1455,8 +1439,15 @@ class MunimConnector(PaymentProcesor):
         resp.raise_for_status()
         return resp.json()
 
-    def working(self) -> bool:
-        return self.api_key is not None and self.account_id is not None
+    def working(self, organization=None) -> bool:
+        if organization is None:
+            return False
+        integration = getattr(organization, "munim_integration", None)
+        return (
+            integration is not None
+            and bool(integration.api_key)
+            and bool(integration.account_id)
+        )
 
     def customer_connected(self, customer) -> bool:
         return customer.munim_integration is not None
@@ -1468,7 +1459,8 @@ class MunimConnector(PaymentProcesor):
         return organization.organization_id.hex
 
     def get_account_id(self, organization) -> str:
-        return self.account_id
+        integration = getattr(organization, "munim_integration", None)
+        return integration.account_id if integration else None
 
     # IMPORT METHODS
 
@@ -1703,25 +1695,43 @@ class MunimConnector(PaymentProcesor):
 
     def get_post_data_serializer(self) -> serializers.Serializer:
         class MunimPostRequestDataSerializer(serializers.Serializer):
-            pass
+            api_key = serializers.CharField()
 
         return MunimPostRequestDataSerializer
 
     def handle_post(self, data, organization) -> None:
         from metering_billing.models import MunimOrganizationIntegration
 
-        if not self.working():
+        api_key = data["api_key"]
+        try:
+            resp = requests.get(
+                f"{self.base_url}/v1/account",
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=5,
+            )
+            resp.raise_for_status()
+            account_data = resp.json()
+        except Exception as e:
+            logger.error("Munim handle_post validation error: %s", e)
             return Response(
                 {
                     "payment_processor": PAYMENT_PROCESSORS.MUNIM,
                     "success": False,
-                    "details": "Munim API key is not configured or could not be validated",
+                    "details": "Could not validate Munim API key",
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        integration, _ = MunimOrganizationIntegration.objects.get_or_create(
+        account_id = account_data.get("accountId")
+        account_name = account_data.get("name")
+
+        integration, _ = MunimOrganizationIntegration.objects.update_or_create(
             organization=organization,
+            defaults={
+                "api_key": api_key,
+                "account_id": account_id,
+                "account_name": account_name,
+            },
         )
         organization.munim_integration = integration
         organization.save()
@@ -1729,7 +1739,7 @@ class MunimConnector(PaymentProcesor):
         response = {
             "payment_processor": PAYMENT_PROCESSORS.MUNIM,
             "success": True,
-            "details": f"Successfully connected to Munim account: {self.account_name or self.account_id}",
+            "details": f"Successfully connected to Munim account: {account_name or account_id}",
         }
         serializer = PaymentProcesorPostResponseSerializer(data=response)
         serializer.is_valid(raise_exception=True)

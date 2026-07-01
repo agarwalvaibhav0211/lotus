@@ -88,7 +88,9 @@ const IntegrationsTab: FC = () => {
   const handleConnectWithPaymentProcessorClick = (
     item: PaymentProcessorStatusType,
   ) => {
-    if (item.payment_provider_name === "stripe") {
+    if (item.payment_provider_name === "munim") {
+      navigate("/settings/integrations/munim");
+    } else if (item.payment_provider_name === "stripe") {
       if (item.redirect_url !== "") {
         window.location.href = item.redirect_url;
       }

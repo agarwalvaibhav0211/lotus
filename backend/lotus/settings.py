@@ -56,6 +56,9 @@ POSTGRES_USER = config("POSTGRES_USER", default="lotus")
 POSTGRES_PASSWORD = config("POSTGRES_PASSWORD", default="lotus")
 SENTRY_DSN = config("SENTRY_DSN", default="")
 SELF_HOSTED = config("SELF_HOSTED", default=False, cast=bool)
+# Encryption key for per-organization secrets stored at rest (e.g. Munim API keys).
+# Kept separate from SECRET_KEY so rotating one doesn't break the other.
+CRYPTOGRAPHY_KEY = config("FIELD_ENCRYPTION_KEY", default=None)
 PRODUCT_ANALYTICS_OPT_IN = config("PRODUCT_ANALYTICS_OPT_IN", default=True, cast=bool)
 PRODUCT_ANALYTICS_OPT_IN = True if not SELF_HOSTED else PRODUCT_ANALYTICS_OPT_IN
 # Nango
@@ -101,11 +104,9 @@ if BRAINTREE_TEST_PUBLIC_KEY == "change_me":
 if BRAINTREE_TEST_SECRET_KEY == "change_me":
     BRAINTREE_TEST_SECRET_KEY = None
 BRAINTREE_WEBHOOK_SECRET = config("BRAINTREE_WEBHOOK_SECRET", default="")
-# Munim
-MUNIM_API_KEY = config("MUNIM_API_KEY", default=None)
+# Munim - API keys are stored per-organization (see MunimOrganizationIntegration),
+# connected via the UI rather than a single shared instance-wide credential.
 MUNIM_BASE_URL = config("MUNIM_BASE_URL", default="https://api.munim.io")
-if MUNIM_API_KEY == "change_me":
-    MUNIM_API_KEY = None
 # taxjar
 TAXJAR_API_KEY = config("TAXJAR_API_KEY", default=None)
 # Webhooks for Svix
@@ -180,6 +181,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
     "djmoney",
+    "django_cryptography",
     "django_extensions",
     "django_celery_beat",
     "rest_framework_api_key",

@@ -2,6 +2,7 @@ from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from metering_billing.payment_processors import PAYMENT_PROCESSOR_MAP
 from metering_billing.permissions import ValidOrganization
+from metering_billing.utils.enums import PAYMENT_PROCESSORS
 from metering_billing.serializers.payment_processor_serializers import (
     PaymentProcesorPostRequestSerializer,
     PaymentProcesorPostResponseSerializer,
@@ -26,12 +27,18 @@ class PaymentProcesorView(APIView):
         organization = request.organization
         response = []
         for payment_processor_name, pp_obj in PAYMENT_PROCESSOR_MAP.items():
+            # Munim has its own UI connect flow (per-org API key) regardless of
+            # whether this Lotus instance is self-hosted, unlike Stripe/Braintree's
+            # OAuth flows which need to be disabled in self-hosted deployments.
+            self_hosted = (
+                False if payment_processor_name == PAYMENT_PROCESSORS.MUNIM else SELF_HOSTED
+            )
             pp_response = {
                 "payment_provider_name": payment_processor_name,
-                "working": pp_obj.working(),
+                "working": pp_obj.working(organization),
                 "connected": pp_obj.organization_connected(organization),
                 "redirect_url": pp_obj.get_redirect_url(organization),
-                "self_hosted": SELF_HOSTED,
+                "self_hosted": self_hosted,
                 "connection_id": pp_obj.get_connection_id(organization),
                 "account_id": pp_obj.get_account_id(organization),
             }

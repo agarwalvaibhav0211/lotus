@@ -205,8 +205,10 @@ def update_invoice_status():
     )
     for incomplete_invoice in incomplete_invoices:
         pp = incomplete_invoice.external_payment_obj_type
-        if pp in PAYMENT_PROCESSOR_MAP and PAYMENT_PROCESSOR_MAP[pp].working():
-            organization = incomplete_invoice.organization
+        organization = incomplete_invoice.organization
+        if pp in PAYMENT_PROCESSOR_MAP and PAYMENT_PROCESSOR_MAP[pp].working(
+            organization
+        ):
             status = PAYMENT_PROCESSOR_MAP[pp].update_payment_object_status(
                 organization, incomplete_invoice.external_payment_obj_id
             )
