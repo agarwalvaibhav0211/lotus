@@ -1482,7 +1482,7 @@ class MunimConnector(PaymentProcesor):
                 data = self._get(
                     "/v1/customers",
                     organization=organization,
-                    params={"page": page, "page_size": 100},
+                    params={"page": page, "pageSize": 100},
                 )
             except Exception as e:
                 logger.error("Munim import_customers error: %s", e)
@@ -1493,7 +1493,7 @@ class MunimConnector(PaymentProcesor):
                 break
 
             for munim_customer in customers:
-                munim_id = munim_customer["customer_id"]
+                munim_id = munim_customer["customerId"]
                 munim_email = munim_customer.get("email")
                 munim_name = munim_customer.get("name", "")
 
@@ -1592,14 +1592,14 @@ class MunimConnector(PaymentProcesor):
             logger.error("Munim get_customer_address error: %s", e)
             return Address()
 
-        addr_key = "billing_address" if type == "billing" else "shipping_address"
+        addr_key = "billingAddress" if type == "billing" else "shippingAddress"
         addr = cust_data.get(addr_key) or {}
         return Address(
             city=addr.get("city"),
             country=addr.get("country"),
             line1=addr.get("line1"),
             line2=addr.get("line2"),
-            postal_code=addr.get("postal_code"),
+            postal_code=addr.get("postalCode"),
             state=addr.get("state"),
         )
 
@@ -1618,7 +1618,7 @@ class MunimConnector(PaymentProcesor):
             country=addr.get("country"),
             line1=addr.get("line1"),
             line2=addr.get("line2"),
-            postal_code=addr.get("postal_code"),
+            postal_code=addr.get("postalCode"),
             state=addr.get("state"),
         )
 
@@ -1642,7 +1642,7 @@ class MunimConnector(PaymentProcesor):
                 "/v1/customers", organization=customer.organization, payload=payload
             )
             integration = MunimCustomerIntegration.objects.create(
-                munim_customer_id=result["customer_id"],
+                munim_customer_id=result["customerId"],
                 organization=customer.organization,
             )
             customer.munim_integration = integration
@@ -1672,24 +1672,24 @@ class MunimConnector(PaymentProcesor):
                     "name": line_item.name[:255],
                     "description": line_item.name[:255],
                     "quantity": float(quantity),
-                    "unit_amount": float(unit_amount),
-                    "total_amount": float(total_amount),
+                    "unitAmount": float(unit_amount),
+                    "totalAmount": float(total_amount),
                     "kind": kind,
                 }
             )
 
         payload = {
-            "customer_id": munim_customer_id,
+            "customerId": munim_customer_id,
             "amount": float(convert_to_two_decimal_places(invoice.amount)),
             "currency": invoice.currency.code if invoice.currency else "USD",
-            "line_items": line_items,
+            "lineItems": line_items,
         }
 
         try:
             result = self._post(
                 "/v1/invoices", organization=invoice.organization, payload=payload
             )
-            invoice_id = result["invoice_id"]
+            invoice_id = result["invoiceId"]
             invoice_status = result["status"]
             invoice.external_payment_obj_id = invoice_id
             invoice.external_payment_obj_status = invoice_status
