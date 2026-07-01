@@ -1430,7 +1430,7 @@ class MunimConnector(PaymentProcesor):
                 )
                 resp.raise_for_status()
                 data = resp.json()
-                self.account_id = data.get("account_id")
+                self.account_id = data.get("accountId")
                 self.account_name = data.get("name")
             except Exception as e:
                 logger.error("Munim startup validation failed: %s", e)

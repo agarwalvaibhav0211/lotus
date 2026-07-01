@@ -1,7 +1,7 @@
 networks:
-  shared:
+  deployment_shared:
     external: true
-    name: shared
+    name: deployment_shared
   lotus-internal:
     driver: bridge
 
@@ -138,7 +138,7 @@ services:
     depends_on:
       - backend
     networks:
-      - shared
+      - deployment_shared
       - lotus-internal  # needs both to reach backend/event-ingestion internally
 
   redis:
