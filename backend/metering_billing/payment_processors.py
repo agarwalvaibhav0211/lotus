@@ -444,6 +444,7 @@ class BraintreeConnector(PaymentProcesor):
                     organization=customer.organization,
                 )
                 customer.braintree_integration = braintree_integration
+                customer.payment_provider = PAYMENT_PROCESSORS.BRAINTREE
                 customer.save()
 
     def create_payment_object(self, invoice) -> Tuple[Optional[str], Optional[str]]:
@@ -1035,6 +1036,7 @@ class StripeConnector(PaymentProcesor):
                     stripe_customer_id=stripe_customer.id,
                 )
                 customer.stripe_integration = integration
+                customer.payment_provider = PAYMENT_PROCESSORS.STRIPE
                 customer.save()
             except Exception as e:
                 logger.error("Ran into exception:", e)
@@ -1638,6 +1640,7 @@ class MunimConnector(PaymentProcesor):
                 organization=customer.organization,
             )
             customer.munim_integration = integration
+            customer.payment_provider = PAYMENT_PROCESSORS.MUNIM
             customer.save()
         except Exception as e:
             logger.error("Munim create_customer_flow error: %s", e)

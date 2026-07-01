@@ -1,15 +1,21 @@
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Input } from "antd";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { PageLayout } from "../../components/base/PageLayout";
-import { PaymentProcessorIntegration, PaymentProcessor } from "../../api/api";
+import {
+  PaymentProcessorIntegration,
+  PaymentProcessor,
+  Organization,
+} from "../../api/api";
 import {
   Source,
   PaymentProcessorImportCustomerResponse,
   PaymentProcessorConnectionRequestType,
 } from "../../types/payment-processor-type";
+import useGlobalStore from "../../stores/useGlobalstore";
+import { components } from "../../gen-types";
 
 const TOAST_POSITION = toast.POSITION.TOP_CENTER;
 
@@ -17,6 +23,14 @@ const MunimIntegrationView: FC = () => {
   const navigate = useNavigate();
   const [apiKey, setApiKey] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isSettingValue, setIsSettingValue] = useState(false);
+  const [genCustomerInMunimSetting, setGenCustomerInMunimSetting] =
+    useState<boolean>();
+  const org = useGlobalStore((state) => state.org);
+  const setOrgInfoToStore = useGlobalStore((state) => state.setOrgInfo);
+  useEffect(() => {
+    setGenCustomerInMunimSetting(org?.gen_cust_in_munim_after_lotus);
+  }, []);
 
   const connectMutation = useMutation(
     (post: PaymentProcessorConnectionRequestType) =>
@@ -45,6 +59,35 @@ const MunimIntegrationView: FC = () => {
       },
       onError: () => {
         toast.error("Failed to Import Customers", { position: TOAST_POSITION });
+      },
+    },
+  );
+
+  const updateGenCustomerInMunimSetting = useMutation(
+    (genCustomerInMunimSettingValue: boolean) => {
+      if (org?.organization_id) {
+        return Organization.updateOrganization(org.organization_id, {
+          gen_cust_in_munim_after_lotus: genCustomerInMunimSettingValue,
+        });
+      }
+      throw new Error("Organization ID is undefined");
+    },
+    {
+      onSuccess: (data: components["schemas"]["Organization"]) => {
+        setOrgInfoToStore(data);
+        setGenCustomerInMunimSetting(data.gen_cust_in_munim_after_lotus);
+        setIsSettingValue(false);
+        const state =
+          data.gen_cust_in_munim_after_lotus === true ? "Enabled" : "Disabled";
+        toast.success(`${state} Create Lotus Customers In Munim`, {
+          position: TOAST_POSITION,
+        });
+      },
+      onError: () => {
+        setIsSettingValue(false);
+        toast.error("Failed to Update Create Lotus Customers In Munim", {
+          position: TOAST_POSITION,
+        });
       },
     },
   );
@@ -99,6 +142,22 @@ const MunimIntegrationView: FC = () => {
           >
             Import
           </Button>
+          <h3>Create Lotus Customers In Munim:</h3>
+          <div className="flex h-6 items-center">
+            <input
+              id="gen-cust-in-munim"
+              aria-describedby="gen-cust-in-munim-description"
+              name="gen-cust-in-munim"
+              type="checkbox"
+              disabled={isSettingValue}
+              checked={genCustomerInMunimSetting === true}
+              onChange={(value) => {
+                updateGenCustomerInMunimSetting.mutate(value.target.checked);
+                setIsSettingValue(true);
+              }}
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+          </div>
         </div>
       </div>
     </PageLayout>

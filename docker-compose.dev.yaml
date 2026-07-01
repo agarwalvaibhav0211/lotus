@@ -1,7 +1,7 @@
 services:
   db:
     image: timescale/timescaledb-ha:pg14-latest
-    restart: on-failure
+    restart: unless-stopped
     ports:
       - 5432:5432
     volumes:
@@ -14,6 +14,7 @@ services:
     command: redis-server
     env_file:
       - ./env/.env.dev
+    restart: unless-stopped
 
   redpanda:
     image: docker.redpanda.com/redpandadata/redpanda:v22.2.2
@@ -34,7 +35,7 @@ services:
       - 29092:29092
     volumes:
       - redpanda_dev:/var/lib/redpanda/data
-    restart: on-failure
+    restart: unless-stopped
 
   svix-server:
     image: svix/svix-server:v0.74
@@ -52,7 +53,7 @@ services:
     links:
       - db
       - redis
-    restart: on-failure
+    restart: unless-stopped
 
   backend:
     &backend
@@ -72,6 +73,7 @@ services:
     depends_on:
       - db
       - redis
+    restart: unless-stopped
 
   event-guidance:
     env_file:
@@ -86,7 +88,7 @@ services:
       - redis
       - redpanda
       - backend
-    restart: "on-failure:15"
+    restart: unless-stopped
 
   event-ingestion:
     env_file:
@@ -101,10 +103,10 @@ services:
       - redis
       - redpanda
       - backend
-    restart: "on-failure:15"
+    restart: unless-stopped
 
   frontend:
-    restart: always
+    restart: unless-stopped
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -137,12 +139,12 @@ services:
       - ./backend/lotus:/lotus/lotus
       - ./backend/metering_billing:/lotus/metering_billing
       - ./backend/api:/lotus/api
-    restart: on-failure
+    restart: unless-stopped
 
   celery-beat:
     env_file:
       - ./env/.env.dev
-    restart: on-failure
+    restart: unless-stopped
     build:
       context: ./backend
       dockerfile: Dockerfile
@@ -156,6 +158,7 @@ services:
       - celery
       - backend
       - redis
+    restart: unless-stopped
 
 volumes:
   pgdata_dev:
