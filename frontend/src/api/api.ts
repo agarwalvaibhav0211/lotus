@@ -92,6 +92,7 @@ import {
   BacktestResultType,
 } from "../types/experiment-type";
 import {
+  CreateOneOffInvoiceType,
   DraftInvoiceType,
   InvoiceType,
   MarkPaymentStatusAsPaid,
@@ -141,11 +142,11 @@ export const Customer = {
   getCustomers: (): Promise<CustomerSummary[]> =>
     requests.get("app/customers/summary/"),
   getCustomerDetail: (
-    customer_id: string,
+    customer_id: string
   ): Promise<components["schemas"]["CustomerDetail"]> =>
     requests.get(`app/customers/${customer_id}/`),
   createCustomer: (
-    post: components["schemas"]["CustomerCreateRequest"],
+    post: components["schemas"]["CustomerCreateRequest"]
   ): Promise<components["schemas"]["Customer"]> =>
     requests.post("app/customers/", post),
   getCustomerTotals: (): Promise<CustomerTotal[]> =>
@@ -160,7 +161,7 @@ export const Customer = {
     tax_rate: number,
     timezone: string,
     customer_name?: string,
-    new_customer_id?: string,
+    new_customer_id?: string
   ): Promise<CustomerType> =>
     requests.patch(`app/customers/${customer_id}/`, {
       default_currency_code,
@@ -177,28 +178,28 @@ export const Customer = {
   getCost(
     customer_id: string,
     start_date: string,
-    end_date: string,
+    end_date: string
   ): Promise<CustomerCostType> {
     return requests.get(`app/customers/${customer_id}/cost_analysis/`, {
       params: { start_date, end_date },
     });
   },
   createSubscription: (
-    post: CreateSubscriptionType,
+    post: CreateSubscriptionType
   ): Promise<SubscriptionType> => requests.post("app/subscriptions/", post),
   updateSubscription: (
     post: UpdateSubscriptionType,
-    subscription_id: string,
+    subscription_id: string
   ): Promise<SubscriptionType> =>
     requests.post(`app/subscriptions/${subscription_id}/update/`, post),
   cancelSubscription: (
     subscription_id: string,
-    post: CancelSubscriptionBody,
+    post: CancelSubscriptionBody
   ): Promise<SubscriptionType> =>
     requests.post(`app/subscriptions/${subscription_id}/cancel/`, post),
   switchPlanSubscription: (
     post: components["schemas"]["SubscriptionRecordSwitchPlanRequest"],
-    subscription_id: string,
+    subscription_id: string
   ): Promise<SubscriptionType> =>
     requests.post(`app/subscriptions/${subscription_id}/switch_plan/`, post),
   changeSubscriptionPlan: (
@@ -207,26 +208,26 @@ export const Customer = {
       customer_id?: string;
       plan_id?: string;
       subscription_filters?: { property_name: string; value: string }[];
-    },
+    }
   ): Promise<SubscriptionType> =>
     requests.post(`app/subscriptions/update/`, post, params),
   turnSubscriptionAutoRenewOff: (
     post: components["schemas"]["SubscriptionRecordUpdateRequest"],
-    subscription_id: string,
+    subscription_id: string
   ): Promise<SubscriptionType> =>
     requests.post(`app/subscriptions/${subscription_id}/update/`, post),
   createSubscriptionAddOns: (
     body: components["schemas"]["AddOnSubscriptionRecordCreateRequest"],
-    subscription_id: string,
+    subscription_id: string
   ): Promise<CreateSubscriptionAddOnType> =>
     requests.post(`app/subscriptions/${subscription_id}/addons/attach/`, body),
   cancelCreateSubscriptionAddOns: (
     body: CancelCreateSubscriptionAddOnBody,
-    path_params: { subscription_id: string; addon_id: string },
+    path_params: { subscription_id: string; addon_id: string }
   ): Promise<CreateSubscriptionAddOnType[]> =>
     requests.post(
       `app/subscriptions/${path_params.subscription_id}/addons/${path_params.addon_id}/cancel/`,
-      body,
+      body
     ),
 };
 
@@ -238,11 +239,11 @@ export const AddOn = {
   deleteAddOn: (addon_id: string): Promise<PlanVersionsType> =>
     requests.get(`app/addons/${addon_id}/delete/`),
   createAddOn: (
-    post: components["schemas"]["AddOnCreateRequest"],
+    post: components["schemas"]["AddOnCreateRequest"]
   ): Promise<AddOnType> => requests.post("app/addons/", post),
   createAddOnFeatures: (
     addon_id: string,
-    post: CreateAddOnFeatureBody,
+    post: CreateAddOnFeatureBody
   ): Promise<PlanVersionsType> =>
     requests.post(`app/addons/${addon_id}/features/add/`, post),
 };
@@ -263,7 +264,7 @@ export const Plan = {
     requests.get("app/plans/", { params }),
   getPlan: (
     plan_id: string,
-    version_custom_type?: "all" | "custom_only" | "public_only",
+    version_custom_type?: "all" | "custom_only" | "public_only"
   ): Promise<components["schemas"]["PlanDetail"]> =>
     requests.get(`app/plans/${plan_id}/`, { params: { version_custom_type } }),
   // create plan
@@ -271,18 +272,18 @@ export const Plan = {
     requests.post("app/plans/", post),
   // create plan version
   createVersion: (
-    post: components["schemas"]["InitialPlanVersionCreateRequest"],
+    post: components["schemas"]["InitialPlanVersionCreateRequest"]
   ): Promise<components["schemas"]["InitialPlanVersionCreateRequest"]> =>
     requests.post("app/plan_versions/", post),
   // create plan external links
   createExternalLinks: (
-    post: CreatePlanExternalLinkType,
+    post: CreatePlanExternalLinkType
   ): Promise<InitialExternalLinks> =>
     requests.post("app/external_plan_links/", post),
   // delete plan external links
   deleteExternalLinks: (post: InitialExternalLinks): Promise<any> =>
     requests.delete(
-      `app/external_plan_links/${post.external_plan_id}/?source=${post.source}`,
+      `app/external_plan_links/${post.external_plan_id}/?source=${post.source}`
     ),
   deletePlan: (plan_id: string): Promise<components["schemas"]["DeletePlan"]> =>
     requests.post(`app/plans/${plan_id}/delete/`, {}),
@@ -290,74 +291,74 @@ export const Plan = {
   // update plans methods
   updatePlan: (
     plan_id: string,
-    post: UpdatePlanType,
+    post: UpdatePlanType
   ): Promise<UpdatePlanType> => requests.patch(`app/plans/${plan_id}/`, post),
 
   featuresAddPlan: (
     plan_id: string,
-    post: PlanFeaturesAdd,
+    post: PlanFeaturesAdd
   ): Promise<PlanVersionsType> =>
     requests.post(`app/plans/${plan_id}/features/add/`, post),
   createTagsPlan: (
     plan_id: string,
-    post: CreateTagsPlanBody,
+    post: CreateTagsPlanBody
   ): Promise<CreateTagsType> =>
     requests.post(`app/plans/${plan_id}/tags/add/`, post),
   removeTagsPlan: (
     plan_id: string,
-    post: CreateTagsPlanBody,
+    post: CreateTagsPlanBody
   ): Promise<CreateTagsType> =>
     requests.post(`app/plans/${plan_id}/tags/add/`, post),
   // update plan versions methods
   updatePlanVersionDescription: (
     version_id: string,
-    post: PlanVersionUpdateDescriptionType,
+    post: PlanVersionUpdateDescriptionType
   ): Promise<PlanVersionUpdateDescriptionType> =>
     requests.patch(`app/plan_versions/${version_id}/`, post),
   replacePlanVersionLater: (
     version_id: string,
-    post: ReplaceLaterType,
+    post: ReplaceLaterType
   ): Promise<ReplaceLaterType> =>
     requests.patch(`app/plan_versions/${version_id}/`, post),
   replacePlanVersionImmediately: (
     version_id: string,
-    post: ReplaceImmediatelyType,
+    post: ReplaceImmediatelyType
   ): Promise<ReplaceImmediatelyType> =>
     requests.patch(`app/plan_versions/${version_id}/`, post),
   archivePlanVersion: (
-    version_id: string,
+    version_id: string
   ): Promise<components["schemas"]["DeletePlanVersion"]> =>
     requests.post(`app/plan_versions/${version_id}/delete/`, {}),
   deletePlanVersion: (version_id: string): Promise<PlanVersionsType> =>
     requests.post(`app/plan_versions/${version_id}/delete/`, {}),
   featureAddPlanVersion: (
     version_id: string,
-    post: PlanVersionFeatureAddBody,
+    post: PlanVersionFeatureAddBody
   ): Promise<PlanVersionsType> =>
     requests.post(`/app/plan_versions/${version_id}/features/add/`, post),
   makePublicPlanVersion: (version_id: string): Promise<PlanVersionsType> =>
     requests.post(`app/plan_versions/${version_id}/make_public/`, {}),
   subscriptionsPlanVersions: (
-    version_id: string,
+    version_id: string
   ): Promise<components["schemas"]["PlanVersionHistoricalSubscription"][]> =>
     requests.get(`app/plan_versions/${version_id}/subscriptions/`, {}),
   makeReplacementPlanVersion: (
     version_id: string,
-    post: PlanVersionReplacementMakeBody,
+    post: PlanVersionReplacementMakeBody
   ): Promise<PlanVersionsType> =>
     requests.post(`app/plan_versions/${version_id}/replacement/make/`, post),
   setReplacementPlanVersion: (
     version_id: string,
-    post: PlanVersionReplacementSetBody,
+    post: PlanVersionReplacementSetBody
   ): Promise<PlanVersionsType> =>
     requests.post(`app/plan_versions/${version_id}/replacement/set/`, post),
   addTargetCustomerPlanVersion: (
     version_id: string,
-    post: PlanVersionAddTargetCustomerBody,
+    post: PlanVersionAddTargetCustomerBody
   ): Promise<PlanVersionsType> =>
     requests.post(
       `app/plan_versions/${version_id}/target_customers/add/`,
-      post,
+      post
     ),
   createAlert: (post: CreateAlertType): Promise<AlertType> =>
     requests.post("app/usage_alerts/", post),
@@ -369,7 +370,7 @@ export const Experiments = {
   getExperiments: (): Promise<components["schemas"]["AnalysisSummary"][]> =>
     requests.get("app/analysis/"),
   getAnalysis: (
-    analysis_id: string,
+    analysis_id: string
   ): Promise<components["schemas"]["AnalysisDetail"]> =>
     requests.get(`app/analysis/${analysis_id}/`),
 };
@@ -382,7 +383,7 @@ export const Webhook = {
     requests.delete(`app/webhooks/${wh_id}/`),
   editEndpoint: (
     wh_id: number,
-    post: WebhookEndpointUpdate,
+    post: WebhookEndpointUpdate
   ): Promise<WebhookEndpoint> => requests.patch(`app/webhooks/${wh_id}/`, post),
 };
 
@@ -401,7 +402,7 @@ export const Authentication = {
     requests.get("app/session/"),
   login: (
     username: string,
-    password: string,
+    password: string
   ): Promise<{
     detail: any;
     token: string;
@@ -414,7 +415,7 @@ export const Authentication = {
   }> => requests.post("app/login/", { username, password }),
   demo_login: (
     username: string,
-    password: string,
+    password: string
   ): Promise<{
     detail: any;
     token: string;
@@ -427,7 +428,7 @@ export const Authentication = {
   }> => requests.post("app/demo_login/", { username, password }),
   logout: (): Promise<object> => requests.post("app/logout/", {}),
   registerCreate: (
-    register: CreateOrgAccountType,
+    register: CreateOrgAccountType
   ): Promise<{
     detail: any;
     token: string;
@@ -442,7 +443,7 @@ export const Authentication = {
       register,
     }),
   registerDemo: (
-    register: DemoSignupProps,
+    register: DemoSignupProps
   ): Promise<{
     detail: any;
     token: string;
@@ -459,7 +460,7 @@ export const Authentication = {
   setNewPassword: (
     token: string,
     userId: string,
-    password: string,
+    password: string
   ): Promise<{ detail: any; token: string }> =>
     requests.post("app/user/password/reset/", { token, userId, password }),
 };
@@ -474,7 +475,7 @@ export const Organization = {
   createOrg: (
     organization_name: string,
     default_currency_code: string,
-    organization_type: "development" | "production",
+    organization_type: "development" | "production"
   ): Promise<OrganizationType> =>
     requests.post("app/organizations/", {
       organization_name,
@@ -489,7 +490,7 @@ export const Organization = {
     requests.get("app/actions/", { params: { c: cursor } }),
   updateOrganization: (
     org_id: string,
-    input: components["schemas"]["PatchedOrganizationUpdateRequest"],
+    input: components["schemas"]["PatchedOrganizationUpdateRequest"]
   ): Promise<components["schemas"]["Organization"]> =>
     requests.patch(`app/organizations/${org_id}/`, input),
 };
@@ -497,7 +498,7 @@ export const Organization = {
 export const GetRevenue = {
   getMonthlyRevenue: (
     start_date: string,
-    end_date: string,
+    end_date: string
   ): Promise<components["schemas"]["PeriodMetricRevenueResponse"]> =>
     requests.get("app/period_metric_revenue/", {
       params: {
@@ -512,7 +513,7 @@ export const GetSubscriptions = {
     period_1_start_date: string,
     period_1_end_date: string,
     period_2_start_date: string,
-    period_2_end_date: string,
+    period_2_end_date: string
   ): Promise<SubscriptionTotals> =>
     requests.get("app/period_subscriptions/", {
       params: {
@@ -539,7 +540,7 @@ export const Metrics = {
   getMetricUsage: (
     start_date: string,
     end_date: string,
-    top_n_customers?: number,
+    top_n_customers?: number
   ): Promise<MetricUsage> =>
     requests.get("app/period_metric_usage/", {
       params: { start_date, end_date, top_n_customers },
@@ -576,7 +577,7 @@ export const Events = {
     period_1_start_date: string,
     period_1_end_date: string,
     period_2_start_date: string,
-    period_2_end_date: string,
+    period_2_end_date: string
   ): Promise<{
     total_events_period_1: number;
     total_events_period_2: number;
@@ -607,27 +608,27 @@ export const Backtests = {
 export const PaymentProcessor = {
   // Import Customers
   importCustomers: (
-    post: Source,
+    post: Source
   ): Promise<PaymentProcessorImportCustomerResponse> =>
     requests.post("app/import_customers/", post),
 
   // Import Payments
   importPayments: (
-    post: Source,
+    post: Source
   ): Promise<PaymentProcessorImportCustomerResponse> =>
     requests.post("app/import_payment_objects/", post),
 
   // transfer Subscription
   transferSubscriptions: (
-    post: TransferSub,
+    post: TransferSub
   ): Promise<PaymentProcessorImportCustomerResponse> =>
     requests.post("app/import_subscriptions/", post),
 
   cancelStripeSubscriptions: (
-    data: StripeMultiSubscriptionsParams,
+    data: StripeMultiSubscriptionsParams
   ): Promise<any> => requests.post(`app/stripe/cancel_subscriptions/`, data),
   cancelAtPeriodEndStripeSubscriptions: (
-    data: StripeMultiSubscriptionsParams,
+    data: StripeMultiSubscriptionsParams
   ): Promise<any> =>
     requests.post(`app/stripe/cancel_at_period_end_subscriptions/`, data),
 };
@@ -637,7 +638,7 @@ export const PaymentProcessorIntegration = {
     PaymentProcessorStatusType[]
   > => requests.get("app/payment_providers/"),
   connectPaymentProcessor: (
-    pp_info: PaymentProcessorConnectionRequestType,
+    pp_info: PaymentProcessorConnectionRequestType
   ): Promise<PaymentProcessorConnectionResponseType> =>
     requests.post("app/payment_providers/", { pp_info }),
 };
@@ -653,6 +654,8 @@ export const Invoices = {
     requests.get(`app/customers/${customer_id}/draft_invoice/`),
   getInvoiceUrl: (invoice_id: string): Promise<{ url: string }> =>
     requests.get(`app/invoices/${invoice_id}/pdf_url/`),
+  createOneOffInvoice: (post: CreateOneOffInvoiceType): Promise<InvoiceType> =>
+    requests.post("app/invoices/", post),
 };
 
 export const Credits = {
@@ -665,7 +668,7 @@ export const Credits = {
   }): Promise<components["schemas"]["CustomerBalanceAdjustment"][]> => {
     if (params.format) {
       return requests.get(
-        `app/credits/?customer_id=${params.customer_id}?format=${params.format}`,
+        `app/credits/?customer_id=${params.customer_id}?format=${params.format}`
       );
     }
     return requests.get(`app/credits/?customer_id=${params.customer_id}`);
@@ -685,7 +688,7 @@ export const PricingUnits = {
 export const Netsuite = {
   invoices: (
     startDate?: Date | null,
-    endDate?: Date | null,
+    endDate?: Date | null
   ): Promise<{ url: URL }> =>
     requests.get("app/netsuite_invoices/", {
       params: {
@@ -695,7 +698,7 @@ export const Netsuite = {
     }),
   customers: (
     startDate?: Date | null,
-    endDate?: Date | null,
+    endDate?: Date | null
   ): Promise<{ url: URL }> =>
     requests.get("app/netsuite_customers/", {
       params: {
@@ -714,7 +717,7 @@ export const CRM = {
     requests.post("app/crm/store_token/", { public_token }),
   setCustomerSourceOfTruth: (
     crm_provider_name: string,
-    lotus_is_source: boolean,
+    lotus_is_source: boolean
   ): Promise<{ success: boolean }> =>
     requests.post("app/crm/set_customer_source/", {
       crm_provider_name,
@@ -722,7 +725,7 @@ export const CRM = {
     }),
   syncCRM: (
     organization_id: string,
-    crm_provider_names?: CRMProviderType[],
+    crm_provider_names?: CRMProviderType[]
   ): Promise<{ success: boolean; message: string }> =>
     requests.post(`app/organizations/${organization_id}/sync_crm/`, {
       crm_provider_names,

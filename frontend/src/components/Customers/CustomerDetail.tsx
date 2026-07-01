@@ -10,6 +10,7 @@ import {
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
+import { DeleteOutlined } from "@ant-design/icons";
 import { PlanType } from "../../types/plan-type";
 import {
   CreateSubscriptionType,
@@ -31,7 +32,6 @@ import CustomerInfoView from "./CustomerInfo";
 import { CurrencyType } from "../../types/pricing-unit-type";
 import { PageLayout } from "../base/PageLayout";
 import { QueryErrors } from "../../types/error-response-types";
-import { DeleteOutlined } from "@ant-design/icons";
 import { components } from "../../gen-types";
 
 type CustomerDetailsParams = {
@@ -44,12 +44,12 @@ function CustomerDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [startDate, setStartDate] = useState<string>(
-    dayjs().subtract(1, "month").format("YYYY-MM-DD"),
+    dayjs().subtract(1, "month").format("YYYY-MM-DD")
   );
   const [endDate, setEndDate] = useState<string>(dayjs().format("YYYY-MM-DD"));
   const { data: plans }: UseQueryResult<components["schemas"]["PlanDetail"][]> =
     useQuery<components["schemas"]["PlanDetail"][]>(["plan_list"], () =>
-      Plan.getPlans().then((res) => res),
+      Plan.getPlans().then((res) => res)
     );
 
   const { data: pricingUnits }: UseQueryResult<CurrencyType[]> = useQuery<
@@ -61,7 +61,7 @@ function CustomerDetail() {
   }: UseQueryResult<components["schemas"]["CustomerDetail"]> = useQuery<
     components["schemas"]["CustomerDetail"]
   >(["customer_detail", customer_id], () =>
-    Customer.getCustomerDetail(customer_id as string).then((res) => res),
+    Customer.getCustomerDetail(customer_id as string).then((res) => res)
   );
 
   const { data: cost_analysis } = useQuery<CustomerCostType>(
@@ -76,7 +76,7 @@ function CustomerDetail() {
         profit_margin: 0,
         markup: 0,
       },
-    },
+    }
   );
 
   const deleteCustomerMutation = useMutation(
@@ -90,7 +90,7 @@ function CustomerDetail() {
       onError: (error: QueryErrors) => {
         toast.error(error.response.data.title);
       },
-    },
+    }
   );
 
   const createSubscriptionMutation = useMutation(
@@ -113,7 +113,7 @@ function CustomerDetail() {
       onSettled() {
         toast.dismiss();
       },
-    },
+    }
   );
 
   const cancelSubscriptionMutation = useMutation(
@@ -131,7 +131,7 @@ function CustomerDetail() {
       onError: (error: QueryErrors) => {
         toast.error(error.response.data.title);
       },
-    },
+    }
   );
 
   const changeSubscriptionPlanMutation = useMutation(
@@ -151,7 +151,7 @@ function CustomerDetail() {
       onError: (error: QueryErrors) => {
         toast.error(error.response.data.detail);
       },
-    },
+    }
   );
 
   const turnSubscriptionAutoRenewOffMutation = useMutation(
@@ -168,12 +168,12 @@ function CustomerDetail() {
       onError: (error: QueryErrors) => {
         toast.error(error.response.data.title);
       },
-    },
+    }
   );
 
   const cancelSubscription = (
     props: CancelSubscriptionBody,
-    subscription_id: string,
+    subscription_id: string
   ) => {
     cancelSubscriptionMutation.mutate({
       post: props,
@@ -190,7 +190,7 @@ function CustomerDetail() {
 
   const turnSubscriptionAutoRenewOff = (
     subscription_id: string,
-    props: components["schemas"]["SubscriptionRecordUpdateRequest"],
+    props: components["schemas"]["SubscriptionRecordUpdateRequest"]
   ) => {
     turnSubscriptionAutoRenewOffMutation.mutate({
       subscription_id,
@@ -298,6 +298,7 @@ function CustomerDetail() {
           </Tabs.TabPane>
           <Tabs.TabPane tab="Invoices" key="invoices">
             <CustomerInvoiceView
+              customerId={customer_id as string}
               invoices={data?.invoices}
               paymentMethod={data?.payment_provider}
             />

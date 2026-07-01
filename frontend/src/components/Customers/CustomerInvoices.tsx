@@ -2,9 +2,9 @@
 /* eslint-disable prefer-template */
 /* eslint-disable no-nested-ternary */
 import { Button, Dropdown, Menu, Table, Tag, Tooltip } from "antd";
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useState } from "react";
 import dayjs from "dayjs";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { MoreOutlined } from "@ant-design/icons";
 import axios from "axios";
@@ -14,6 +14,7 @@ import { integrationsMap } from "../../types/payment-processor-type";
 import { Invoices } from "../../api/api";
 import { InvoiceType, MarkPaymentStatusAsPaid } from "../../types/invoice-type";
 import { components } from "../../gen-types";
+import CreateOneOffInvoice from "../../pages/CreateOneOffInvoice";
 
 const downloadFile = async (s3link) => {
   if (!s3link) {
@@ -24,7 +25,7 @@ const downloadFile = async (s3link) => {
 };
 
 const getPdfUrl = async (
-  invoice: components["schemas"]["CustomerDetail"]["invoices"][0],
+  invoice: components["schemas"]["CustomerDetail"]["invoices"][0]
 ) => {
   try {
     const response = await Invoices.getInvoiceUrl(invoice.invoice_id);
@@ -38,11 +39,18 @@ const getPdfUrl = async (
 const lotusUrl = new URL("./lotusIcon.svg", import.meta.url).href;
 
 interface Props {
+  customerId: string;
   invoices: components["schemas"]["CustomerDetail"]["invoices"] | undefined;
   paymentMethod: string;
 }
 
-const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
+const CustomerInvoiceView: FC<Props> = ({
+  customerId,
+  invoices,
+  paymentMethod,
+}) => {
+  const queryClient = useQueryClient();
+  const [showCreateInvoice, setShowCreateInvoice] = useState(false);
   const [selectedRecord, setSelectedRecord] =
     React.useState<components["schemas"]["CustomerDetail"]["invoices"][0]>();
   const changeStatus = useMutation(
@@ -60,7 +68,7 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    },
+    }
   );
 
   const sendToPaymentProcessor = useMutation(
@@ -78,7 +86,7 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    },
+    }
   );
 
   useEffect(() => {
@@ -115,8 +123,8 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
                       record.external_payment_obj_type === "stripe"
                         ? integrationsMap.stripe.icon
                         : record.external_payment_obj_type === "braintree"
-                          ? integrationsMap.braintree.icon
-                          : lotusUrl
+                        ? integrationsMap.braintree.icon
+                        : lotusUrl
                     }
                     alt={`${record.external_payment_obj_type} icon`}
                   />
@@ -191,7 +199,7 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
       key: "status",
       render: (
         _,
-        record: components["schemas"]["CustomerDetail"]["invoices"][0],
+        record: components["schemas"]["CustomerDetail"]["invoices"][0]
       ) => (
         <div className="flex">
           {record.external_payment_obj_type ? (
@@ -283,10 +291,9 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
                               "This feature is disabled in the demo",
                               {
                                 position: toast.POSITION.TOP_CENTER,
-                              },
+                              }
                             );
-                          } else {
-                            if (selectedRecord === record) {
+                          } else if (selectedRecord === record) {
                               changeStatus.mutate({
                                 invoice_id: record.invoice_id,
                                 payment_status: "paid",
@@ -294,7 +301,6 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
                             } else {
                               setSelectedRecord(record);
                             }
-                          }
                         }}
                       >
                         <div className="archiveLabel">Mark As Paid</div>
@@ -338,7 +344,29 @@ const CustomerInvoiceView: FC<Props> = ({ invoices, paymentMethod }) => {
 
   return (
     <div>
-      <h2 className="mb-2 pb-4 pt-4 font-bold text-main">Invoices</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="mb-2 pb-4 pt-4 font-bold text-main">Invoices</h2>
+        <Button
+          type="primary"
+          className="hover:!bg-primary-700"
+          style={{ background: "#C3986B", borderColor: "#C3986B" }}
+          disabled={(import.meta as any).env.VITE_IS_DEMO === "true"}
+          onClick={() => setShowCreateInvoice(true)}
+        >
+          Create Invoice
+        </Button>
+      </div>
+      {showCreateInvoice && (
+        <CreateOneOffInvoice
+          customerId={customerId}
+          visible={showCreateInvoice}
+          onCancel={() => setShowCreateInvoice(false)}
+          onSubmit={() => {
+            setShowCreateInvoice(false);
+            queryClient.invalidateQueries(["customer_detail", customerId]);
+          }}
+        />
+      )}
       {invoices !== undefined ? (
         <ProTable
           columns={columns}

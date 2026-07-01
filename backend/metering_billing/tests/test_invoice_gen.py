@@ -11,6 +11,7 @@ from metering_billing.models import (
     BillingRecord,
     Event,
     Invoice,
+    InvoiceLineItemAdjustment,
     Metric,
     PlanComponent,
     PriceAdjustment,
@@ -316,6 +317,163 @@ class TestGenerateInvoice:
 
         result_invoice = Invoice.objects.order_by("-invoice_number").first()
         assert result_invoice.invoice_pdf != ""
+
+
+@pytest.mark.django_db(transaction=True)
+class TestOneOffInvoice:
+    def test_create_one_off_invoice_success(self, invoice_test_common_setup):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        payload = {
+            "customer_id": setup_dict["customer"].customer_id,
+            "currency_code": "USD",
+            "line_items": [
+                {"name": "Setup fee", "amount": "500.00", "tax_rate": "8"},
+                {"name": "Professional services", "amount": "1200.00"},
+            ],
+        }
+        response = setup_dict["client"].post(
+            reverse("invoice-list"),
+            data=json.dumps(payload, cls=DjangoJSONEncoder),
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        invoice = Invoice.objects.get(invoice_id=response.data["invoice_id"])
+        assert invoice.payment_status == Invoice.PaymentStatus.UNPAID
+        assert invoice.customer == setup_dict["customer"]
+        assert invoice.line_items.count() == 2
+        # 500 + 40 (8% tax) + 1200 = 1740
+        assert invoice.amount == Decimal("1740.0000000000")
+        taxed_line_item = invoice.line_items.get(name="Setup fee")
+        assert taxed_line_item.adjustments.count() == 1
+        adjustment = taxed_line_item.adjustments.first()
+        assert (
+            adjustment.adjustment_type
+            == InvoiceLineItemAdjustment.AdjustmentType.SALES_TAX
+        )
+        assert adjustment.amount == Decimal("40.0000000000")
+        untaxed_line_item = invoice.line_items.get(name="Professional services")
+        assert untaxed_line_item.adjustments.count() == 0
+
+    def test_create_one_off_invoice_no_line_items(self, invoice_test_common_setup):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        payload = {
+            "customer_id": setup_dict["customer"].customer_id,
+            "currency_code": "USD",
+            "line_items": [],
+        }
+        response = setup_dict["client"].post(
+            reverse("invoice-list"),
+            data=json.dumps(payload, cls=DjangoJSONEncoder),
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_one_off_invoice_nonpositive_amount(self, invoice_test_common_setup):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        payload = {
+            "customer_id": setup_dict["customer"].customer_id,
+            "currency_code": "USD",
+            "line_items": [{"name": "Bad line item", "amount": "0.00"}],
+        }
+        response = setup_dict["client"].post(
+            reverse("invoice-list"),
+            data=json.dumps(payload, cls=DjangoJSONEncoder),
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_one_off_invoice_negative_tax_rate(self, invoice_test_common_setup):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        payload = {
+            "customer_id": setup_dict["customer"].customer_id,
+            "currency_code": "USD",
+            "line_items": [{"name": "Bad tax", "amount": "10.00", "tax_rate": "-5"}],
+        }
+        response = setup_dict["client"].post(
+            reverse("invoice-list"),
+            data=json.dumps(payload, cls=DjangoJSONEncoder),
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_one_off_invoice_due_before_issue(self, invoice_test_common_setup):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        payload = {
+            "customer_id": setup_dict["customer"].customer_id,
+            "currency_code": "USD",
+            "issue_date": now_utc(),
+            "due_date": now_utc() - timedelta(days=1),
+            "line_items": [{"name": "Setup fee", "amount": "100.00"}],
+        }
+        response = setup_dict["client"].post(
+            reverse("invoice-list"),
+            data=json.dumps(payload, cls=DjangoJSONEncoder),
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_one_off_invoice_wrong_org_customer(
+        self, invoice_test_common_setup, add_customers_to_org
+    ):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        (other_org_customer,) = add_customers_to_org(setup_dict["org2"], n=1)
+        payload = {
+            "customer_id": other_org_customer.customer_id,
+            "currency_code": "USD",
+            "line_items": [{"name": "Setup fee", "amount": "100.00"}],
+        }
+        response = setup_dict["client"].post(
+            reverse("invoice-list"),
+            data=json.dumps(payload, cls=DjangoJSONEncoder),
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_create_one_off_invoice_send_to_processor(self, invoice_test_common_setup):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        setup_dict["customer"].payment_provider = "stripe"
+        setup_dict["customer"].save()
+        payload = {
+            "customer_id": setup_dict["customer"].customer_id,
+            "currency_code": "USD",
+            "send_to_processor": True,
+            "line_items": [{"name": "Setup fee", "amount": "100.00"}],
+        }
+        with mock.patch(
+            "metering_billing.invoice.generate_external_payment_obj"
+        ) as mock_send:
+            response = setup_dict["client"].post(
+                reverse("invoice-list"),
+                data=json.dumps(payload, cls=DjangoJSONEncoder),
+                content_type="application/json",
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+        mock_send.assert_called_once()
+
+    def test_get_and_send_created_invoice(self, invoice_test_common_setup):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        payload = {
+            "customer_id": setup_dict["customer"].customer_id,
+            "currency_code": "USD",
+            "line_items": [{"name": "Setup fee", "amount": "100.00"}],
+        }
+        response = setup_dict["client"].post(
+            reverse("invoice-list"),
+            data=json.dumps(payload, cls=DjangoJSONEncoder),
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        invoice_id = response.data["invoice_id"]
+
+        get_response = setup_dict["client"].get(
+            reverse("invoice-detail", kwargs={"invoice_id": invoice_id})
+        )
+        assert get_response.status_code == status.HTTP_200_OK
+
+        send_response = setup_dict["client"].post(
+            reverse("invoice-send", kwargs={"invoice_id": invoice_id})
+        )
+        assert send_response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db(transaction=True)

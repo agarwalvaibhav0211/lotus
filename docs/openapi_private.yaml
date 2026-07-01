@@ -6581,49 +6581,6 @@ components:
       - seller
       - start_date
       type: object
-    InvoiceDetailRequest:
-      properties:
-        cost_due:
-          deprecated: true
-          exclusiveMaximum: true
-          format: double
-          maximum: 10000000000
-          minimum: 0
-          type: number
-        currency:
-          $ref: '#/components/schemas/PricingUnitRequest'
-        external_payment_obj_status:
-          nullable: true
-          type: string
-        external_payment_obj_type:
-          description: |-
-            * `stripe` - Stripe
-            * `braintree` - Braintree
-            * `munim` - Munim
-          enum:
-          - stripe
-          - braintree
-          - munim
-          - 
-          nullable: true
-          type: string
-        invoice_id:
-          minLength: 1
-          type: string
-        line_items:
-          items:
-            $ref: '#/components/schemas/InvoiceLineItemRequest'
-          type: array
-        seller:
-          $ref: '#/components/schemas/SellerRequest'
-      required:
-      - cost_due
-      - currency
-      - external_payment_obj_type
-      - invoice_id
-      - line_items
-      - seller
-      type: object
     InvoiceLineItem:
       properties:
         adjustments:
@@ -6737,80 +6694,6 @@ components:
       - account
       - adjustment_type
       - amount
-      type: object
-    InvoiceLineItemRequest:
-      properties:
-        amount:
-          description: Amount of the line item. This is the price after any adjustments
-            are applied.
-          exclusiveMaximum: true
-          exclusiveMinimum: true
-          format: double
-          maximum: 10000000000
-          minimum: -10000000000
-          type: number
-        base:
-          description: Base price of the line item. This is the price before any adjustments
-            are applied.
-          exclusiveMaximum: true
-          exclusiveMinimum: true
-          format: double
-          maximum: 10000000000
-          minimum: -10000000000
-          type: number
-        billing_type:
-          description: |-
-            * `in_arrears` - In Arrears
-            * `intermediate` - Intermediate
-            * `in_advance` - In Advance
-            * `one_time` - One Time
-          enum:
-          - in_arrears
-          - intermediate
-          - in_advance
-          - one_time
-          - 
-          nullable: true
-          type: string
-        end_date:
-          format: date-time
-          type: string
-        metadata:
-          additionalProperties: {}
-          nullable: true
-          type: object
-        name:
-          maxLength: 100
-          minLength: 1
-          type: string
-        quantity:
-          exclusiveMaximum: true
-          format: double
-          maximum: 10000000000
-          minimum: 0
-          nullable: true
-          type: number
-        start_date:
-          format: date-time
-          type: string
-        subtotal:
-          deprecated: true
-          exclusiveMaximum: true
-          exclusiveMinimum: true
-          format: double
-          maximum: 10000000000
-          minimum: -10000000000
-          type: number
-      required:
-      - amount
-      - base
-      - billing_type
-      - end_date
-      - metadata
-      - name
-      - quantity
-      - start_date
-      - subtotal
       type: object
     InvoicePaid:
       properties:
@@ -8070,6 +7953,67 @@ components:
       - comparison_value
       - operator
       - property_name
+      type: object
+    OneOffInvoiceCreateRequest:
+      properties:
+        currency_code:
+          minLength: 1
+          type: string
+        customer_id:
+          description: The id provided when creating the customer, we suggest matching
+            with your internal customer id in your backend
+          minLength: 1
+          nullable: true
+          type: string
+        due_date:
+          format: date-time
+          type: string
+        issue_date:
+          format: date-time
+          type: string
+        line_items:
+          items:
+            $ref: '#/components/schemas/OneOffInvoiceLineItemCreateRequest'
+          type: array
+        send_to_processor:
+          default: false
+          type: boolean
+      required:
+      - currency_code
+      - customer_id
+      - line_items
+      type: object
+    OneOffInvoiceLineItemCreateRequest:
+      properties:
+        amount:
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          type: number
+        name:
+          minLength: 1
+          type: string
+        quantity:
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          nullable: true
+          type: number
+        tax_rate:
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          format: double
+          maximum: 1000
+          minimum: -1000
+          nullable: true
+          type: number
+      required:
+      - amount
+      - name
       type: object
     Organization:
       properties:
@@ -12155,24 +12099,6 @@ components:
       - name
       - symbol
       type: object
-    PricingUnitRequest:
-      properties:
-        code:
-          maxLength: 10
-          minLength: 1
-          type: string
-        name:
-          minLength: 1
-          type: string
-        symbol:
-          maxLength: 10
-          minLength: 1
-          type: string
-      required:
-      - code
-      - name
-      - symbol
-      type: object
     RecurringCharge:
       properties:
         amount:
@@ -12502,23 +12428,6 @@ components:
           nullable: true
           type: string
         name:
-          type: string
-        phone:
-          maxLength: 20
-          nullable: true
-          type: string
-      required:
-      - name
-      type: object
-    SellerRequest:
-      properties:
-        email:
-          format: email
-          maxLength: 254
-          nullable: true
-          type: string
-        name:
-          minLength: 1
           type: string
         phone:
           maxLength: 20
@@ -15147,13 +15056,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InvoiceDetailRequest'
+              $ref: '#/components/schemas/OneOffInvoiceCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/InvoiceDetailRequest'
+              $ref: '#/components/schemas/OneOffInvoiceCreateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/InvoiceDetailRequest'
+              $ref: '#/components/schemas/OneOffInvoiceCreateRequest'
         required: true
       responses:
         '201':

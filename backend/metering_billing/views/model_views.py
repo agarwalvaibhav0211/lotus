@@ -5,6 +5,7 @@ import api.views as api_views
 import posthog
 import sentry_sdk
 from actstream.models import Action
+from api.serializers.model_serializers import OneOffInvoiceCreateSerializer
 from api.serializers.nonmodel_serializers import (
     AddFeatureSerializer,
     AddFeatureToAddOnSerializer,
@@ -1872,11 +1873,34 @@ class SubscriptionViewSet(api_views.SubscriptionViewSet):
 
 class InvoiceViewSet(api_views.InvoiceViewSet):
     http_method_names = ["get", "patch", "head", "post"]
+    permission_classes_per_method = {
+        **api_views.InvoiceViewSet.permission_classes_per_method,
+        "create": [IsAuthenticated & ValidOrganization],
+    }
 
     def get_serializer_class(self):
-        if self.action == "send":
+        if self.action in ("send", "create"):
             return InvoiceDetailSerializer
         return super().get_serializer_class(default=InvoiceDetailSerializer)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["organization"] = self.request.organization
+        return context
+
+    @extend_schema(
+        request=OneOffInvoiceCreateSerializer, responses=InvoiceDetailSerializer
+    )
+    def create(self, request, *args, **kwargs):
+        serializer = OneOffInvoiceCreateSerializer(
+            data=request.data, context=self.get_serializer_context()
+        )
+        serializer.is_valid(raise_exception=True)
+        invoice = serializer.save()
+        response_serializer = InvoiceDetailSerializer(
+            invoice, context=self.get_serializer_context()
+        )
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     @extend_schema(request=None)
     @action(detail=True, methods=["post"])

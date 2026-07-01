@@ -2,7 +2,6 @@ import logging
 from collections.abc import Iterable
 from decimal import Decimal
 
-import sentry_sdk
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db.models import Q, Sum
@@ -729,6 +728,69 @@ def generate_balance_adjustment_invoice(balance_adjustment, draft=False):
         invoice_created_webhook(invoice, organization)
         if kafka_producer:
             kafka_producer.produce_invoice(invoice)
+
+    return invoice
+
+
+def generate_one_off_invoice(
+    customer,
+    organization,
+    line_items_data,
+    currency,
+    issue_date=None,
+    due_date=None,
+    send_to_processor=False,
+):
+    """
+    Generate a one-off invoice for a customer, outside of the subscription billing flow.
+    """
+    from metering_billing.models import (
+        Invoice,
+        InvoiceLineItem,
+        InvoiceLineItemAdjustment,
+    )
+
+    issue_date = issue_date or now_utc()
+    due_date = due_date or calculate_due_date(issue_date, organization)
+
+    invoice = Invoice.objects.create(
+        issue_date=issue_date,
+        organization=organization,
+        customer=customer,
+        payment_status=Invoice.PaymentStatus.UNPAID,
+        currency=currency,
+        due_date=due_date,
+    )
+
+    for li in line_items_data:
+        line_item = InvoiceLineItem.objects.create(
+            name=li["name"],
+            start_date=li.get("start_date", issue_date),
+            end_date=li.get("end_date", issue_date),
+            quantity=li.get("quantity"),
+            base=li["amount"],
+            billing_type=INVOICE_CHARGE_TIMING_TYPE.ONE_TIME,
+            chargeable_item_type=CHARGEABLE_ITEM_TYPE.ONE_TIME_CHARGE,
+            invoice=invoice,
+            organization=organization,
+        )
+        tax_rate = li.get("tax_rate")
+        if tax_rate:
+            InvoiceLineItemAdjustment.objects.create(
+                invoice_line_item=line_item,
+                adjustment_type=InvoiceLineItemAdjustment.AdjustmentType.SALES_TAX,
+                amount=line_item.base * (tax_rate / Decimal(100)),
+                account=41100,
+                organization=organization,
+            )
+
+    finalize_invoice_amount(invoice, draft=False)
+
+    if send_to_processor:
+        generate_external_payment_obj(invoice)
+    invoice_created_webhook(invoice, organization)
+    if kafka_producer:
+        kafka_producer.produce_invoice(invoice)
 
     return invoice
 

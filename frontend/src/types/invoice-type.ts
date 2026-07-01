@@ -55,3 +55,19 @@ export interface MarkPaymentStatusAsPaid {
   invoice_id: string;
   payment_status: "paid" | "unpaid" | "voided";
 }
+
+export interface CreateOneOffInvoiceLineItemType {
+  name: string;
+  quantity?: number;
+  amount: number;
+  tax_rate?: number;
+}
+
+export interface CreateOneOffInvoiceType {
+  customer_id: string;
+  currency_code: string;
+  issue_date?: string;
+  due_date?: string;
+  send_to_processor?: boolean;
+  line_items: CreateOneOffInvoiceLineItemType[];
+}

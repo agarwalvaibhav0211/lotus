@@ -6,7 +6,10 @@ from typing import Literal, Union
 from django.conf import settings
 from django.db.models import Max, Min, Sum
 from drf_spectacular.utils import extend_schema_serializer
-from metering_billing.invoice import generate_balance_adjustment_invoice
+from metering_billing.invoice import (
+    generate_balance_adjustment_invoice,
+    generate_one_off_invoice,
+)
 from metering_billing.kafka.producer import Producer
 from metering_billing.models import (
     AddOnSpecification,
@@ -2411,6 +2414,74 @@ class CustomerBalanceAdjustmentCreateSerializer(
         return balance_adjustment
 
 
+class OneOffInvoiceLineItemCreateSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True)
+    quantity = serializers.DecimalField(
+        max_digits=20, decimal_places=10, required=False, allow_null=True
+    )
+    amount = serializers.DecimalField(max_digits=20, decimal_places=10, required=True)
+    tax_rate = serializers.DecimalField(
+        max_digits=6, decimal_places=3, required=False, allow_null=True
+    )
+
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Line item amount must be greater than 0")
+        return value
+
+    def validate_tax_rate(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Tax rate cannot be negative")
+        return value
+
+
+class OneOffInvoiceCreateSerializer(
+    ConvertEmptyStringToNullMixin, TimezoneFieldMixin, serializers.Serializer
+):
+    customer_id = SlugRelatedFieldWithOrganization(
+        slug_field="customer_id",
+        queryset=Customer.objects.all(),
+        required=True,
+        source="customer",
+    )
+    currency_code = SlugRelatedFieldWithOrganization(
+        slug_field="code",
+        queryset=PricingUnit.objects.all(),
+        required=True,
+        source="currency",
+    )
+    issue_date = serializers.DateTimeField(required=False)
+    due_date = serializers.DateTimeField(required=False)
+    send_to_processor = serializers.BooleanField(required=False, default=False)
+    line_items = OneOffInvoiceLineItemCreateSerializer(many=True, required=True)
+
+    def validate_line_items(self, value):
+        if len(value) < 1:
+            raise serializers.ValidationError("At least one line item is required")
+        return value
+
+    def validate(self, data):
+        data = super().validate(data)
+        if (
+            data.get("due_date")
+            and data.get("issue_date")
+            and data["due_date"] < data["issue_date"]
+        ):
+            raise serializers.ValidationError("due_date must be on or after issue_date")
+        return data
+
+    def create(self, validated_data):
+        return generate_one_off_invoice(
+            customer=validated_data["customer"],
+            organization=self.context["organization"],
+            line_items_data=validated_data["line_items"],
+            currency=validated_data["currency"],
+            issue_date=validated_data.get("issue_date"),
+            due_date=validated_data.get("due_date"),
+            send_to_processor=validated_data.get("send_to_processor", False),
+        )
+
+
 class CustomerBalanceAdjustmentUpdateSerializer(
     TimezoneFieldMixin, serializers.ModelSerializer
 ):
@@ -2653,11 +2724,9 @@ class AddOnSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
         version = obj.versions.first()
         return PricingUnitSerializer(version.currency).data
 
-    def get_flat_rate(self, obj) -> serializers.DecimalField(
-        decimal_places=10,
-        max_digits=20,
-        min_value=0,
-    ):
+    def get_flat_rate(
+        self, obj
+    ) -> serializers.DecimalField(decimal_places=10, max_digits=20, min_value=0,):
         version = obj.versions.first()
         return sum(x.amount for x in version.recurring_charges.all())
 
