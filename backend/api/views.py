@@ -528,7 +528,8 @@ class PlanViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         organization = self.request.organization
         # first filter plans
         plan_filter_serializer = ListPlansFilterSerializer(
-            data=self.request.query_params
+            data=self.request.query_params,
+            context={"organization": organization},
         )
         plan_filter_serializer.is_valid(raise_exception=True)
 
@@ -540,13 +541,14 @@ class PlanViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         duration = plan_filter_serializer.validated_data.get("duration")
 
         if duration:
-            plans_filters.append(Q(duration=duration))
+            plans_filters.append(Q(plan_duration=duration))
 
         # then filter plan versions
         versions_filters = []
 
         plan_version_filter_serializer = ListPlanVersionsFilterSerializer(
-            data=self.request.query_params
+            data=self.request.query_params,
+            context={"organization": organization},
         )
         plan_version_filter_serializer.is_valid(raise_exception=True)
         validated_data = plan_version_filter_serializer.validated_data
@@ -1589,6 +1591,7 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
     }
 
     def get_object(self):
+        original_lookup_field = self.lookup_field
         lookup_field = "invoice_id"
         string_id = self.kwargs[lookup_field]
         # Check if the string_id matches the invoice number format YYMMDD-000001
@@ -1601,8 +1604,12 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             # Replace dashes in the string_id if any
             string_id = InvoiceUUIDField().to_internal_value(string_id.replace("-", ""))
         self.kwargs[lookup_field] = string_id
-        # Log the lookup value using drf-spectacular
-        self.instance = super().get_object()
+        # self.lookup_field drives which field/kwarg super().get_object() filters on
+        self.lookup_field = lookup_field
+        try:
+            self.instance = super().get_object()
+        finally:
+            self.lookup_field = original_lookup_field
         return self.instance
 
     def get_queryset(self):
@@ -1705,8 +1712,10 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         return response
 
     def retrieve(self, request, *args, **kwargs):
-        self._refresh_payment_status(self.get_object())
-        return super().retrieve(request, *args, **kwargs)
+        instance = self.get_object()
+        self._refresh_payment_status(instance)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
     @extend_schema(
         parameters=[InvoiceListFilterSerializer],

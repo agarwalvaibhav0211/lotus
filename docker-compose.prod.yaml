@@ -8,7 +8,7 @@ networks:
 services:
   db:
     image: timescale/timescaledb:latest-pg14
-    restart: on-failure
+    restart: unless-stopped
     expose:
       - 5432
     volumes:
@@ -34,7 +34,7 @@ services:
     links:
     - db
     - redis
-    restart: on-failure
+    restart: unless-stopped
     networks:
       - lotus-internal
 
@@ -79,7 +79,7 @@ services:
       - db
       - redis
       - redpanda
-    restart: on-failure
+    restart: unless-stopped
     networks:
       - lotus-internal
 
@@ -97,7 +97,7 @@ services:
       - db
       - redis
       - redpanda
-    restart: "on-failure:15"
+    restart: unless-stopped
     networks:
       - lotus-internal
 
@@ -116,14 +116,14 @@ services:
       - redis
       - redpanda
       - backend
-    restart: "on-failure:15"
+    restart: unless-stopped
     networks:
       - lotus-internal
 
   frontend:
     image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/frontend:${LOTUS_IMAGE_TAG:-latest}
     pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
-    restart: always
+    restart: unless-stopped
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -144,6 +144,7 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server
+    restart: unless-stopped
     env_file:
       - ./env/.env.prod
     networks:
@@ -162,7 +163,7 @@ services:
     depends_on:
       - redis
       - backend
-    restart: on-failure
+    restart: unless-stopped
     networks:
       - lotus-internal
 
@@ -171,7 +172,7 @@ services:
     pull_policy: ${LOTUS_IMAGE_PULL_POLICY:-missing}
     env_file:
       - ./env/.env.prod
-    restart: on-failure
+    restart: unless-stopped
     build:
       context: ./backend
       dockerfile: Dockerfile

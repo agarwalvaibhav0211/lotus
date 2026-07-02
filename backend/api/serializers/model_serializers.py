@@ -1539,7 +1539,9 @@ class PlanSerializer(
         many=True, help_text="The external links that this plan has."
     )
     tags = serializers.SerializerMethodField(help_text="The tags that this plan has.")
-    versions = PlanVersionSerializer(many=True, help_text="This plan's versions.")
+    versions = PlanVersionSerializer(
+        many=True, source="versions_prefetched", help_text="This plan's versions."
+    )
 
     # DEPRECATED
     parent_plan = serializers.SerializerMethodField(
@@ -2251,6 +2253,7 @@ class InvoiceListFilterSerializer(serializers.Serializer):
         queryset=Customer.objects.all(),
         required=False,
         help_text="A filter for invoices for a specific customer",
+        source="customer",
     )
     payment_status = serializers.MultipleChoiceField(
         choices=[INVOICE_STATUS_ENUM.UNPAID, INVOICE_STATUS_ENUM.PAID],
