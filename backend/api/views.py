@@ -552,6 +552,7 @@ class PlanViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         )
         plan_version_filter_serializer.is_valid(raise_exception=True)
         validated_data = plan_version_filter_serializer.validated_data
+        version_id = validated_data.get("version_id")
         version_currency = validated_data.get("version_currency")
         version_status = validated_data.get("version_status")
         version_custom_type = validated_data.get("version_custom_type")
@@ -576,6 +577,8 @@ class PlanViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
             versions_filters.append(Q(is_custom=False))
         elif version_custom_type == PLAN_CUSTOM_TYPE.CUSTOM_ONLY:
             versions_filters.append(Q(is_custom=True))
+        if version_id:
+            versions_filters.append(Q(version_id=version_id))
 
         qs = (
             Plan.plans.all()

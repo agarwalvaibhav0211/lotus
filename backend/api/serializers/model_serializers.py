@@ -1284,6 +1284,7 @@ class PlanVersionSerializer(
     class Meta:
         model = PlanVersion
         fields = (
+            "version_id",
             "recurring_charges",
             "components",
             "features",
@@ -1305,6 +1306,7 @@ class PlanVersionSerializer(
             "description",
         )
         extra_kwargs = {
+            "version_id": {"required": True, "read_only": True},
             "components": {"required": True, "read_only": True},
             "recurring_charges": {"required": True, "read_only": True},
             "features": {"required": True, "read_only": True},
@@ -1328,6 +1330,7 @@ class PlanVersionSerializer(
             "description": {"required": False, "read_only": True},
         }
 
+    version_id = PlanVersionUUIDField(read_only=True)
     components = PlanComponentSerializer(many=True, source="plan_components")
     features = FeatureSerializer(many=True)
     recurring_charges = serializers.SerializerMethodField()
@@ -2102,6 +2105,10 @@ class ListPlansFilterSerializer(serializers.Serializer):
 
 
 class ListPlanVersionsFilterSerializer(serializers.Serializer):
+    version_id = PlanVersionUUIDField(
+        required=False,
+        help_text="Filter to the version with this version_id.",
+    )
     version_currency_code = SlugRelatedFieldWithOrganization(
         slug_field="code",
         queryset=PricingUnit.objects.all(),
