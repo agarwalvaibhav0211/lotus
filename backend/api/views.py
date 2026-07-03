@@ -664,18 +664,20 @@ class PlanViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         )
 
         if include_tags:
-            # Filter to plans that have any of the tags in this list
+            # Filter to plans that have any of the tags in this list. distinct()
+            # avoids duplicate rows when a plan matches more than one tag.
             q_objects = Q()
             for tag in include_tags:
                 q_objects |= Q(tags__tag_name__iexact=tag)
-            qs = qs.filter(q_objects)
+            qs = qs.filter(q_objects).distinct()
 
         if include_tags_all:
-            # Filter to plans that have all of the tags in this list
-            q_objects = Q()
+            # Filter to plans that have all of the tags in this list. Each tag
+            # must be applied as a separate .filter() call so that Django
+            # generates a separate join per tag instead of ANDing conditions
+            # on a single join (which could never match more than one tag).
             for tag in include_tags_all:
-                q_objects &= Q(tags__tag_name__iexact=tag)
-            qs = qs.filter(q_objects)
+                qs = qs.filter(tags__tag_name__iexact=tag)
 
         if exclude_tags:
             # Filter to plans that do not have any of the tags in this list

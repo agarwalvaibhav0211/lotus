@@ -894,3 +894,74 @@ class TestPlanVersionOperations:
         )
         assert list_plans.status_code == status.HTTP_200_OK
         assert len(list_plans.data) == 0  # all plans removed cuz no versions left
+
+
+@pytest.mark.django_db(transaction=True)
+class TestPlanListTagFilters:
+    def _make_plan(self, setup_dict, name, tags):
+        payload = dict(setup_dict["plan_payload"])
+        payload["plan_name"] = name
+        response = setup_dict["client"].post(
+            reverse("plan-list"),
+            data=json.dumps(payload, cls=DjangoJSONEncoder),
+            content_type="application/json",
+        )
+        plan = Plan.objects.get(plan_id=response.data["plan_id"].replace("plan_", ""))
+        if tags:
+            tags_payload = {"tags": [{"tag_name": t} for t in tags]}
+            resp = setup_dict["client"].post(
+                reverse("plan-tags_add", kwargs={"plan_id": plan.plan_id}),
+                data=json.dumps(tags_payload, cls=DjangoJSONEncoder),
+                content_type="application/json",
+            )
+            assert resp.status_code == status.HTTP_200_OK
+        return plan
+
+    def test_include_tags_all_requires_both_tags(
+        self, plan_test_common_setup, add_subscription_record_to_org
+    ):
+        setup_dict = plan_test_common_setup()
+        self._make_plan(setup_dict, "plan_both", ["alpha", "beta"])
+        self._make_plan(setup_dict, "plan_alpha_only", ["alpha"])
+
+        params = {"include_tags_all": ["alpha", "beta"]}
+        resp = setup_dict["client"].get(
+            reverse("plan-list") + "?" + urllib.parse.urlencode(params, doseq=True),
+        )
+        names = {p["plan_name"] for p in resp.data}
+        print("DEBUG include_tags_all names:", names)
+        assert names == {"plan_both"}
+
+    def test_exclude_tags_drops_plan_with_any_matching_tag(
+        self, plan_test_common_setup, add_subscription_record_to_org
+    ):
+        setup_dict = plan_test_common_setup()
+        self._make_plan(setup_dict, "plan_gamma_delta", ["gamma", "delta"])
+        self._make_plan(setup_dict, "plan_delta_only", ["delta"])
+        self._make_plan(setup_dict, "plan_none", [])
+
+        params = {"exclude_tags": ["gamma", "epsilon"]}
+        resp = setup_dict["client"].get(
+            reverse("plan-list") + "?" + urllib.parse.urlencode(params, doseq=True),
+        )
+        names = {p["plan_name"] for p in resp.data}
+        print("DEBUG exclude_tags names:", names)
+        assert names == {"plan_delta_only", "plan_none"}
+
+    def test_include_tags_omits_plans_without_the_tag(
+        self, plan_test_common_setup, add_subscription_record_to_org
+    ):
+        setup_dict = plan_test_common_setup()
+        self._make_plan(setup_dict, "plan_zeta", ["zeta"])
+        self._make_plan(setup_dict, "plan_zeta_eta", ["zeta", "eta"])
+        self._make_plan(setup_dict, "plan_none", [])
+
+        params = {"include_tags": ["zeta", "eta"]}
+        resp = setup_dict["client"].get(
+            reverse("plan-list") + "?" + urllib.parse.urlencode(params, doseq=True),
+        )
+        names = [p["plan_name"] for p in resp.data]
+        print("DEBUG include_tags names:", names)
+        # plan_none must be omitted, and plan_zeta_eta must not appear twice
+        # (it matches the join on two different tag rows without distinct())
+        assert sorted(names) == ["plan_zeta", "plan_zeta_eta"]
