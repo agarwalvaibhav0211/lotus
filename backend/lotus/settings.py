@@ -438,9 +438,11 @@ elif DOCKERIZED:
 else:
     REDIS_URL = None
 
+REDIS_DB = os.environ.get("REDIS_DB", "0")
+
 # Celery Settings
-CELERY_BROKER_URL = f"{REDIS_URL}/0"
-CELERY_RESULT_BACKEND = f"{REDIS_URL}/0"
+CELERY_BROKER_URL = f"{REDIS_URL}/{REDIS_DB}"
+CELERY_RESULT_BACKEND = f"{REDIS_URL}/{REDIS_DB}"
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
@@ -453,7 +455,7 @@ if REDIS_URL is not None:
         },
         "main_cache": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": f"{REDIS_URL}/0",
+            "LOCATION": f"{REDIS_URL}/{REDIS_DB}",
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             },
