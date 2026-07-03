@@ -13,6 +13,7 @@ from metering_billing.taxes import get_lotus_tax_rates, get_taxjar_tax_rates
 from metering_billing.utils import (
     calculate_end_date,
     convert_to_datetime,
+    convert_to_two_decimal_places,
     date_as_min_dt,
     now_utc,
 )
@@ -837,7 +838,9 @@ def calculate_due_date(issue_date, organization):
 def finalize_invoice_amount(invoice, draft):
     from metering_billing.models import Invoice
 
-    invoice.amount = invoice.line_items.aggregate(tot=Sum("amount"))["tot"] or 0
+    invoice.amount = convert_to_two_decimal_places(
+        invoice.line_items.aggregate(tot=Sum("amount"))["tot"] or 0
+    )
     if abs(invoice.amount) < 0.01 and not draft:
         invoice.payment_status = Invoice.PaymentStatus.PAID
     invoice.save()

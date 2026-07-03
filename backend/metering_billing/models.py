@@ -39,6 +39,7 @@ from metering_billing.utils import (
     calculate_end_date,
     convert_to_date,
     convert_to_decimal,
+    convert_to_two_decimal_places,
     customer_uuid,
     dates_bwn_two_dts,
     event_uuid,
@@ -1891,6 +1892,11 @@ class Invoice(models.Model):
         choices=PaymentStatus.choices, default=PaymentStatus.UNPAID
     )
     due_date = models.DateTimeField(max_length=100, null=True, blank=True)
+    paid_on = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="The time the invoice's payment_status transitioned to paid.",
+    )
     invoice_number = models.CharField(max_length=13)
     invoice_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     organization = models.ForeignKey(
@@ -1956,12 +1962,16 @@ class Invoice(models.Model):
                 next_invoice_number = "{0:06d}".format(last_invoice_number + 1)
 
             self.invoice_number = issue_date_string + "-" + next_invoice_number
-        super().save(*args, **kwargs)
-        if (
+
+        became_paid = (
             self.__original_payment_status != self.payment_status
             and self.payment_status == Invoice.PaymentStatus.PAID
-            and self.amount > 0
-        ):
+        )
+        if became_paid and self.paid_on is None:
+            self.paid_on = now_utc()
+
+        super().save(*args, **kwargs)
+        if became_paid and self.amount > 0:
             invoice_paid_webhook(self, self.organization)
         self.__original_payment_status = self.payment_status
 
@@ -1991,6 +2001,7 @@ class InvoiceLineItemAdjustment(models.Model):
     adjustment_type = models.PositiveSmallIntegerField(choices=AdjustmentType.choices)
 
     def save(self, *args, **kwargs):
+        self.amount = convert_to_two_decimal_places(self.amount)
         super().save(*args, **kwargs)
         self.invoice_line_item.save()
 
@@ -2067,8 +2078,9 @@ class InvoiceLineItem(models.Model):
         return self.name + " " + str(self.invoice.invoice_number) + f"[{self.base}]"
 
     def save(self, *args, **kwargs):
-        self.amount = self.base + sum(
-            [adjustment.amount for adjustment in self.adjustments.all()]
+        self.base = convert_to_two_decimal_places(self.base)
+        self.amount = convert_to_two_decimal_places(
+            self.base + sum([adjustment.amount for adjustment in self.adjustments.all()])
         )
         super().save(*args, **kwargs)
 

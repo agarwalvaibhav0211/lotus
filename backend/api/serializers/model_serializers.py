@@ -494,6 +494,7 @@ class InvoiceSerializer(
             "end_date",
             "seller",
             "invoice_pdf",
+            "paid_on",
         )
         extra_kwargs = {
             "invoice_id": {"required": True, "read_only": True},
@@ -503,6 +504,7 @@ class InvoiceSerializer(
             "issue_date": {"required": True, "read_only": True},
             "payment_status": {"required": True, "read_only": True},
             "due_date": {"required": True, "allow_null": True, "read_only": True},
+            "paid_on": {"required": True, "allow_null": True, "read_only": True},
             "external_payment_obj_id": {
                 "required": True,
                 "allow_null": True,
