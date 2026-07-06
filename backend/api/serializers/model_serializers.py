@@ -1616,7 +1616,7 @@ class PlanSerializer(
                 or 0
             )
 
-    def get_tags(self, obj) -> serializers.ListField(child=serializers.SlugField()):
+    def get_tags(self, obj) -> serializers.ListField(child=serializers.CharField()):
         return obj.tags.all().values_list("tag_name", flat=True)
 
     # DEPRECATED

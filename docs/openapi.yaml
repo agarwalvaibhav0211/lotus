@@ -11416,7 +11416,6 @@ components:
         tags:
           description: The tags that this plan has.
           items:
-            pattern: ^[-a-zA-Z0-9_]+$
             type: string
           readOnly: true
           type: array
