@@ -9,6 +9,7 @@ import StripeRedirect from "../integrations/PaymentProcessorIntegrations";
 import SideBar from "../components/SideBar";
 import CreatePlan from "../pages/CreatePlan";
 import ViewMetrics from "../pages/ViewMetrics";
+import ViewFeatures from "../pages/ViewFeatures";
 import ViewExperiments from "../pages/ViewExperiments";
 import CreateBacktest from "../pages/CreateBacktest";
 import ExperimentResults from "../pages/ExperimentResults";
@@ -95,6 +96,7 @@ const AppRoutes: FC = () => {
             <Route path="/customers" element={<ViewCustomers />} />
             <Route path="/customers/:customerId" element={<CustomerDetail />} />
             <Route path="/metrics" element={<ViewMetrics />} />
+            <Route path="/features" element={<ViewFeatures />} />
             <Route path="/customers-create" element={<CreatePlan />} />
             {/* <Route
               path="/customers-create-credit/:customerId"

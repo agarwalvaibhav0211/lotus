@@ -10,6 +10,7 @@ import {
   LineChartOutlined,
   LogoutOutlined,
   ExperimentOutlined,
+  TagsOutlined,
 } from "@ant-design/icons";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -121,6 +122,12 @@ const SideBar: FC = () => {
       onClick: () => navigate("/metrics"),
     },
     {
+      key: "/features",
+      icon: <TagsOutlined />,
+      label: "Features",
+      onClick: () => navigate("/features"),
+    },
+    {
       type: "divider",
     },
     {
@@ -171,6 +178,12 @@ const SideBar: FC = () => {
       icon: <LineChartOutlined />,
       label: "Metrics",
       onClick: () => navigate("/metrics"),
+    },
+    {
+      key: "/features",
+      icon: <TagsOutlined />,
+      label: "Features",
+      onClick: () => navigate("/features"),
     },
     {
       type: "divider",
