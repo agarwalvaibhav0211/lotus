@@ -1,6 +1,6 @@
 services:
   db:
-    image: timescale/timescaledb-ha:pg14-latest
+    image: timescale/timescaledb:latest-pg14
     restart: unless-stopped
     ports:
       - 5432:5432
@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
 
   svix-server:
-    image: svix/svix-server:v0.74
+    image: svix/svix-server:v1.38
     environment:
       WAIT_FOR: "true"
       SVIX_REDIS_DSN: redis://redis
@@ -57,14 +57,13 @@ services:
 
   backend:
     &backend
+    container_name: lotus-backend
     env_file:
       - ./env/.env.dev
     build:
       context: ./backend
       dockerfile: Dockerfile
       target: development
-    ports:
-      - 8000:8000
     volumes:
       - ./backend/lotus:/lotus/lotus
       - ./backend/metering_billing:/lotus/metering_billing
@@ -74,6 +73,9 @@ services:
       - db
       - redis
     restart: unless-stopped
+    networks:
+      - default
+      - caddy_net
 
   event-guidance:
     env_file:
@@ -91,21 +93,24 @@ services:
     restart: unless-stopped
 
   event-ingestion:
+    container_name: lotus-event-ingestion
     env_file:
       - ./env/.env.dev
     build:
       context: ./go/event-ingestion
       dockerfile: Dockerfile
-    ports:
-      - 7998:7998
     depends_on:
       - db
       - redis
       - redpanda
       - backend
     restart: unless-stopped
+    networks:
+      - default
+      - caddy_net
 
   frontend:
+    container_name: lotus-frontend
     restart: unless-stopped
     build:
       context: ./frontend
@@ -113,16 +118,18 @@ services:
       target: development
     env_file:
       - ./env/.env.dev
-    ports:
-      - 3000:3000
     command: yarn run dev --host 0.0.0.0 --port 3000
     volumes:
       - ./frontend/src:/frontend/src:delegated
       - ./frontend/public:/frontend/public:delegated
+      - ./frontend/vite.config.ts:/frontend/vite.config.ts:delegated
       - /frontend/node_modules/
     stdin_open: true
     depends_on:
       - backend
+    networks:
+      - default
+      - caddy_net
 
   celery:
     env_file:
@@ -158,8 +165,14 @@ services:
       - celery
       - backend
       - redis
-    restart: unless-stopped
 
 volumes:
   pgdata_dev:
   redpanda_dev:
+
+networks:
+  default:
+    name: lotus_default
+  caddy_net:
+    external: true
+    name: caddy_net
