@@ -16,6 +16,73 @@ import { InvoiceType, MarkPaymentStatusAsPaid } from "../../types/invoice-type";
 import { components } from "../../gen-types";
 import CreateOneOffInvoice from "../../pages/CreateOneOffInvoice";
 
+const InvoiceLineItemsBreakdown: FC<{ invoiceId: string }> = ({
+  invoiceId,
+}) => {
+  const { data: invoice, isLoading } = useQuery<InvoiceType>(
+    ["invoice_detail", invoiceId],
+    () => Invoices.getInvoice(invoiceId)
+  );
+
+  if (isLoading) {
+    return <p className="p-4">Loading line items...</p>;
+  }
+
+  if (!invoice || invoice.line_items.length === 0) {
+    return <p className="p-4">No line items for this invoice</p>;
+  }
+
+  return (
+    <Table
+      dataSource={invoice.line_items}
+      rowKey={(item) => `${item.name}-${item.start_date}-${item.end_date}`}
+      pagination={false}
+      columns={[
+        { title: "Name", dataIndex: "name", key: "name" },
+        { title: "Plan", dataIndex: "plan", key: "plan" },
+        {
+          title: "Period",
+          key: "period",
+          render: (_, item) =>
+            `${dayjs(item.start_date).format("YYYY/MM/DD")} - ${dayjs(
+              item.end_date
+            ).format("YYYY/MM/DD")}`,
+        },
+        { title: "Quantity", dataIndex: "quantity", key: "quantity" },
+        { title: "Billing Type", dataIndex: "billing_type", key: "billing_type" },
+        {
+          title: "Base",
+          dataIndex: "base",
+          key: "base",
+          render: (base) => parseFloat(String(base)).toFixed(2),
+        },
+        {
+          title: "Adjustments",
+          dataIndex: "adjustments",
+          key: "adjustments",
+          render: (adjustments: InvoiceType["line_items"][0]["adjustments"]) =>
+            adjustments && adjustments.length > 0
+              ? adjustments
+                  .map(
+                    (adj) =>
+                      `${adj.adjustment_type}: ${parseFloat(
+                        String(adj.amount)
+                      ).toFixed(2)}`
+                  )
+                  .join(", ")
+              : "-",
+        },
+        {
+          title: "Amount",
+          dataIndex: "amount",
+          key: "amount",
+          render: (amount) => parseFloat(String(amount)).toFixed(2),
+        },
+      ]}
+    />
+  );
+};
+
 const downloadFile = async (s3link) => {
   if (!s3link) {
     toast.error("No file to download");
@@ -208,9 +275,9 @@ const CustomerInvoiceView: FC<Props> = ({
               <Tooltip
                 title={
                   "Source: " +
-                  (record.external_payment_obj_type === "stripe"
-                    ? "Stripe"
-                    : "Braintree")
+                  (integrationsMap[
+                    record.external_payment_obj_type as keyof typeof integrationsMap
+                  ]?.name ?? record.external_payment_obj_type)
                 }
               >
                 <a
@@ -234,9 +301,9 @@ const CustomerInvoiceView: FC<Props> = ({
               <Tooltip
                 title={
                   "Source: " +
-                  (record.external_payment_obj_type === "stripe"
-                    ? "Stripe"
-                    : "Braintree")
+                  (integrationsMap[
+                    record.external_payment_obj_type as keyof typeof integrationsMap
+                  ]?.name ?? record.external_payment_obj_type)
                 }
               >
                 <Tag
@@ -382,6 +449,11 @@ const CustomerInvoiceView: FC<Props> = ({
           options={false}
           toolBarRender={false}
           search={false}
+          expandable={{
+            expandedRowRender: (record) => (
+              <InvoiceLineItemsBreakdown invoiceId={record.invoice_id} />
+            ),
+          }}
         />
       ) : (
         <p>No invoices found</p>

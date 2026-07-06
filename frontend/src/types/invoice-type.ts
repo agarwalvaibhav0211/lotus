@@ -45,10 +45,18 @@ export interface LineItem {
   end_date: string;
   quantity: number;
   base: number;
+  amount: number;
+  adjustments: LineItemAdjustment[];
   billing_type: string;
   plan: string; // TODO::: fix
   metadata: object;
   subscription_filters: { property_name: string; value: string }[];
+}
+
+export interface LineItemAdjustment {
+  amount: number;
+  account: string;
+  adjustment_type: string;
 }
 
 export interface MarkPaymentStatusAsPaid {

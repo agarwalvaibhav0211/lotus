@@ -654,6 +654,8 @@ export const Invoices = {
     requests.get(`app/customers/${customer_id}/draft_invoice/`),
   getInvoiceUrl: (invoice_id: string): Promise<{ url: string }> =>
     requests.get(`app/invoices/${invoice_id}/pdf_url/`),
+  getInvoice: (invoice_id: string): Promise<InvoiceType> =>
+    requests.get(`app/invoices/${invoice_id}/`),
   createOneOffInvoice: (post: CreateOneOffInvoiceType): Promise<InvoiceType> =>
     requests.post("app/invoices/", post),
 };
