@@ -798,8 +798,14 @@ def generate_one_off_invoice(
 
 
 def generate_external_payment_obj(invoice):
-    from metering_billing.models import UnifiedCRMOrganizationIntegration
+    from metering_billing.models import Invoice, UnifiedCRMOrganizationIntegration
     from metering_billing.views.crm_views import send_invoice_to_salesforce
+
+    if invoice.payment_status == Invoice.PaymentStatus.PAID:
+        # Nothing to collect (e.g. zero-amount invoices are auto-marked paid
+        # in finalize_invoice_amount) — don't push it to a payment processor
+        # or CRM as if it still needs payment.
+        return None
 
     customer = invoice.customer
     pp = customer.payment_provider
