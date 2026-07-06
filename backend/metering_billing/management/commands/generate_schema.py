@@ -3,6 +3,7 @@ import json
 
 from django.core import management
 from django.core.management.base import BaseCommand
+from metering_billing.openapi_hooks import camelize_operation_ids
 from ruamel.yaml import YAML
 
 
@@ -47,6 +48,11 @@ class Command(BaseCommand):
                 del data_private["paths"][x]
             else:
                 del data_public["paths"][x]
+
+        # Public spec (the actual Lotus API) gets camelCase operationIds;
+        # private spec feeds frontend/src/gen-types.ts and must keep the
+        # snake_case operationIds that `operations["..."]` lookups rely on.
+        data_public = camelize_operation_ids(data_public)
 
         # Sort dictionaries recursively for deterministic output
         data_public = self._sort_dict_recursively(data_public)

@@ -94,3 +94,15 @@ def sort_enums_and_required_fields(result, **kwargs):
 
     sort_recursive(result)
     return result
+
+
+def camelize_operation_ids(data):
+    """Convert snake_case operationId values to camelCase in-place."""
+    for path_item in data.get("paths", {}).values():
+        for operation in path_item.values():
+            if isinstance(operation, dict) and "operationId" in operation:
+                head, *tail = operation["operationId"].split("_")
+                operation["operationId"] = head + "".join(
+                    word.capitalize() for word in tail
+                )
+    return data

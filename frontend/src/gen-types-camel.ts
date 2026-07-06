@@ -3171,6 +3171,45 @@ export interface components {
       token: string;
       user: components["schemas"]["User"];
     };
+    DraftInvoice: {
+      /** Format: double */
+      amount: number;
+      /**
+       * Format: double 
+       * @deprecated
+       */
+      costDue: number;
+      /**
+       * @description * `salesforce` - salesforce 
+       * @enum {string}
+       */
+      crmProvider: "salesforce";
+      crmProviderId: string;
+      /** Format: uri */
+      crmProviderUrl: string;
+      currency: components["schemas"]["PricingUnit"];
+      /** Format: date-time */
+      dueDate: string;
+      /** Format: date */
+      endDate: string;
+      externalPaymentObjStatus?: string;
+      /** Format: uri */
+      externalPaymentObjUrl: string;
+      invoiceId: string;
+      /** Format: date-time */
+      issueDate: string;
+      lineItems: readonly (components["schemas"]["GroupedLineItem"])[];
+      /**
+       * Format: date-time 
+       * @description The time the invoice's paymentStatus transitioned to paid.
+       */
+      paidOn: string;
+      /** Format: date */
+      startDate: string;
+    };
+    DraftInvoiceResponse: {
+      invoices: (components["schemas"]["DraftInvoice"])[];
+    };
     EmailRequest: {
       /** Format: email */
       email: string;
@@ -3262,6 +3301,17 @@ export interface components {
       planId: string;
       /** @description The subscription filters that are applied to this plan's relationship with the customer. If your billing model does not have the ability multiple plans or subscriptions per customer, this is likely not relevant for you. */
       subscriptionFilters: (components["schemas"]["SubscriptionFilter"])[];
+    };
+    GroupedLineItem: {
+      /** Format: double */
+      base: number;
+      /** Format: date-time */
+      endDate: string;
+      planName: string;
+      /** Format: date-time */
+      startDate: string;
+      subItems: (components["schemas"]["LightweightInvoiceLineItem"])[];
+      subscriptionFilters: (components["schemas"]["SubscriptionFilterDetail"])[];
     };
     ImportCustomerFailure: {
       detail: string;
@@ -3443,6 +3493,11 @@ export interface components {
       issueDate: string;
       lineItems: (components["schemas"]["InvoiceLineItem"])[];
       /**
+       * Format: date-time 
+       * @description The time the invoice's paymentStatus transitioned to paid.
+       */
+      paidOn: string;
+      /**
        * @description * `draft` - draft
        * * `voided` - voided
        * * `paid` - paid
@@ -3499,6 +3554,11 @@ export interface components {
       /** Format: date-time */
       issueDate: string;
       lineItems: (components["schemas"]["InvoiceLineItem"])[];
+      /**
+       * Format: date-time 
+       * @description The time the invoice's paymentStatus transitioned to paid.
+       */
+      paidOn: string;
       /**
        * @description * `draft` - draft
        * * `voided` - voided
@@ -3669,6 +3729,11 @@ export interface components {
       /** Format: date-time */
       issueDate: string;
       /**
+       * Format: date-time 
+       * @description The time the invoice's paymentStatus transitioned to paid.
+       */
+      paidOn: string;
+      /**
        * @description * `draft` - draft
        * * `voided` - voided
        * * `paid` - paid
@@ -3719,6 +3784,11 @@ export interface components {
       /** Format: date-time */
       issueDate: string;
       /**
+       * Format: date-time 
+       * @description The time the invoice's paymentStatus transitioned to paid.
+       */
+      paidOn: string;
+      /**
        * @description * `draft` - draft
        * * `voided` - voided
        * * `paid` - paid
@@ -3729,6 +3799,41 @@ export interface components {
       seller: components["schemas"]["Seller"];
       /** Format: date */
       startDate: string;
+    };
+    LightweightInvoiceLineItem: {
+      adjustments: readonly (components["schemas"]["InvoiceLineItemAdjustment"])[];
+      /**
+       * Format: double 
+       * @description Amount of the line item. This is the price after any adjustments are applied.
+       */
+      amount: number;
+      /**
+       * Format: double 
+       * @description Base price of the line item. This is the price before any adjustments are applied.
+       */
+      base: number;
+      /**
+       * @description * `inArrears` - In Arrears
+       * * `intermediate` - Intermediate
+       * * `inAdvance` - In Advance
+       * * `oneTime` - One Time 
+       * @enum {string|null}
+       */
+      billingType: "inArrears" | "intermediate" | "inAdvance" | "oneTime" | "" | null;
+      /** Format: date-time */
+      endDate: string;
+      name: string;
+      plan: components["schemas"]["LightweightPlanVersion"] | null;
+      /** Format: double */
+      quantity: number;
+      /** Format: date-time */
+      startDate: string;
+      subscriptionFilters: readonly (components["schemas"]["SubscriptionFilter"])[];
+      /**
+       * Format: double 
+       * @deprecated
+       */
+      subtotal: number;
     };
     LightweightMetric: {
       /** @description Name of the event that this metric is tracking. */
@@ -5872,6 +5977,7 @@ export interface components {
       /** @deprecated */
       usageBillingFrequency: string;
       version: number | "customVersion";
+      versionId: string;
     };
     PlanVersionCreateRequest: {
       components?: (components["schemas"]["PlanComponentCreateRequest"])[];
@@ -6403,6 +6509,11 @@ export interface components {
       planVersion: number;
     };
     SubscriptionFilter: {
+      /** @description The string name of the property to filter on. Example: 'productId' */
+      propertyName: string;
+      value: string;
+    };
+    SubscriptionFilterDetail: {
       /** @description The string name of the property to filter on. Example: 'productId' */
       propertyName: string;
       value: string;
@@ -7341,8 +7452,11 @@ export interface operations {
       };
     };
     responses: {
-      /** @description No response body */
-      200: never;
+      200: {
+        content: {
+          "application/json": components["schemas"]["DraftInvoiceResponse"];
+        };
+      };
     };
   };
   appDemoLoginCreate: {
@@ -8180,6 +8294,7 @@ export interface operations {
          * * `publicOnly` - Public Only
          * * `all` - All
          */
+        /** @description Filter to the version with this versionId. */
         /** @description Filter to versions that have this status. Ended means it has an activeTo date in the past. Not started means it has an activeFrom date in the future or null. */
       query?: {
         duration?: "monthly" | "quarterly" | "yearly";
@@ -8188,6 +8303,7 @@ export interface operations {
         includeTagsAll?: (string)[];
         versionCurrencyCode?: string;
         versionCustomType?: "all" | "customOnly" | "publicOnly";
+        versionId?: string;
         versionStatus?: ("active" | "ended" | "notStarted")[];
       };
     };
@@ -8227,10 +8343,12 @@ export interface operations {
          * * `publicOnly` - Public Only
          * * `all` - All
          */
+        /** @description Filter to the version with this versionId. */
         /** @description Filter to versions that have this status. Ended means it has an activeTo date in the past. Not started means it has an activeFrom date in the future or null. */
       query?: {
         versionCurrencyCode?: string;
         versionCustomType?: "all" | "customOnly" | "publicOnly";
+        versionId?: string;
         versionStatus?: ("active" | "ended" | "notStarted")[];
       };
       path: {

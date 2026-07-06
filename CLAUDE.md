@@ -56,6 +56,24 @@ go build ./event-ingestion/...  # build event-ingestion
 go build ./event-guidance/...   # build event-guidance
 ```
 
+## Generating OpenAPI Specs
+
+Run this after any API change (new/modified endpoints, serializers, or views) to keep the schema and frontend types in sync.
+
+```bash
+# 1. Generate the OpenAPI schema from Django (backend)
+cd backend
+python manage.py generate_schema
+
+# 2. Regenerate frontend TypeScript types from the schema
+cd gen
+yarn update-types
+```
+
+Step 1 (`backend/metering_billing/management/commands/generate_schema.py`) runs `drf_spectacular` and writes `docs/openapi_full.yaml`, then splits it by path prefix into `docs/openapi.yaml` (public) and `docs/openapi_private.yaml` (internal `/api/*`), plus JSON equivalents — all deterministically sorted. Uses hooks defined in `backend/metering_billing/openapi_hooks.py`.
+
+Step 2 (`gen/bump.ts`) runs `openapi-typescript` against `docs/openapi_private.yaml` to produce `frontend/src/gen-types.ts`, then converts it to camelCase as `frontend/src/gen-types-camel.ts`.
+
 ## Architecture
 
 ### Service Map

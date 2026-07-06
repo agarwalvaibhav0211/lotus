@@ -4649,6 +4649,128 @@
         ],
         "type": "object"
       },
+      "DraftInvoice": {
+        "properties": {
+          "amount": {
+            "exclusiveMaximum": true,
+            "exclusiveMinimum": true,
+            "format": "double",
+            "maximum": 10000000000,
+            "minimum": -10000000000,
+            "readOnly": true,
+            "type": "number"
+          },
+          "cost_due": {
+            "deprecated": true,
+            "exclusiveMaximum": true,
+            "format": "double",
+            "maximum": 10000000000,
+            "minimum": 0,
+            "type": "number"
+          },
+          "crm_provider": {
+            "description": "* `salesforce` - salesforce",
+            "enum": [
+              "salesforce"
+            ],
+            "readOnly": true,
+            "type": "string"
+          },
+          "crm_provider_id": {
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
+          "crm_provider_url": {
+            "format": "uri",
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/PricingUnit"
+          },
+          "due_date": {
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
+          "end_date": {
+            "format": "date",
+            "readOnly": true,
+            "type": "string"
+          },
+          "external_payment_obj_status": {
+            "nullable": true,
+            "type": "string"
+          },
+          "external_payment_obj_url": {
+            "format": "uri",
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
+          "invoice_id": {
+            "type": "string"
+          },
+          "issue_date": {
+            "format": "date-time",
+            "readOnly": true,
+            "type": "string"
+          },
+          "line_items": {
+            "items": {
+              "$ref": "#/components/schemas/GroupedLineItem"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "paid_on": {
+            "description": "The time the invoice's payment_status transitioned to paid.",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "readOnly": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "cost_due",
+          "crm_provider",
+          "crm_provider_id",
+          "crm_provider_url",
+          "currency",
+          "due_date",
+          "end_date",
+          "external_payment_obj_url",
+          "invoice_id",
+          "issue_date",
+          "line_items",
+          "paid_on",
+          "start_date"
+        ],
+        "type": "object"
+      },
+      "DraftInvoiceResponse": {
+        "properties": {
+          "invoices": {
+            "items": {
+              "$ref": "#/components/schemas/DraftInvoice"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "invoices"
+        ],
+        "type": "object"
+      },
       "EmailRequest": {
         "properties": {
           "email": {
@@ -4927,6 +5049,50 @@
           "access",
           "feature_name",
           "plan_id",
+          "subscription_filters"
+        ],
+        "type": "object"
+      },
+      "GroupedLineItem": {
+        "properties": {
+          "base": {
+            "exclusiveMaximum": true,
+            "exclusiveMinimum": true,
+            "format": "double",
+            "maximum": 100000000,
+            "minimum": -100000000,
+            "type": "number"
+          },
+          "end_date": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "plan_name": {
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "sub_items": {
+            "items": {
+              "$ref": "#/components/schemas/LightweightInvoiceLineItem"
+            },
+            "type": "array"
+          },
+          "subscription_filters": {
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionFilterDetail"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "base",
+          "end_date",
+          "plan_name",
+          "start_date",
+          "sub_items",
           "subscription_filters"
         ],
         "type": "object"
@@ -5400,6 +5566,13 @@
             },
             "type": "array"
           },
+          "paid_on": {
+            "description": "The time the invoice's payment_status transitioned to paid.",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
           "payment_status": {
             "description": "* `draft` - draft\n* `voided` - voided\n* `paid` - paid\n* `unpaid` - unpaid",
             "enum": [
@@ -5433,6 +5606,7 @@
           "invoice_pdf",
           "issue_date",
           "line_items",
+          "paid_on",
           "payment_status",
           "seller",
           "start_date"
@@ -5561,6 +5735,13 @@
             },
             "type": "array"
           },
+          "paid_on": {
+            "description": "The time the invoice's payment_status transitioned to paid.",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
           "payment_status": {
             "description": "* `draft` - draft\n* `voided` - voided\n* `paid` - paid\n* `unpaid` - unpaid",
             "enum": [
@@ -5598,6 +5779,7 @@
           "invoice_pdf",
           "issue_date",
           "line_items",
+          "paid_on",
           "payment_status",
           "seller",
           "start_date"
@@ -6031,6 +6213,13 @@
             "readOnly": true,
             "type": "string"
           },
+          "paid_on": {
+            "description": "The time the invoice's payment_status transitioned to paid.",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
           "payment_status": {
             "description": "* `draft` - draft\n* `voided` - voided\n* `paid` - paid\n* `unpaid` - unpaid",
             "enum": [
@@ -6062,6 +6251,7 @@
           "invoice_number",
           "invoice_pdf",
           "issue_date",
+          "paid_on",
           "payment_status",
           "seller",
           "start_date"
@@ -6164,6 +6354,13 @@
             "readOnly": true,
             "type": "string"
           },
+          "paid_on": {
+            "description": "The time the invoice's payment_status transitioned to paid.",
+            "format": "date-time",
+            "nullable": true,
+            "readOnly": true,
+            "type": "string"
+          },
           "payment_status": {
             "description": "* `draft` - draft\n* `voided` - voided\n* `paid` - paid\n* `unpaid` - unpaid",
             "enum": [
@@ -6199,9 +6396,111 @@
           "invoice_number",
           "invoice_pdf",
           "issue_date",
+          "paid_on",
           "payment_status",
           "seller",
           "start_date"
+        ],
+        "type": "object"
+      },
+      "LightweightInvoiceLineItem": {
+        "properties": {
+          "adjustments": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLineItemAdjustment"
+            },
+            "readOnly": true,
+            "type": "array"
+          },
+          "amount": {
+            "description": "Amount of the line item. This is the price after any adjustments are applied.",
+            "exclusiveMaximum": true,
+            "exclusiveMinimum": true,
+            "format": "double",
+            "maximum": 10000000000,
+            "minimum": -10000000000,
+            "type": "number"
+          },
+          "base": {
+            "description": "Base price of the line item. This is the price before any adjustments are applied.",
+            "exclusiveMaximum": true,
+            "exclusiveMinimum": true,
+            "format": "double",
+            "maximum": 10000000000,
+            "minimum": -10000000000,
+            "type": "number"
+          },
+          "billing_type": {
+            "description": "* `in_arrears` - In Arrears\n* `intermediate` - Intermediate\n* `in_advance` - In Advance\n* `one_time` - One Time",
+            "enum": [
+              "in_arrears",
+              "intermediate",
+              "in_advance",
+              "one_time",
+              null
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "end_date": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 100,
+            "type": "string"
+          },
+          "plan": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LightweightPlanVersion"
+              }
+            ],
+            "nullable": true,
+            "readOnly": true
+          },
+          "quantity": {
+            "exclusiveMaximum": true,
+            "format": "double",
+            "maximum": 10000000000,
+            "minimum": 0,
+            "nullable": true,
+            "type": "number"
+          },
+          "start_date": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "subscription_filters": {
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionFilter"
+            },
+            "nullable": true,
+            "readOnly": true,
+            "type": "array"
+          },
+          "subtotal": {
+            "deprecated": true,
+            "exclusiveMaximum": true,
+            "exclusiveMinimum": true,
+            "format": "double",
+            "maximum": 10000000000,
+            "minimum": -10000000000,
+            "type": "number"
+          }
+        },
+        "required": [
+          "adjustments",
+          "amount",
+          "base",
+          "billing_type",
+          "end_date",
+          "name",
+          "plan",
+          "quantity",
+          "start_date",
+          "subscription_filters",
+          "subtotal"
         ],
         "type": "object"
       },
@@ -9718,6 +10017,10 @@
               }
             ],
             "readOnly": true
+          },
+          "version_id": {
+            "readOnly": true,
+            "type": "string"
           }
         },
         "required": [
@@ -9737,7 +10040,8 @@
           "status",
           "target_customers",
           "usage_billing_frequency",
-          "version"
+          "version",
+          "version_id"
         ],
         "type": "object"
       },
@@ -11373,6 +11677,22 @@
         "type": "object"
       },
       "SubscriptionFilter": {
+        "properties": {
+          "property_name": {
+            "description": "The string name of the property to filter on. Example: 'product_id'",
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "property_name",
+          "value"
+        ],
+        "type": "object"
+      },
+      "SubscriptionFilterDetail": {
         "properties": {
           "property_name": {
             "description": "The string name of the property to filter on. Example: 'product_id'",
@@ -13999,7 +14319,14 @@
         ],
         "responses": {
           "200": {
-            "description": "No response body"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DraftInvoiceResponse"
+                }
+              }
+            },
+            "description": ""
           }
         },
         "security": [
@@ -16527,6 +16854,15 @@
             }
           },
           {
+            "description": "Filter to the version with this version_id.",
+            "in": "query",
+            "name": "version_id",
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
             "description": "Filter to versions that have this status. Ended means it has an active_to date in the past. Not started means it has an active_from date in the future or null.",
             "in": "query",
             "name": "version_status",
@@ -16660,6 +16996,15 @@
                 "custom_only",
                 "public_only"
               ],
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter to the version with this version_id.",
+            "in": "query",
+            "name": "version_id",
+            "schema": {
               "minLength": 1,
               "type": "string"
             }

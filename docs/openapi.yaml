@@ -5811,6 +5811,103 @@ components:
       - token
       - user
       type: object
+    DraftInvoice:
+      properties:
+        amount:
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          readOnly: true
+          type: number
+        cost_due:
+          deprecated: true
+          exclusiveMaximum: true
+          format: double
+          maximum: 10000000000
+          minimum: 0
+          type: number
+        crm_provider:
+          description: '* `salesforce` - salesforce'
+          enum:
+          - salesforce
+          readOnly: true
+          type: string
+        crm_provider_id:
+          nullable: true
+          readOnly: true
+          type: string
+        crm_provider_url:
+          format: uri
+          nullable: true
+          readOnly: true
+          type: string
+        currency:
+          $ref: '#/components/schemas/PricingUnit'
+        due_date:
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+        end_date:
+          format: date
+          readOnly: true
+          type: string
+        external_payment_obj_status:
+          nullable: true
+          type: string
+        external_payment_obj_url:
+          format: uri
+          nullable: true
+          readOnly: true
+          type: string
+        invoice_id:
+          type: string
+        issue_date:
+          format: date-time
+          readOnly: true
+          type: string
+        line_items:
+          items:
+            $ref: '#/components/schemas/GroupedLineItem'
+          readOnly: true
+          type: array
+        paid_on:
+          description: The time the invoice's payment_status transitioned to paid.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
+        start_date:
+          format: date
+          readOnly: true
+          type: string
+      required:
+      - amount
+      - cost_due
+      - crm_provider
+      - crm_provider_id
+      - crm_provider_url
+      - currency
+      - due_date
+      - end_date
+      - external_payment_obj_url
+      - invoice_id
+      - issue_date
+      - line_items
+      - paid_on
+      - start_date
+      type: object
+    DraftInvoiceResponse:
+      properties:
+        invoices:
+          items:
+            $ref: '#/components/schemas/DraftInvoice'
+          type: array
+      required:
+      - invoices
+      type: object
     EmailRequest:
       properties:
         email:
@@ -6043,6 +6140,39 @@ components:
       - access
       - feature_name
       - plan_id
+      - subscription_filters
+      type: object
+    GroupedLineItem:
+      properties:
+        base:
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          type: number
+        end_date:
+          format: date-time
+          type: string
+        plan_name:
+          type: string
+        start_date:
+          format: date-time
+          type: string
+        sub_items:
+          items:
+            $ref: '#/components/schemas/LightweightInvoiceLineItem'
+          type: array
+        subscription_filters:
+          items:
+            $ref: '#/components/schemas/SubscriptionFilterDetail'
+          type: array
+      required:
+      - base
+      - end_date
+      - plan_name
+      - start_date
+      - sub_items
       - subscription_filters
       type: object
     ImportCustomerFailure:
@@ -6406,6 +6536,12 @@ components:
           items:
             $ref: '#/components/schemas/InvoiceLineItem'
           type: array
+        paid_on:
+          description: The time the invoice's payment_status transitioned to paid.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
         payment_status:
           description: |-
             * `draft` - draft
@@ -6438,6 +6574,7 @@ components:
       - invoice_pdf
       - issue_date
       - line_items
+      - paid_on
       - payment_status
       - seller
       - start_date
@@ -6541,6 +6678,12 @@ components:
           items:
             $ref: '#/components/schemas/InvoiceLineItem'
           type: array
+        paid_on:
+          description: The time the invoice's payment_status transitioned to paid.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
         payment_status:
           description: |-
             * `draft` - draft
@@ -6577,6 +6720,7 @@ components:
       - invoice_pdf
       - issue_date
       - line_items
+      - paid_on
       - payment_status
       - seller
       - start_date
@@ -6936,6 +7080,12 @@ components:
           format: date-time
           readOnly: true
           type: string
+        paid_on:
+          description: The time the invoice's payment_status transitioned to paid.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
         payment_status:
           description: |-
             * `draft` - draft
@@ -6966,6 +7116,7 @@ components:
       - invoice_number
       - invoice_pdf
       - issue_date
+      - paid_on
       - payment_status
       - seller
       - start_date
@@ -7051,6 +7202,12 @@ components:
           format: date-time
           readOnly: true
           type: string
+        paid_on:
+          description: The time the invoice's payment_status transitioned to paid.
+          format: date-time
+          nullable: true
+          readOnly: true
+          type: string
         payment_status:
           description: |-
             * `draft` - draft
@@ -7085,9 +7242,97 @@ components:
       - invoice_number
       - invoice_pdf
       - issue_date
+      - paid_on
       - payment_status
       - seller
       - start_date
+      type: object
+    LightweightInvoiceLineItem:
+      properties:
+        adjustments:
+          items:
+            $ref: '#/components/schemas/InvoiceLineItemAdjustment'
+          readOnly: true
+          type: array
+        amount:
+          description: Amount of the line item. This is the price after any adjustments
+            are applied.
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          type: number
+        base:
+          description: Base price of the line item. This is the price before any adjustments
+            are applied.
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          type: number
+        billing_type:
+          description: |-
+            * `in_arrears` - In Arrears
+            * `intermediate` - Intermediate
+            * `in_advance` - In Advance
+            * `one_time` - One Time
+          enum:
+          - in_arrears
+          - intermediate
+          - in_advance
+          - one_time
+          - 
+          nullable: true
+          type: string
+        end_date:
+          format: date-time
+          type: string
+        name:
+          maxLength: 100
+          type: string
+        plan:
+          allOf:
+          - $ref: '#/components/schemas/LightweightPlanVersion'
+          nullable: true
+          readOnly: true
+        quantity:
+          exclusiveMaximum: true
+          format: double
+          maximum: 10000000000
+          minimum: 0
+          nullable: true
+          type: number
+        start_date:
+          format: date-time
+          type: string
+        subscription_filters:
+          items:
+            $ref: '#/components/schemas/SubscriptionFilter'
+          nullable: true
+          readOnly: true
+          type: array
+        subtotal:
+          deprecated: true
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          format: double
+          maximum: 10000000000
+          minimum: -10000000000
+          type: number
+      required:
+      - adjustments
+      - amount
+      - base
+      - billing_type
+      - end_date
+      - name
+      - plan
+      - quantity
+      - start_date
+      - subscription_filters
+      - subtotal
       type: object
     LightweightMetric:
       properties:
@@ -11577,6 +11822,9 @@ components:
             - custom_version
             type: string
           readOnly: true
+        version_id:
+          readOnly: true
+          type: string
       required:
       - active_from
       - active_to
@@ -11595,6 +11843,7 @@ components:
       - target_customers
       - usage_billing_frequency
       - version
+      - version_id
       type: object
     PlanVersionCreateRequest:
       properties:
@@ -12874,6 +13123,17 @@ components:
       - property_name
       - value
       type: object
+    SubscriptionFilterDetail:
+      properties:
+        property_name:
+          description: "The string name of the property to filter on. Example: 'product_id'"
+          type: string
+        value:
+          type: string
+      required:
+      - property_name
+      - value
+      type: object
     SubscriptionFilterRequest:
       properties:
         property_name:
@@ -13643,7 +13903,7 @@ openapi: 3.0.3
 paths:
   /api/addons/:
     get:
-      operationId: api_addons_list
+      operationId: apiAddonsList
       responses:
         '200':
           content:
@@ -13661,7 +13921,7 @@ paths:
       - api
   /api/addons/{plan_id}/:
     get:
-      operationId: api_addons_retrieve
+      operationId: apiAddonsRetrieve
       parameters:
       - in: path
         name: plan_id
@@ -13684,7 +13944,7 @@ paths:
       - api
   /api/credits/:
     get:
-      operationId: api_credits_list
+      operationId: apiCreditsList
       parameters:
       - description: Filter to adjustments in a specific currency
         in: query
@@ -13770,7 +14030,7 @@ paths:
       tags:
       - api
     post:
-      operationId: api_credits_create
+      operationId: apiCreditsCreate
       requestBody:
         content:
           application/json:
@@ -13798,7 +14058,7 @@ paths:
       - api
   /api/credits/{credit_id}/:
     get:
-      operationId: api_credits_retrieve
+      operationId: apiCreditsRetrieve
       parameters:
       - description: The ID of the credit to retrieve or update.
         in: path
@@ -13821,7 +14081,7 @@ paths:
       - api
   /api/credits/{credit_id}/update/:
     post:
-      operationId: api_credits_update_create
+      operationId: apiCreditsUpdateCreate
       parameters:
       - description: The ID of the credit to retrieve or update.
         in: path
@@ -13855,7 +14115,7 @@ paths:
       - api
   /api/credits/{credit_id}/void/:
     post:
-      operationId: api_credits_void_create
+      operationId: apiCreditsVoidCreate
       parameters:
       - description: The ID of the credit to retrieve or update.
         in: path
@@ -13879,7 +14139,7 @@ paths:
   /api/customer_feature_access/:
     get:
       deprecated: true
-      operationId: api_customer_feature_access_list
+      operationId: apiCustomerFeatureAccessList
       parameters:
       - description: The customer_id of the customer you want to check access.
         in: query
@@ -13923,7 +14183,7 @@ paths:
   /api/customer_metric_access/:
     get:
       deprecated: true
-      operationId: api_customer_metric_access_list
+      operationId: apiCustomerMetricAccessList
       parameters:
       - description: The customer_id of the customer you want to check access.
         in: query
@@ -13975,7 +14235,7 @@ paths:
       - api
   /api/customers/:
     get:
-      operationId: api_customers_list
+      operationId: apiCustomersList
       responses:
         '200':
           content:
@@ -13992,7 +14252,7 @@ paths:
       tags:
       - api
     post:
-      operationId: api_customers_create
+      operationId: apiCustomersCreate
       requestBody:
         content:
           application/json:
@@ -14020,7 +14280,7 @@ paths:
       - api
   /api/customers/{customer_id}/:
     get:
-      operationId: api_customers_retrieve
+      operationId: apiCustomersRetrieve
       parameters:
       - in: path
         name: customer_id
@@ -14044,7 +14304,7 @@ paths:
       - api
   /api/customers/{customer_id}/cost_analysis/:
     get:
-      operationId: api_customers_cost_analysis_retrieve
+      operationId: apiCustomersCostAnalysisRetrieve
       parameters:
       - in: path
         name: customer_id
@@ -14080,7 +14340,7 @@ paths:
       - api
   /api/customers/{customer_id}/delete/:
     post:
-      operationId: api_customers_delete_create
+      operationId: apiCustomersDeleteCreate
       parameters:
       - in: path
         name: customer_id
@@ -14104,7 +14364,7 @@ paths:
       - api
   /api/customers/{customer_id}/draft_invoice/:
     get:
-      operationId: api_customers_draft_invoice_retrieve
+      operationId: apiCustomersDraftInvoiceRetrieve
       parameters:
       - in: path
         name: customer_id
@@ -14120,7 +14380,11 @@ paths:
           type: boolean
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DraftInvoiceResponse'
+          description: ''
       security:
       - knoxTokenAuth: []
       - OrganizationApiKeyAuth: []
@@ -14129,7 +14393,7 @@ paths:
       - api
   /api/feature_access/:
     get:
-      operationId: api_feature_access_retrieve
+      operationId: apiFeatureAccessRetrieve
       parameters:
       - description: The customer_id of the customer you want to check access.
         in: query
@@ -14169,10 +14433,15 @@ paths:
       - api
   /api/healthcheck/:
     get:
-      operationId: api_healthcheck_retrieve
+      operationId: apiHealthcheckRetrieve
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                type: object
+          description: ''
       security:
       - OrganizationApiKeyAuth: []
         TokenAuth: []
@@ -14180,7 +14449,7 @@ paths:
       - api
   /api/invoices/:
     get:
-      operationId: api_invoices_list
+      operationId: apiInvoicesList
       parameters:
       - description: A filter for invoices for a specific customer
         in: query
@@ -14221,7 +14490,7 @@ paths:
       - api
   /api/invoices/{invoice_id}/:
     get:
-      operationId: api_invoices_retrieve
+      operationId: apiInvoicesRetrieve
       parameters:
       - in: path
         name: invoice_id
@@ -14243,7 +14512,7 @@ paths:
       tags:
       - api
     patch:
-      operationId: api_invoices_partial_update
+      operationId: apiInvoicesPartialUpdate
       parameters:
       - in: path
         name: invoice_id
@@ -14277,7 +14546,7 @@ paths:
       - api
   /api/metric_access/:
     get:
-      operationId: api_metric_access_retrieve
+      operationId: apiMetricAccessRetrieve
       parameters:
       - description: The customer_id of the customer you want to check access.
         in: query
@@ -14319,7 +14588,7 @@ paths:
   /api/ping/:
     get:
       description: Ping the API to check if the API key is valid.
-      operationId: api_ping_retrieve
+      operationId: apiPingRetrieve
       responses:
         '200':
           content:
@@ -14340,7 +14609,7 @@ paths:
       - api
   /api/plans/:
     get:
-      operationId: api_plans_list
+      operationId: apiPlansList
       parameters:
       - description: |-
           Filter to plans that have this duration.
@@ -14404,6 +14673,12 @@ paths:
           - public_only
           minLength: 1
           type: string
+      - description: Filter to the version with this version_id.
+        in: query
+        name: version_id
+        schema:
+          minLength: 1
+          type: string
       - description: Filter to versions that have this status. Ended means it has
           an active_to date in the past. Not started means it has an active_from date
           in the future or null.
@@ -14442,7 +14717,7 @@ paths:
       - api
   /api/plans/{plan_id}/:
     get:
-      operationId: api_plans_retrieve
+      operationId: apiPlansRetrieve
       parameters:
       - in: path
         name: plan_id
@@ -14471,6 +14746,12 @@ paths:
           - all
           - custom_only
           - public_only
+          minLength: 1
+          type: string
+      - description: Filter to the version with this version_id.
+        in: query
+        name: version_id
+        schema:
           minLength: 1
           type: string
       - description: Filter to versions that have this status. Ended means it has
@@ -14509,7 +14790,7 @@ paths:
       - api
   /api/subscriptions/:
     get:
-      operationId: api_subscriptions_list
+      operationId: apiSubscriptionsList
       parameters:
       - description: Filter to a specific customer.
         in: query
@@ -14584,7 +14865,7 @@ paths:
       tags:
       - api
     post:
-      operationId: api_subscriptions_create
+      operationId: apiSubscriptionsCreate
       requestBody:
         content:
           application/json:
@@ -14613,7 +14894,7 @@ paths:
   /api/subscriptions/add/:
     post:
       deprecated: true
-      operationId: api_subscriptions_add_create
+      operationId: apiSubscriptionsAddCreate
       requestBody:
         content:
           application/json:
@@ -14642,7 +14923,7 @@ paths:
   /api/subscriptions/cancel/:
     post:
       deprecated: true
-      operationId: api_subscriptions_cancel_multi
+      operationId: apiSubscriptionsCancelMulti
       parameters:
       - description: Filter to a specific customer.
         in: query
@@ -14698,7 +14979,7 @@ paths:
       - api
   /api/subscriptions/update/:
     post:
-      operationId: api_subscriptions_update_multi
+      operationId: apiSubscriptionsUpdateMulti
       parameters:
       - description: Filter to a specific customer.
         in: query
@@ -14754,7 +15035,7 @@ paths:
       - api
   /api/subscriptions/{subscription_id}/:
     get:
-      operationId: api_subscriptions_retrieve
+      operationId: apiSubscriptionsRetrieve
       parameters:
       - description: The subscription's ID in the format `subscription_<uuid>`
         in: path
@@ -14777,7 +15058,7 @@ paths:
       - api
   /api/subscriptions/{subscription_id}/addons/attach/:
     post:
-      operationId: api_subscriptions_addons_attach_create
+      operationId: apiSubscriptionsAddonsAttachCreate
       parameters:
       - description: The ID of the subscription to add an addon to.
         in: path
@@ -14811,7 +15092,7 @@ paths:
       - api
   /api/subscriptions/{subscription_id}/addons/{addon_id}/cancel/:
     post:
-      operationId: api_subscriptions_addons_cancel_create
+      operationId: apiSubscriptionsAddonsCancelCreate
       parameters:
       - description: The ID of the addon within the subscription update.
         in: path
@@ -14853,7 +15134,7 @@ paths:
       - api
   /api/subscriptions/{subscription_id}/cancel/:
     post:
-      operationId: api_subscriptions_cancel_create
+      operationId: apiSubscriptionsCancelCreate
       parameters:
       - description: The ID of the subscription to cancel.
         in: path
@@ -14887,7 +15168,7 @@ paths:
       - api
   /api/subscriptions/{subscription_id}/components/{metric_id}/change_prepaid_units/:
     post:
-      operationId: api_subscriptions_components_change_prepaid_units_create
+      operationId: apiSubscriptionsComponentsChangePrepaidUnitsCreate
       parameters:
       - description: The ID of the metric to alter the prepaid usage for.
         in: path
@@ -14928,7 +15209,7 @@ paths:
       - api
   /api/subscriptions/{subscription_id}/switch_plan/:
     post:
-      operationId: api_subscriptions_switch_plan_create
+      operationId: apiSubscriptionsSwitchPlanCreate
       parameters:
       - description: The ID of the subscription which will have its plans switched.
         in: path
@@ -14962,7 +15243,7 @@ paths:
       - api
   /api/subscriptions/{subscription_id}/update/:
     post:
-      operationId: api_subscriptions_update_create
+      operationId: apiSubscriptionsUpdateCreate
       parameters:
       - description: The ID of the subscription to update.
         in: path
@@ -14996,7 +15277,7 @@ paths:
       - api
   /api/verify_idems_received/:
     post:
-      operationId: api_verify_idems_received_create
+      operationId: apiVerifyIdemsReceivedCreate
       requestBody:
         content:
           application/json:

@@ -313,7 +313,8 @@ class CustomerViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
         parameters=[DraftInvoiceRequestSerializer],
         responses={
             200: inline_serializer(
-                name="DraftInvoiceResponse", fields={"invoice": DraftInvoiceSerializer}
+                name="DraftInvoiceResponse",
+                fields={"invoices": DraftInvoiceSerializer(many=True)},
             )
         },
     )
@@ -2178,12 +2179,7 @@ class Healthcheck(APIView):
     authentication_classes = []
 
     @extend_schema(
-        responses={
-            200: inline_serializer(
-                name="HealthcheckResponse",
-                fields={},
-            ),
-        },
+        responses={200: OpenApiTypes.OBJECT},
     )
     def get(self, request, format=None):
         return Response(
