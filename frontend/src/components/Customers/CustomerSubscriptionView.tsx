@@ -200,7 +200,9 @@ function AddPlanModal({
               showTime
               className="mt-0"
               placeholder="Select start date"
-              onChange={(date, dateString) => handleDateChange(dateString)}
+              onChange={(date) =>
+                handleDateChange(date ? date.toISOString() : "")
+              }
               value={subStartDate ? moment(subStartDate) : undefined}
             />
           </div>

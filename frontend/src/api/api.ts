@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/no-explicit-any camelcase */
 import axios, { AxiosResponse } from "axios";
+import dayjs from "dayjs";
 import Cookies from "universal-cookie";
 import {
   CustomerType,
@@ -687,6 +688,9 @@ export const PricingUnits = {
   list: (): Promise<CurrencyType[]> => requests.get(`app/pricing_units/`),
 };
 
+const toLocalDateString = (date?: Date | null) =>
+  date ? dayjs(date).format("YYYY-MM-DD") : undefined;
+
 export const Netsuite = {
   invoices: (
     startDate?: Date | null,
@@ -694,8 +698,8 @@ export const Netsuite = {
   ): Promise<{ url: URL }> =>
     requests.get("app/netsuite_invoices/", {
       params: {
-        start_date: startDate?.toISOString().split("T")[0] ?? undefined,
-        end_date: endDate?.toISOString().split("T")[0] ?? undefined,
+        start_date: toLocalDateString(startDate),
+        end_date: toLocalDateString(endDate),
       },
     }),
   customers: (
@@ -704,8 +708,8 @@ export const Netsuite = {
   ): Promise<{ url: URL }> =>
     requests.get("app/netsuite_customers/", {
       params: {
-        start_date: startDate?.toISOString().split("T")[0] ?? undefined,
-        end_date: endDate?.toISOString().split("T")[0] ?? undefined,
+        start_date: toLocalDateString(startDate),
+        end_date: toLocalDateString(endDate),
       },
     }),
 };

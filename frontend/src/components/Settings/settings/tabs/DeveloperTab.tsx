@@ -549,7 +549,7 @@ export function DeveloperTab() {
           <DatePicker
             showTime
             className="mt-0"
-            onChange={(date, dateString) => setAPIKeyExpire(dateString)}
+            onChange={(date) => setAPIKeyExpire(date ? date.toISOString() : "")}
           />
         </div>
       </Modal>
