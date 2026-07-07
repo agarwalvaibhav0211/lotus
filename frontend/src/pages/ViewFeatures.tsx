@@ -118,7 +118,7 @@ const ViewFeatures: FC = () => {
       </div>
       <Modal
         title="Create Feature"
-        open={visible}
+        visible={visible}
         onCancel={onCancel}
         onOk={onSave}
         okButtonProps={{ disabled: !featureState.feature_name.trim() }}
