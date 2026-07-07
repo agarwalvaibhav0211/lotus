@@ -1,10 +1,12 @@
 # Lotus Stack Migration Analysis: Current → Latest Versions
 
-**Analysis Date:** April 2026  
+**Analysis Date:** April 2026 (last verified July 7, 2026)  
 **Current Stack Age:** ~2 years old (components from 2023-2024)  
 **Risk Level:** HIGH (significant breaking changes across multiple layers)
 
 ---
+
+**Related:** See [`NODE_MIGRATION_STORY.md`](./NODE_MIGRATION_STORY.md) for the (separate, not-started) proposal to strangler-fig the Django backend to Node/TypeScript — that effort assumes this in-place upgrade (Phase 0 there) happens first and independently.
 
 ## Executive Summary
 
@@ -33,14 +35,14 @@ Migrating Lotus to the latest versions is **ambitious and HIGH RISK**, requiring
 | Component | Current | Latest | Gap | Risk |
 |-----------|---------|--------|-----|------|
 | **Python** | 3.9 | 3.14.4 | 5 minor versions | 🟡 Medium |
-| **Django** | 4.0.5 | 6.0.4 | 2 major versions | 🔴 High |
+| **Django** | 4.0.5 | 6.0.6 | 2 major versions | 🔴 High |
 | **DRF** | 3.13.1 | 3.15+ | 2 minor versions | 🟡 Medium |
 | **Node** | 18.11.0 | 24.14.1 LTS | 6 major versions | 🔴 High |
 | **React** | 18.2.0 | 19.2.5 | 1 major version | 🟡 Medium |
 | **TypeScript** | 4.9.3 | 6.0 | 1 major version | 🟡 Medium |
 | **Vite** | 3.0.9 | 8.0.8 | 5 major versions | 🔴 HIGH |
 | **Go** | 1.19 | 1.26.2 | 7 minor versions | 🟢 Low |
-| **PostgreSQL** | 14 | 18.3 | 4 major versions | 🟡 Medium |
+| **PostgreSQL** | 14 | 18.4 | 4 major versions | 🟡 Medium |
 | **Redis** | 7 | 8.6.2 | 1 major version | 🟢 Low |
 | **Ant Design** | 4.22.4 | 6.0 | 1 major version | 🔴 HIGH |
 | **Redpanda** | 22.2.2 | 26.1 | 4 major versions | 🔴 HIGH |
@@ -843,5 +845,5 @@ The migration is successful when:
 ---
 
 **Document prepared for:** Full Stack Migration Planning  
-**Last updated:** April 13, 2026  
+**Last updated:** July 7, 2026 (version table re-verified against actual releases; original analysis from April 13, 2026)  
 **Status:** Ready for executive review
