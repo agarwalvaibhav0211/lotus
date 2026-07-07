@@ -2451,7 +2451,7 @@ class PlanVersion(models.Model):
         ]
 
     def __str__(self) -> str:
-        if self.localized_name is not None:
+        if self.localized_name:
             return self.localized_name
         return str(self.plan)
 
