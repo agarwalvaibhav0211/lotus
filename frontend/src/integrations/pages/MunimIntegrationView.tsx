@@ -1,18 +1,21 @@
 import React, { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Input } from "antd";
+import { Button, Input, Modal } from "antd";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { PageLayout } from "../../components/base/PageLayout";
+import CopyText from "../../components/base/CopytoClipboard";
 import {
   PaymentProcessorIntegration,
   PaymentProcessor,
   Organization,
+  API_HOST,
 } from "../../api/api";
 import {
   Source,
   PaymentProcessorImportCustomerResponse,
   PaymentProcessorConnectionRequestType,
+  PaymentProcessorConnectionResponseType,
 } from "../../types/payment-processor-type";
 import useGlobalStore from "../../stores/useGlobalstore";
 import { components } from "../../gen-types";
@@ -24,6 +27,10 @@ const MunimIntegrationView: FC = () => {
   const [apiKey, setApiKey] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
   const [isSettingValue, setIsSettingValue] = useState(false);
+  const [webhookInfo, setWebhookInfo] = useState<{
+    url: string;
+    secret: string;
+  } | null>(null);
   const [genCustomerInMunimSetting, setGenCustomerInMunimSetting] =
     useState<boolean>();
   const org = useGlobalStore((state) => state.org);
@@ -36,17 +43,44 @@ const MunimIntegrationView: FC = () => {
     (post: PaymentProcessorConnectionRequestType) =>
       PaymentProcessorIntegration.connectPaymentProcessor(post),
     {
-      onSuccess: () => {
+      onSuccess: (data: PaymentProcessorConnectionResponseType) => {
         toast.success("Successfully connected to Munim", {
           position: TOAST_POSITION,
         });
         setIsConnecting(false);
+        if (data.webhook_secret && data.webhook_path) {
+          setWebhookInfo({
+            url: `${API_HOST.replace(/\/$/, "")}${data.webhook_path}`,
+            secret: data.webhook_secret,
+          });
+        }
       },
       onError: () => {
         toast.error("Failed to connect to Munim. Check that your API key is valid.", {
           position: TOAST_POSITION,
         });
         setIsConnecting(false);
+      },
+    },
+  );
+
+  const regenerateWebhookSecretMutation = useMutation(
+    () => PaymentProcessorIntegration.regenerateMunimWebhookSecret(),
+    {
+      onSuccess: (data) => {
+        toast.success("Munim webhook secret generated", {
+          position: TOAST_POSITION,
+        });
+        setWebhookInfo({
+          url: `${API_HOST.replace(/\/$/, "")}${data.webhook_path}`,
+          secret: data.webhook_secret,
+        });
+      },
+      onError: () => {
+        toast.error(
+          "Failed to regenerate webhook secret. Make sure Munim is connected.",
+          { position: TOAST_POSITION },
+        );
       },
     },
   );
@@ -127,6 +161,13 @@ const MunimIntegrationView: FC = () => {
           <Button type="primary" loading={isConnecting} onClick={handleConnect}>
             Connect
           </Button>
+          <h3>Munim Webhook:</h3>
+          <Button
+            loading={regenerateWebhookSecretMutation.isLoading}
+            onClick={() => regenerateWebhookSecretMutation.mutate()}
+          >
+            Get / Regenerate Webhook Secret
+          </Button>
           <h3>Import Munim Customers:</h3>
           <Button
             size="large"
@@ -160,6 +201,27 @@ const MunimIntegrationView: FC = () => {
           </div>
         </div>
       </div>
+      <Modal
+        title="Munim Webhook Details"
+        visible={webhookInfo !== null}
+        onCancel={() => setWebhookInfo(null)}
+        onOk={() => setWebhookInfo(null)}
+        footer={<Button onClick={() => setWebhookInfo(null)}>Done</Button>}
+      >
+        <p className="mb-4">
+          Configure Munim to call this URL when a payment completes, using the
+          secret below as a Bearer token. This secret will only be shown once
+          &mdash; regenerating it invalidates any previous secret.
+        </p>
+        <div className="mb-4">
+          <h3 className="mb-1">Webhook URL:</h3>
+          <CopyText textToCopy={webhookInfo?.url ?? ""} />
+        </div>
+        <div>
+          <h3 className="mb-1">Webhook Secret:</h3>
+          <CopyText textToCopy={webhookInfo?.secret ?? ""} />
+        </div>
+      </Modal>
     </PageLayout>
   );
 };

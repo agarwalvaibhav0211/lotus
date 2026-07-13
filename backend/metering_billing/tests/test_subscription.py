@@ -1332,8 +1332,9 @@ class TestResetAndInvoicingIntervals:
         most_recent_invoice = Invoice.objects.latest("issue_date")
         # theres 4 old `BRs, one was already invocied in advance, so tahts 3. One of them is
         # microseconds long, so its a tiny amount. The other 2 are full length so theyre 10. Plus
-        # the 100 from the new recurring charge. So 20 plus a few microcents
-        assert most_recent_invoice.amount > Decimal(120)
+        # the 100 from the new recurring charge. So 20 plus a few microcents, which may round
+        # down to nothing once quantized to cents
+        assert most_recent_invoice.amount >= Decimal(120)
 
 
 @pytest.mark.django_db(transaction=True)
@@ -1942,7 +1943,9 @@ class TestPrepaidComponentCharges:
                 assert ccr.units == 15
         latest_invoice = Invoice.objects.latest("issue_date")
         # charge full, no prorated, prepaid for 15, now 20, so 5 more, so $5
-        assert latest_invoice.amount < Decimal(2 * 5) / Decimal(7)
+        # invoice amounts are rounded to the nearest cent, so allow a
+        # one-cent margin against the unrounded theoretical upper bound
+        assert latest_invoice.amount < Decimal(2 * 5) / Decimal(7) + Decimal("0.01")
 
     def test_gives_correct_amount_when_reduced(self, subscription_test_common_setup):
         # this tests changes from invociing frequency to reset frequency. Since its usage,
@@ -2227,7 +2230,9 @@ class TestPrepaidComponentCharges:
                 assert ccr.units == 15
         latest_invoice = Invoice.objects.latest("issue_date")
         # charge full, no prorated, prepaid for 15, now 20, so 5 more, so $5
-        assert latest_invoice.amount < Decimal(2 * 5) / Decimal(7)
+        # invoice amounts are rounded to the nearest cent, so allow a
+        # one-cent margin against the unrounded theoretical upper bound
+        assert latest_invoice.amount < Decimal(2 * 5) / Decimal(7) + Decimal("0.01")
 
         # ok nolw log soem usage events, and check invociing to see if we discount units
         for i in range(0, 25):  # prepaid 20, so 5 more

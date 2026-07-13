@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import itertools
 import json
 import logging
@@ -4074,7 +4075,24 @@ class MunimOrganizationIntegration(models.Model):
     api_key = encrypt(models.TextField(null=True, blank=True))
     account_id = models.TextField(null=True, blank=True)
     account_name = models.TextField(null=True, blank=True)
+    # webhook_secret is stored encrypted (source of truth, shown back to the
+    # user). Encryption here is non-deterministic, so it can't be looked up
+    # by exact value directly - webhook_secret_lookup stores a deterministic
+    # SHA-256 hash of the same value purely so incoming webhook calls can be
+    # matched to an organization via an indexed exact-match query.
+    webhook_secret = encrypt(models.TextField(null=True, blank=True))
+    webhook_secret_lookup = models.CharField(
+        max_length=64, null=True, blank=True, db_index=True
+    )
     created = models.DateTimeField(default=now_utc)
+
+    def save(self, *args, **kwargs):
+        self.webhook_secret_lookup = (
+            hashlib.sha256(self.webhook_secret.encode()).hexdigest()
+            if self.webhook_secret
+            else None
+        )
+        super().save(*args, **kwargs)
 
 
 class UnifiedCRMOrganizationIntegration(models.Model):

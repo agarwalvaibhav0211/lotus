@@ -20,6 +20,13 @@ class PaymentProcesorPostResponseSerializer(serializers.Serializer):
     payment_processor = serializers.ChoiceField(choices=PAYMENT_PROCESSORS.choices)
     success = serializers.BooleanField()
     details = serializers.CharField()
+    webhook_path = serializers.CharField(required=False, allow_null=True)
+    webhook_secret = serializers.CharField(required=False, allow_null=True)
+
+
+class MunimWebhookSecretResponseSerializer(serializers.Serializer):
+    webhook_path = serializers.CharField()
+    webhook_secret = serializers.CharField()
 
 
 class PaymentProcesorPostDataSerializer(serializers.Serializer):

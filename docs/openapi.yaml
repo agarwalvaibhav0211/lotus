@@ -8137,6 +8137,42 @@ components:
           - archived
           type: string
       type: object
+    MunimWebhookRequestRequest:
+      properties:
+        invoice_id:
+          minLength: 1
+          type: string
+        status:
+          description: |-
+            * `paid` - paid
+            * `pending` - pending
+            * `processing` - processing
+          enum:
+          - paid
+          - pending
+          - processing
+          type: string
+      required:
+      - invoice_id
+      - status
+      type: object
+    MunimWebhookSecretResponse:
+      properties:
+        webhook_path:
+          type: string
+        webhook_secret:
+          type: string
+      required:
+      - webhook_path
+      - webhook_secret
+      type: object
+    MunimWebhookUnauthorized:
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
+      type: object
     NextPlanVersionNumberResponse:
       properties:
         version:
@@ -11278,6 +11314,12 @@ components:
           type: string
         success:
           type: boolean
+        webhook_path:
+          nullable: true
+          type: string
+        webhook_secret:
+          nullable: true
+          type: string
       required:
       - details
       - payment_processor
@@ -14487,6 +14529,33 @@ paths:
         TokenAuth: []
       tags:
       - api
+    post:
+      operationId: apiInvoicesCreate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OneOffInvoiceCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OneOffInvoiceCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OneOffInvoiceCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+      security:
+      - knoxTokenAuth: []
+      - OrganizationApiKeyAuth: []
+        TokenAuth: []
+      tags:
+      - api
   /api/invoices/{invoice_id}/:
     get:
       operationId: apiInvoicesRetrieve
@@ -14543,6 +14612,29 @@ paths:
         TokenAuth: []
       tags:
       - api
+  /api/invoices/{invoice_id}/send/:
+    post:
+      operationId: apiInvoicesSendCreate
+      parameters:
+      - in: path
+        name: invoice_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+      security:
+      - knoxTokenAuth: []
+      - OrganizationApiKeyAuth: []
+        TokenAuth: []
+      tags:
+      - api
   /api/metric_access/:
     get:
       operationId: apiMetricAccessRetrieve
@@ -14578,6 +14670,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetricAccessResponse'
+          description: ''
+      security:
+      - OrganizationApiKeyAuth: []
+        TokenAuth: []
+      tags:
+      - api
+  /api/munim/webhook/:
+    post:
+      operationId: apiMunimWebhookCreate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MunimWebhookRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MunimWebhookRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MunimWebhookRequestRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MunimWebhookUnauthorized'
           description: ''
       security:
       - OrganizationApiKeyAuth: []

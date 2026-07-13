@@ -15,6 +15,8 @@ export interface PaymentProcessorConnectionResponseType {
   payment_processor: string;
   success: boolean;
   details: string;
+  webhook_path?: string | null;
+  webhook_secret?: string | null;
 }
 
 export interface PaymentProcessorConnectionRequestType {

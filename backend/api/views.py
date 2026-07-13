@@ -72,6 +72,7 @@ from api.serializers.model_serializers import (
     ListPlansFilterSerializer,
     ListPlanVersionsFilterSerializer,
     ListSubscriptionRecordFilter,
+    OneOffInvoiceCreateSerializer,
     PlanSerializer,
     SubscriptionFilterSerializer,
     SubscriptionRecordCancelSerializer,
@@ -103,7 +104,7 @@ from metering_billing.exceptions import (
     SwitchPlanSamePlanException,
 )
 from metering_billing.exceptions.exceptions import InvalidOperation, NotFoundException
-from metering_billing.invoice import generate_invoice
+from metering_billing.invoice import generate_external_payment_obj, generate_invoice
 from metering_billing.payment_processors import PAYMENT_PROCESSOR_MAP
 from metering_billing.kafka.producer import Producer
 from metering_billing.models import (
@@ -1589,11 +1590,13 @@ class SubscriptionViewSet(
 
 class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
     serializer_class = InvoiceSerializer
-    http_method_names = ["get", "patch", "head"]
+    http_method_names = ["get", "post", "patch", "head"]
     lookup_field = "invoice_id"
     queryset = Invoice.objects.all()
     permission_classes_per_method = {
         "partial_update": [IsAuthenticated & ValidOrganization],
+        "create": [ValidOrganization],
+        "send": [ValidOrganization],
     }
 
     def get_object(self):
@@ -1639,6 +1642,8 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
     def get_serializer_class(self, default=None):
         if self.action == "partial_update":
             return InvoiceUpdateSerializer
+        if self.action == "create":
+            return OneOffInvoiceCreateSerializer
         if default:
             return default
         return InvoiceSerializer
@@ -1647,6 +1652,27 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         kwargs["partial"] = True
         return self.update(request, *args, **kwargs)
+
+    @extend_schema(request=OneOffInvoiceCreateSerializer, responses=InvoiceSerializer)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        invoice = serializer.save()
+        return Response(
+            InvoiceSerializer(invoice, context=self.get_serializer_context()).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @extend_schema(request=None, responses=InvoiceSerializer)
+    @action(detail=True, methods=["post"], url_path="send", url_name="send")
+    def send(self, request, *args, **kwargs):
+        invoice = self.get_object()
+        generate_external_payment_obj(invoice)
+        invoice.refresh_from_db()
+        return Response(
+            InvoiceSerializer(invoice, context=self.get_serializer_context()).data,
+            status=status.HTTP_200_OK,
+        )
 
     def update(self, request, *args, **kwargs):
         invoice = self.get_object()

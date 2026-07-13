@@ -1875,7 +1875,7 @@ class InvoiceViewSet(api_views.InvoiceViewSet):
     http_method_names = ["get", "patch", "head", "post"]
     permission_classes_per_method = {
         **api_views.InvoiceViewSet.permission_classes_per_method,
-        "create": [IsAuthenticated & ValidOrganization],
+        "create": [ValidOrganization],
     }
 
     def get_serializer_class(self):

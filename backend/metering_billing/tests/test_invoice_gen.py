@@ -337,7 +337,9 @@ class TestOneOffInvoice:
             content_type="application/json",
         )
         assert response.status_code == status.HTTP_201_CREATED
-        invoice = Invoice.objects.get(invoice_id=response.data["invoice_id"])
+        invoice = Invoice.objects.get(
+            invoice_id=response.data["invoice_id"].removeprefix("invoice_")
+        )
         assert invoice.payment_status == Invoice.PaymentStatus.UNPAID
         assert invoice.customer == setup_dict["customer"]
         assert invoice.line_items.count() == 2

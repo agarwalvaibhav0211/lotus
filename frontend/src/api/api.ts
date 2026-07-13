@@ -107,7 +107,7 @@ const cookies = new Cookies();
 
 axios.defaults.headers.common.Authorization = `Token ${cookies.get("Token")}`;
 
-const API_HOST = (import.meta as any).env.VITE_API_URL;
+export const API_HOST = (import.meta as any).env.VITE_API_URL;
 
 axios.defaults.baseURL = API_HOST;
 // axios.defaults.xsrfCookieName = "csrftoken";
@@ -642,6 +642,10 @@ export const PaymentProcessorIntegration = {
     pp_info: PaymentProcessorConnectionRequestType
   ): Promise<PaymentProcessorConnectionResponseType> =>
     requests.post("app/payment_providers/", { pp_info }),
+  regenerateMunimWebhookSecret: (): Promise<{
+    webhook_path: string;
+    webhook_secret: string;
+  }> => requests.post("app/munim/regenerate_webhook_secret/", {}),
 };
 
 export const Invoices = {

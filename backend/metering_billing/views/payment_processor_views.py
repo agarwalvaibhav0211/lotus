@@ -1,9 +1,12 @@
+import secrets
+
 from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from metering_billing.payment_processors import PAYMENT_PROCESSOR_MAP
 from metering_billing.permissions import ValidOrganization
 from metering_billing.utils.enums import PAYMENT_PROCESSORS
 from metering_billing.serializers.payment_processor_serializers import (
+    MunimWebhookSecretResponseSerializer,
     PaymentProcesorPostRequestSerializer,
     PaymentProcesorPostResponseSerializer,
     SinglePaymentProcesorSerializer,
@@ -74,3 +77,42 @@ class PaymentProcesorView(APIView):
         )
 
         return response
+
+
+class MunimWebhookSecretView(APIView):
+    """
+    Rotates the Munim webhook secret for the organization's existing
+    integration. Since the secret is only ever returned once (at generation
+    time), this is how a user retrieves it again if lost, or replaces it if
+    compromised.
+    """
+
+    permission_classes = [IsAuthenticated & ValidOrganization]
+
+    @extend_schema(
+        request=None,
+        responses={200: MunimWebhookSecretResponseSerializer},
+    )
+    def post(self, request, format=None):
+        from metering_billing.models import MunimOrganizationIntegration
+
+        organization = request.organization
+        integration = MunimOrganizationIntegration.objects.filter(
+            organizations=organization
+        ).first()
+        if integration is None:
+            return Response(
+                {"detail": "Organization is not connected to Munim"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        integration.webhook_secret = secrets.token_urlsafe(32)
+        integration.save()
+
+        response = {
+            "webhook_path": "/api/munim/webhook/",
+            "webhook_secret": integration.webhook_secret,
+        }
+        serializer = MunimWebhookSecretResponseSerializer(data=response)
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)

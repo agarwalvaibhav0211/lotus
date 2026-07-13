@@ -8137,6 +8137,42 @@ components:
           - archived
           type: string
       type: object
+    MunimWebhookRequestRequest:
+      properties:
+        invoice_id:
+          minLength: 1
+          type: string
+        status:
+          description: |-
+            * `paid` - paid
+            * `pending` - pending
+            * `processing` - processing
+          enum:
+          - paid
+          - pending
+          - processing
+          type: string
+      required:
+      - invoice_id
+      - status
+      type: object
+    MunimWebhookSecretResponse:
+      properties:
+        webhook_path:
+          type: string
+        webhook_secret:
+          type: string
+      required:
+      - webhook_path
+      - webhook_secret
+      type: object
+    MunimWebhookUnauthorized:
+      properties:
+        detail:
+          type: string
+      required:
+      - detail
+      type: object
     NextPlanVersionNumberResponse:
       properties:
         version:
@@ -11278,6 +11314,12 @@ components:
           type: string
         success:
           type: boolean
+        webhook_path:
+          nullable: true
+          type: string
+        webhook_secret:
+          nullable: true
+          type: string
       required:
       - details
       - payment_processor
@@ -15568,6 +15610,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetricUpdate'
+          description: ''
+      security:
+      - knoxTokenAuth: []
+      - OrganizationApiKeyAuth: []
+        TokenAuth: []
+      tags:
+      - app
+  /app/munim/regenerate_webhook_secret/:
+    post:
+      description: |-
+        Rotates the Munim webhook secret for the organization's existing
+        integration. Since the secret is only ever returned once (at generation
+        time), this is how a user retrieves it again if lost, or replaces it if
+        compromised.
+      operationId: app_munim_regenerate_webhook_secret_create
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MunimWebhookSecretResponse'
           description: ''
       security:
       - knoxTokenAuth: []

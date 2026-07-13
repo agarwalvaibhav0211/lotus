@@ -837,6 +837,8 @@ class StripeConnector(PaymentProcesor):
     def get_customer_address(self, customer, type: Literal["shipping", "billing"]):
         from metering_billing.models import Address
 
+        if customer.stripe_integration is None:
+            return Address()
         stripe_id = customer.stripe_integration.stripe_customer_id
         key = "address" if type == "billing" else "shipping"
         cust_dict = cache.get(f"stripe_customer_{stripe_id}")
@@ -1703,6 +1705,8 @@ class MunimConnector(PaymentProcesor):
         return MunimPostRequestDataSerializer
 
     def handle_post(self, data, organization) -> None:
+        import secrets
+
         from metering_billing.models import MunimOrganizationIntegration
 
         api_key = data["api_key"]
@@ -1739,10 +1743,18 @@ class MunimConnector(PaymentProcesor):
         organization.munim_integration = integration
         organization.save()
 
+        new_webhook_secret = None
+        if not integration.webhook_secret:
+            new_webhook_secret = secrets.token_urlsafe(32)
+            integration.webhook_secret = new_webhook_secret
+            integration.save()
+
         response = {
             "payment_processor": PAYMENT_PROCESSORS.MUNIM,
             "success": True,
             "details": f"Successfully connected to Munim account: {account_name or account_id}",
+            "webhook_path": "/api/munim/webhook/",
+            "webhook_secret": new_webhook_secret,
         }
         serializer = PaymentProcesorPostResponseSerializer(data=response)
         serializer.is_valid(raise_exception=True)

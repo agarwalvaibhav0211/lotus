@@ -47,7 +47,10 @@ from metering_billing.views.model_views import (
     UserViewSet,
     WebhookViewSet,
 )
-from metering_billing.views.payment_processor_views import PaymentProcesorView
+from metering_billing.views.payment_processor_views import (
+    MunimWebhookSecretView,
+    PaymentProcesorView,
+)
 from metering_billing.views.views import (
     ChangeUserOrganizationView,
     ImportCustomersView,
@@ -218,6 +221,11 @@ urlpatterns = [
         PaymentProcesorView.as_view(),
         name="payment_providers",
     ),
+    path(
+        "app/munim/regenerate_webhook_secret/",
+        MunimWebhookSecretView.as_view(),
+        name="munim_regenerate_webhook_secret",
+    ),
     path("app/login/", auth_views.LoginView.as_view(), name="api-login"),
     path("app/demo_login/", auth_views.DemoLoginView.as_view(), name="api-demo-login"),
     path("app/logout/", auth_views.LogoutView.as_view(), name="api-logout"),
@@ -251,6 +259,12 @@ urlpatterns = [
     # Stripe
     path(
         "stripe/webhook/", webhook_views.stripe_webhook_endpoint, name="stripe-webhook"
+    ),
+    # Munim
+    path(
+        "api/munim/webhook/",
+        webhook_views.munim_webhook_endpoint,
+        name="munim-webhook",
     ),
     # crm
     path(

@@ -59,18 +59,18 @@ def _connect_org_to_munim(
 def _make_munim_customer_response(**kwargs):
     """Minimal Munim customer payload as returned by GET /customers/{id}."""
     base = {
-        "customer_id": MUNIM_CUSTOMER_ID,
+        "customerId": MUNIM_CUSTOMER_ID,
         "name": "Test Customer",
         "email": "test@example.com",
-        "billing_address": {
+        "billingAddress": {
             "line1": "1 Test St",
             "line2": None,
             "city": "Karachi",
             "state": "Sindh",
-            "postal_code": "75500",
+            "postalCode": "75500",
             "country": "PK",
         },
-        "shipping_address": None,
+        "shippingAddress": None,
     }
     base.update(kwargs)
     return base
@@ -78,12 +78,12 @@ def _make_munim_customer_response(**kwargs):
 
 def _make_munim_invoice_response(invoice_status="paid"):
     return {
-        "invoice_id": MUNIM_INVOICE_ID,
-        "customer_id": MUNIM_CUSTOMER_ID,
+        "invoiceId": MUNIM_INVOICE_ID,
+        "customerId": MUNIM_CUSTOMER_ID,
         "amount": 100.00,
         "currency": "USD",
         "status": invoice_status,
-        "line_items": [],
+        "lineItems": [],
     }
 
 
@@ -272,7 +272,7 @@ class TestMunimImportCustomers:
         page1 = {
             "customers": [
                 _make_munim_customer_response(
-                    customer_id="munim_cust_p1",
+                    customerId="munim_cust_p1",
                     email="p1@example.com",
                 )
             ],
@@ -283,7 +283,7 @@ class TestMunimImportCustomers:
         page2 = {
             "customers": [
                 _make_munim_customer_response(
-                    customer_id="munim_cust_p2",
+                    customerId="munim_cust_p2",
                     email="p2@example.com",
                 )
             ],
@@ -315,7 +315,7 @@ class TestMunimCreateCustomerFlow:
         org.save()
 
         post_response = {
-            "customer_id": MUNIM_CUSTOMER_ID,
+            "customerId": MUNIM_CUSTOMER_ID,
             "name": customer.customer_name,
             "email": customer.email,
         }
@@ -516,11 +516,11 @@ class TestMunimCreatePaymentObject:
 
         _, call_kwargs = mock_post.call_args
         payload = call_kwargs["payload"]
-        assert payload["customer_id"] == MUNIM_CUSTOMER_ID
+        assert payload["customerId"] == MUNIM_CUSTOMER_ID
         assert payload["amount"] == 100.00
-        assert len(payload["line_items"]) == 1
-        assert payload["line_items"][0]["kind"] == "debit"
-        assert payload["line_items"][0]["name"] == "Pro Plan"
+        assert len(payload["lineItems"]) == 1
+        assert payload["lineItems"][0]["kind"] == "debit"
+        assert payload["lineItems"][0]["name"] == "Pro Plan"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -578,7 +578,7 @@ class TestMunimRetrieveCustomer:
             result = connector.retrieve_customer_by_external_id(org, MUNIM_CUSTOMER_ID)
 
         assert result == expected
-        assert result["customer_id"] == MUNIM_CUSTOMER_ID
+        assert result["customerId"] == MUNIM_CUSTOMER_ID
 
     def test_returns_none_on_api_error(self, munim_setup):
         connector = munim_setup["connector"]
@@ -809,3 +809,203 @@ class TestMunimRegisteredInProcessorMap:
 
         connector = PAYMENT_PROCESSOR_MAP[PAYMENT_PROCESSORS.MUNIM]
         assert isinstance(connector, MunimConnector)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 14. munim_webhook_endpoint
+# ─────────────────────────────────────────────────────────────────────────────
+
+from django.urls import reverse
+from rest_framework.test import APIClient
+
+
+@pytest.mark.django_db
+class TestMunimWebhookEndpoint:
+    def _make_invoice(self, org, customer, payment_status=Invoice.PaymentStatus.UNPAID):
+        currency = PricingUnit.objects.get(organization=org, code="USD")
+        invoice = Invoice.objects.create(
+            organization=org,
+            customer=customer,
+            amount=Decimal("100.00"),
+            currency=currency,
+            payment_status=payment_status,
+            invoice_number="TEST-WEBHOOK-001",
+            external_payment_obj_type=PAYMENT_PROCESSORS.MUNIM,
+            external_payment_obj_id=MUNIM_INVOICE_ID,
+        )
+        InvoiceLineItem.objects.create(
+            organization=org,
+            invoice=invoice,
+            name="Pro Plan",
+            base=Decimal("100.00"),
+            amount=Decimal("100.00"),
+            quantity=Decimal("1.00"),
+        )
+        return invoice
+
+    def _post(self, client, token, body):
+        headers = {}
+        if token is not None:
+            headers["HTTP_AUTHORIZATION"] = f"Bearer {token}"
+        return client.post(
+            reverse("munim-webhook"), data=body, format="json", **headers
+        )
+
+    def test_missing_bearer_token_returns_401(self, munim_setup):
+        client = APIClient()
+        response = self._post(
+            client, None, {"invoice_id": MUNIM_INVOICE_ID, "status": "paid"}
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_invalid_bearer_token_returns_401(self, munim_setup):
+        integration = MunimOrganizationIntegration.objects.get(
+            organization=munim_setup["org"]
+        )
+        integration.webhook_secret = "correct-secret"
+        integration.save()
+
+        client = APIClient()
+        response = self._post(
+            client,
+            "wrong-secret",
+            {"invoice_id": MUNIM_INVOICE_ID, "status": "paid"},
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_valid_token_updates_matching_invoice_to_paid(self, munim_setup):
+        org = munim_setup["org"]
+        customer = munim_setup["customer"]
+        integration = MunimOrganizationIntegration.objects.get(organization=org)
+        integration.webhook_secret = "correct-secret"
+        integration.save()
+
+        invoice = self._make_invoice(org, customer)
+
+        client = APIClient()
+        with patch(
+            "metering_billing.views.webhook_views.kafka_producer"
+        ) as mock_kafka:
+            response = self._post(
+                client,
+                "correct-secret",
+                {"invoice_id": MUNIM_INVOICE_ID, "status": "paid"},
+            )
+            assert response.status_code == status.HTTP_200_OK
+            invoice.refresh_from_db()
+            assert invoice.payment_status == Invoice.PaymentStatus.PAID
+            mock_kafka.produce_invoice_pay_in_full.assert_called_once()
+
+    def test_unknown_invoice_id_is_noop_200(self, munim_setup):
+        org = munim_setup["org"]
+        integration = MunimOrganizationIntegration.objects.get(organization=org)
+        integration.webhook_secret = "correct-secret"
+        integration.save()
+
+        client = APIClient()
+        response = self._post(
+            client,
+            "correct-secret",
+            {"invoice_id": "does-not-exist", "status": "paid"},
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_already_paid_invoice_is_idempotent(self, munim_setup):
+        org = munim_setup["org"]
+        customer = munim_setup["customer"]
+        integration = MunimOrganizationIntegration.objects.get(organization=org)
+        integration.webhook_secret = "correct-secret"
+        integration.save()
+
+        invoice = self._make_invoice(
+            org, customer, payment_status=Invoice.PaymentStatus.PAID
+        )
+
+        client = APIClient()
+        with patch(
+            "metering_billing.views.webhook_views.kafka_producer"
+        ) as mock_kafka:
+            response = self._post(
+                client,
+                "correct-secret",
+                {"invoice_id": MUNIM_INVOICE_ID, "status": "paid"},
+            )
+            assert response.status_code == status.HTTP_200_OK
+            mock_kafka.produce_invoice_pay_in_full.assert_not_called()
+
+    def test_token_valid_for_other_org_does_not_leak_invoice(
+        self, munim_setup, generate_org_and_api_key, add_customers_to_org
+    ):
+        org_a = munim_setup["org"]
+        customer_a = munim_setup["customer"]
+        integration_a = MunimOrganizationIntegration.objects.get(organization=org_a)
+        integration_a.webhook_secret = "org-a-secret"
+        integration_a.save()
+
+        org_b, _ = generate_org_and_api_key()
+        (customer_b,) = add_customers_to_org(org_b, n=1)
+        _connect_org_to_munim(org_b, api_key="org-b-key", account_id="acct-b")
+        integration_b = MunimOrganizationIntegration.objects.get(organization=org_b)
+        integration_b.webhook_secret = "org-b-secret"
+        integration_b.save()
+
+        # Invoice belongs to org_b, but caller authenticates as org_a.
+        invoice = self._make_invoice(org_b, customer_b)
+
+        client = APIClient()
+        response = self._post(
+            client,
+            "org-a-secret",
+            {"invoice_id": MUNIM_INVOICE_ID, "status": "paid"},
+        )
+        assert response.status_code == status.HTTP_200_OK
+        invoice.refresh_from_db()
+        assert invoice.payment_status == Invoice.PaymentStatus.UNPAID
+
+
+@pytest.mark.django_db
+class TestMunimRegenerateWebhookSecret:
+    def _post(self, client):
+        return client.post(reverse("munim_regenerate_webhook_secret"))
+
+    def test_regenerate_returns_new_secret_and_updates_lookup(
+        self, munim_setup, add_users_to_org
+    ):
+        org = munim_setup["org"]
+        (user,) = add_users_to_org(org, 1)
+        integration = MunimOrganizationIntegration.objects.get(organization=org)
+        integration.webhook_secret = "old-secret"
+        integration.save()
+        old_lookup = integration.webhook_secret_lookup
+
+        client = APIClient()
+        client.force_authenticate(user=user)
+        response = self._post(client)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["webhook_path"] == "/api/munim/webhook/"
+        new_secret = response.data["webhook_secret"]
+        assert new_secret and new_secret != "old-secret"
+
+        integration.refresh_from_db()
+        assert integration.webhook_secret_lookup != old_lookup
+
+    def test_regenerate_without_connection_returns_400(self, add_users_to_org):
+        from metering_billing.models import Organization
+
+        org = Organization.objects.create(organization_name="No Munim Org")
+        (user,) = add_users_to_org(org, 1)
+
+        client = APIClient()
+        client.force_authenticate(user=user)
+        response = self._post(client)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_regenerate_requires_authentication(self):
+        client = APIClient()
+        response = self._post(client)
+        assert response.status_code in (
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+        )

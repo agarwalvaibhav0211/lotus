@@ -177,6 +177,15 @@ export interface paths {
     get: operations["appMetricsRetrieve"];
     patch: operations["appMetricsPartialUpdate"];
   };
+  "/app/munim/regenerateWebhookSecret/": {
+    /**
+     * @description Rotates the Munim webhook secret for the organization's existing
+     * integration. Since the secret is only ever returned once (at generation
+     * time), this is how a user retrieves it again if lost, or replaces it if
+     * compromised.
+     */
+    post: operations["appMunimRegenerateWebhookSecretCreate"];
+  };
   "/app/netsuiteCustomers/": {
     get: operations["appNetsuiteCustomersRetrieve"];
   };
@@ -4205,6 +4214,23 @@ export interface components {
        */
       status?: "active" | "archived";
     };
+    MunimWebhookRequestRequest: {
+      invoiceId: string;
+      /**
+       * @description * `paid` - paid
+       * * `pending` - pending
+       * * `processing` - processing 
+       * @enum {string}
+       */
+      status: "paid" | "pending" | "processing";
+    };
+    MunimWebhookSecretResponse: {
+      webhookPath: string;
+      webhookSecret: string;
+    };
+    MunimWebhookUnauthorized: {
+      detail: string;
+    };
     NextPlanVersionNumberResponse: {
       version: number;
     };
@@ -5743,6 +5769,8 @@ export interface components {
        */
       paymentProcessor: "braintree" | "munim" | "stripe";
       success: boolean;
+      webhookPath?: string;
+      webhookSecret?: string;
     };
     PerPlanPerDay: {
       plan: components["schemas"]["LightweightPlanVersion"];
@@ -7845,6 +7873,21 @@ export interface operations {
       200: {
         content: {
           "application/json": components["schemas"]["MetricUpdate"];
+        };
+      };
+    };
+  };
+  appMunimRegenerateWebhookSecretCreate: {
+    /**
+     * @description Rotates the Munim webhook secret for the organization's existing
+     * integration. Since the secret is only ever returned once (at generation
+     * time), this is how a user retrieves it again if lost, or replaces it if
+     * compromised.
+     */
+    responses: {
+      200: {
+        content: {
+          "application/json": components["schemas"]["MunimWebhookSecretResponse"];
         };
       };
     };
