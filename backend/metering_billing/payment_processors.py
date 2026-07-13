@@ -498,6 +498,11 @@ class BraintreeConnector(PaymentProcesor):
 
         gateway = self._get_gateway(organization)
         invoice = gateway.transaction.find(payment_object_id)
+        Invoice.objects.filter(
+            organization=organization,
+            external_payment_obj_type=PAYMENT_PROCESSORS.BRAINTREE,
+            external_payment_obj_id=payment_object_id,
+        ).update(external_payment_obj_status=invoice.status)
         if invoice.status == braintree.Transaction.Status.Settled:
             return Invoice.PaymentStatus.PAID
         else:
@@ -767,6 +772,11 @@ class StripeConnector(PaymentProcesor):
         else:
             stripe.api_key = self.test_secret_key
         invoice = stripe.Invoice.retrieve(payment_object_id, **invoice_payload)
+        Invoice.objects.filter(
+            organization=organization,
+            external_payment_obj_type=PAYMENT_PROCESSORS.STRIPE,
+            external_payment_obj_id=payment_object_id,
+        ).update(external_payment_obj_status=invoice.status)
         if invoice.status == "paid":
             return Invoice.PaymentStatus.PAID
         else:
@@ -1543,6 +1553,11 @@ class MunimConnector(PaymentProcesor):
             data = self._get(
                 f"/v1/invoices/{payment_object_id}", organization=organization
             )
+            Invoice.objects.filter(
+                organization=organization,
+                external_payment_obj_type=PAYMENT_PROCESSORS.MUNIM,
+                external_payment_obj_id=payment_object_id,
+            ).update(external_payment_obj_status=data.get("status"))
             if data.get("status") == "paid":
                 return Invoice.PaymentStatus.PAID
         except Exception as e:

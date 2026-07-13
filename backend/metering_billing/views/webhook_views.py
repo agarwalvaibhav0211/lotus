@@ -37,6 +37,7 @@ def _invoice_paid_handler(event):
     ).first()
     if matching_invoice:
         matching_invoice.payment_status = Invoice.PaymentStatus.PAID
+        matching_invoice.external_payment_obj_status = invoice.status
         matching_invoice.save()
         if kafka_producer:
             kafka_producer.produce_invoice_pay_in_full(
@@ -143,6 +144,7 @@ def munim_webhook_endpoint(request):
             and matching_invoice.payment_status != Invoice.PaymentStatus.PAID
         ):
             matching_invoice.payment_status = Invoice.PaymentStatus.PAID
+            matching_invoice.external_payment_obj_status = new_status
             matching_invoice.save()
             if kafka_producer:
                 kafka_producer.produce_invoice_pay_in_full(

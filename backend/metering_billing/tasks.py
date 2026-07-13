@@ -214,7 +214,9 @@ def update_invoice_status():
             )
             if status == Invoice.PaymentStatus.PAID:
                 incomplete_invoice.payment_status = Invoice.PaymentStatus.PAID
-                incomplete_invoice.save()
+                # update_fields avoids clobbering external_payment_obj_status,
+                # which update_payment_object_status just persisted separately.
+                incomplete_invoice.save(update_fields=["payment_status"])
 
 
 @shared_task

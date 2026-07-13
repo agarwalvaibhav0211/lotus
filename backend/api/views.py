@@ -1701,6 +1701,10 @@ class InvoiceViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                     new_status = connector.update_payment_object_status(
                         invoice.organization, invoice.external_payment_obj_id
                     )
+                    # connector.update_payment_object_status persists the fresh
+                    # external_payment_obj_status directly to the DB; pull it back
+                    # onto this instance so it's reflected in this request's response.
+                    invoice.refresh_from_db(fields=["external_payment_obj_status"])
                     if new_status == Invoice.PaymentStatus.PAID:
                         invoice.payment_status = Invoice.PaymentStatus.PAID
                         invoice.save(update_fields=["payment_status"])
