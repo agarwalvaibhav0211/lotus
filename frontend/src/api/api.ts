@@ -309,7 +309,7 @@ export const Plan = {
     plan_id: string,
     post: CreateTagsPlanBody
   ): Promise<CreateTagsType> =>
-    requests.post(`app/plans/${plan_id}/tags/add/`, post),
+    requests.post(`app/plans/${plan_id}/tags/remove/`, post),
   // update plan versions methods
   updatePlanVersionDescription: (
     version_id: string,

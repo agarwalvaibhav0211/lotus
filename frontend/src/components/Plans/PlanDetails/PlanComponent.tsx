@@ -270,14 +270,9 @@ export function PlanSummary({
                             tags,
                           });
                         } else {
-                          const planTags = [...plan.tags];
-
-                          const tags = planTags.filter(
-                            (el) => el.tag_name !== tag.tag_name,
-                          );
                           deleteTagMutation({
                             plan_id: plan.plan_id,
-                            tags,
+                            tags: [tag],
                           });
                         }
                       }}

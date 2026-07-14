@@ -35,9 +35,21 @@ interface PlanCardProps {
       | components["schemas"]["Plan"]["tags"];
     pane: "All" | "Monthly" | "Yearly" | "Quarterly";
   }) => void;
+  deleteTagMutation: (variables: {
+    plan_id: string;
+    tags:
+      | components["schemas"]["PlanDetail"]["tags"]
+      | components["schemas"]["Plan"]["tags"];
+    pane: "All" | "Monthly" | "Yearly" | "Quarterly";
+  }) => void;
 }
 
-const PlanCard: FC<PlanCardProps> = ({ plan, createTagMutation, pane }) => {
+const PlanCard: FC<PlanCardProps> = ({
+  plan,
+  createTagMutation,
+  deleteTagMutation,
+  pane,
+}) => {
   const { plan_tags } = useGlobalStore((state) => state.org);
 
   const queryClient = useQueryClient();
@@ -192,14 +204,9 @@ const PlanCard: FC<PlanCardProps> = ({ plan, createTagMutation, pane }) => {
                           pane,
                         });
                       } else {
-                        const planTags = [...plan.tags];
-
-                        const tags = planTags.filter(
-                          (el) => el.tag_name !== tag.tag_name,
-                        );
-                        createTagMutation({
+                        deleteTagMutation({
                           plan_id: plan.plan_id,
-                          tags,
+                          tags: [tag],
                           pane,
                         });
                       }

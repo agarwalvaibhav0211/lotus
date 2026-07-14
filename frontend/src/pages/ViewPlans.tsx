@@ -203,6 +203,38 @@ const ViewPlans: FC = () => {
       },
     },
   );
+  const deleteTag = useMutation(
+    ({
+      plan_id,
+      tags,
+    }: {
+      plan_id: string;
+      tags: PlanType["tags"];
+      pane: "Monthly" | "Yearly" | "Quarterly" | "All";
+    }) =>
+      Plan.removeTagsPlan(plan_id, {
+        tags,
+      }),
+    {
+      onSuccess: (newData, { plan_id }) => {
+        if (data) {
+          const oldData = [...data];
+          const index = oldData.findIndex((plan) => plan.plan_id === plan_id);
+          const changedElement = oldData.find(
+            (plan) => plan.plan_id === plan_id,
+          );
+          if (index && changedElement) {
+            changedElement.tags = newData.tags as PlanType["tags"];
+            oldData[index] = changedElement;
+            setPlans(oldData);
+          }
+        }
+
+        queryClient.invalidateQueries(["plan_detail", plan_id]);
+        queryClient.invalidateQueries(["organization"]);
+      },
+    },
+  );
 
   const getFilteredPlans = useCallback(() => {
     switch (activeKey) {
@@ -487,6 +519,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="All"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -495,6 +528,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="All"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -518,6 +552,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="All"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -584,6 +619,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="Monthly"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -592,6 +628,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="Monthly"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -615,6 +652,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="Monthly"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -681,6 +719,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="Quarterly"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -689,6 +728,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="Quarterly"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -711,6 +751,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="Quarterly"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -776,6 +817,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="Yearly"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -784,6 +826,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="Yearly"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
@@ -806,6 +849,7 @@ const ViewPlans: FC = () => {
                       <PlanCard
                         pane="Yearly"
                         createTagMutation={createTag.mutate}
+                        deleteTagMutation={deleteTag.mutate}
                         plan={item}
                         key={item.plan_id}
                       />
