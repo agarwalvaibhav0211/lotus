@@ -49,7 +49,11 @@ const InvoiceLineItemsBreakdown: FC<{ invoiceId: string }> = ({
             ).format("YYYY/MM/DD")}`,
         },
         { title: "Quantity", dataIndex: "quantity", key: "quantity" },
-        { title: "Billing Type", dataIndex: "billing_type", key: "billing_type" },
+        {
+          title: "Billing Type",
+          dataIndex: "billing_type",
+          key: "billing_type",
+        },
         {
           title: "Base",
           dataIndex: "base",
@@ -81,6 +85,40 @@ const InvoiceLineItemsBreakdown: FC<{ invoiceId: string }> = ({
       ]}
     />
   );
+};
+
+const PAID_STATUSES = ["paid", "settled", "succeeded", "completed"];
+const PENDING_STATUSES = [
+  "pending",
+  "processing",
+  "authorized",
+  "submitted_for_settlement",
+  "settling",
+  "open",
+  "draft",
+];
+const FAILED_STATUSES = [
+  "failed",
+  "unpaid",
+  "voided",
+  "void",
+  "gateway_rejected",
+  "processor_declined",
+  "uncollectible",
+  "expired",
+];
+
+const getStatusTagProps = (status: string | null | undefined) => {
+  const normalized = (status || "").toLowerCase();
+  let color = "default";
+  if (PAID_STATUSES.includes(normalized)) {
+    color = "green";
+  } else if (PENDING_STATUSES.includes(normalized)) {
+    color = "gold";
+  } else if (FAILED_STATUSES.includes(normalized)) {
+    color = "red";
+  }
+  return { color, label: (status || "").toUpperCase() };
 };
 
 const downloadFile = async (s3link) => {
@@ -268,10 +306,18 @@ const CustomerInvoiceView: FC<Props> = ({
       render: (
         _,
         record: components["schemas"]["CustomerDetail"]["invoices"][0]
-      ) => (
-        <div className="flex">
-          {record.external_payment_obj_type ? (
-            record.external_payment_obj_url ? (
+      ) => {
+        const { color, label } = getStatusTagProps(
+          record.external_payment_obj_status || record.payment_status
+        );
+        const statusTag = (
+          <Tag color={color} key={label}>
+            {label}
+          </Tag>
+        );
+        return (
+          <div className="flex">
+            {record.external_payment_obj_type ? (
               <Tooltip
                 title={
                   "Source: " +
@@ -280,88 +326,59 @@ const CustomerInvoiceView: FC<Props> = ({
                   ]?.name ?? record.external_payment_obj_type)
                 }
               >
-                <a
-                  href={record.external_payment_obj_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Tag
-                    color="grey"
-                    key={
-                      record.external_payment_obj_status ||
-                      record.payment_status
-                    }
+                {record.external_payment_obj_url ? (
+                  <a
+                    href={record.external_payment_obj_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    {record.external_payment_obj_status ||
-                      record.payment_status}
-                  </Tag>
-                </a>
+                    {statusTag}
+                  </a>
+                ) : (
+                  statusTag
+                )}
               </Tooltip>
             ) : (
-              <Tooltip
-                title={
-                  "Source: " +
-                  (integrationsMap[
-                    record.external_payment_obj_type as keyof typeof integrationsMap
-                  ]?.name ?? record.external_payment_obj_type)
-                }
-              >
-                <Tag
-                  color="grey"
-                  key={
-                    record.external_payment_obj_status || record.payment_status
-                  }
-                >
-                  {record.external_payment_obj_status || record.payment_status}
-                </Tag>
-              </Tooltip>
-            )
-          ) : (
-            <Tag
-              color={record.payment_status === "paid" ? "green" : "red"}
-              key={record.payment_status}
-            >
-              {record.payment_status.toUpperCase()}
-            </Tag>
-          )}
+              statusTag
+            )}
 
-          <div
-            className="ml-auto"
-            aria-hidden
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Dropdown
-              overlay={
-                <Menu>
-                  <Menu.Item
-                    key="1"
-                    onClick={() => {
-                      if ((import.meta as any).env.VITE_IS_DEMO === "true") {
-                        toast.error("This feature is disabled in the demo", {
-                          position: toast.POSITION.TOP_CENTER,
-                        });
-                      } else {
-                        getPdfUrl(record);
-                      }
-                    }}
-                  >
-                    <div className="archiveLabel">Download Invoice PDF</div>
-                  </Menu.Item>
-                  {!record.external_payment_obj_type &&
-                    record.payment_status === "unpaid" && (
-                      <Menu.Item
-                        key="2"
-                        onClick={() => {
-                          if (
-                            (import.meta as any).env.VITE_IS_DEMO === "true"
-                          ) {
-                            toast.error(
-                              "This feature is disabled in the demo",
-                              {
-                                position: toast.POSITION.TOP_CENTER,
-                              }
-                            );
-                          } else if (selectedRecord === record) {
+            <div
+              className="ml-auto"
+              aria-hidden
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Dropdown
+                overlay={
+                  <Menu>
+                    <Menu.Item
+                      key="1"
+                      onClick={() => {
+                        if ((import.meta as any).env.VITE_IS_DEMO === "true") {
+                          toast.error("This feature is disabled in the demo", {
+                            position: toast.POSITION.TOP_CENTER,
+                          });
+                        } else {
+                          getPdfUrl(record);
+                        }
+                      }}
+                    >
+                      <div className="archiveLabel">Download Invoice PDF</div>
+                    </Menu.Item>
+                    {!record.external_payment_obj_type &&
+                      record.payment_status === "unpaid" && (
+                        <Menu.Item
+                          key="2"
+                          onClick={() => {
+                            if (
+                              (import.meta as any).env.VITE_IS_DEMO === "true"
+                            ) {
+                              toast.error(
+                                "This feature is disabled in the demo",
+                                {
+                                  position: toast.POSITION.TOP_CENTER,
+                                }
+                              );
+                            } else if (selectedRecord === record) {
                               changeStatus.mutate({
                                 invoice_id: record.invoice_id,
                                 payment_status: "paid",
@@ -369,44 +386,45 @@ const CustomerInvoiceView: FC<Props> = ({
                             } else {
                               setSelectedRecord(record);
                             }
-                        }}
-                      >
-                        <div className="archiveLabel">Mark As Paid</div>
-                      </Menu.Item>
-                    )}
-                  {!record.external_payment_obj_type &&
-                    paymentMethod &&
-                    record.payment_status === "unpaid" && (
-                      <Menu.Item
-                        key="2"
-                        onClick={() => {
-                          if (selectedRecord === record) {
-                            sendToPaymentProcessor.mutate(record.invoice_id);
-                          } else {
-                            setSelectedRecord(record);
-                          }
-                        }}
-                      >
-                        <div className="archiveLabel">
-                          Send to Payment Processor
-                        </div>
-                      </Menu.Item>
-                    )}
-                </Menu>
-              }
-              trigger={["click"]}
-            >
-              <Button
-                type="text"
-                size="small"
-                onClick={(e) => e.preventDefault()}
+                          }}
+                        >
+                          <div className="archiveLabel">Mark As Paid</div>
+                        </Menu.Item>
+                      )}
+                    {!record.external_payment_obj_type &&
+                      paymentMethod &&
+                      record.payment_status === "unpaid" && (
+                        <Menu.Item
+                          key="2"
+                          onClick={() => {
+                            if (selectedRecord === record) {
+                              sendToPaymentProcessor.mutate(record.invoice_id);
+                            } else {
+                              setSelectedRecord(record);
+                            }
+                          }}
+                        >
+                          <div className="archiveLabel">
+                            Send to Payment Processor
+                          </div>
+                        </Menu.Item>
+                      )}
+                  </Menu>
+                }
+                trigger={["click"]}
               >
-                <MoreOutlined />
-              </Button>
-            </Dropdown>
+                <Button
+                  type="text"
+                  size="small"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  <MoreOutlined />
+                </Button>
+              </Dropdown>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
   ];
 
