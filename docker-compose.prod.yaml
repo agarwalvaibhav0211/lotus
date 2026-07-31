@@ -2,6 +2,9 @@ networks:
   caddy_net:
     external: true
     name: caddy_net
+  shared-services:
+    external: true
+    name: shared-services
   lotus-internal:
     driver: bridge
 
@@ -39,6 +42,10 @@ services:
       - lotus-internal
 
   redpanda:
+    # Opt-in: this stack normally reaches the central Redpanda in
+    # oracle-cloud-setup over the shared-services network.
+    # `docker compose --profile local-redpanda up` to run a bundled one instead.
+    profiles: ["local-redpanda"]
     image: docker.redpanda.com/redpandadata/redpanda:v22.2.2
     command:
       - redpanda start
@@ -80,10 +87,10 @@ services:
     depends_on:
       - db
       - redis
-      - redpanda
     restart: unless-stopped
     networks:
       - lotus-internal
+      - shared-services
 
   event-guidance:
     image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/event-guidance:${LOTUS_IMAGE_TAG:-latest}
@@ -98,10 +105,10 @@ services:
     depends_on:
       - db
       - redis
-      - redpanda
     restart: unless-stopped
     networks:
       - lotus-internal
+      - shared-services
 
   event-ingestion:
     image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/event-ingestion:${LOTUS_IMAGE_TAG:-latest}
@@ -116,11 +123,11 @@ services:
     depends_on:
       - db
       - redis
-      - redpanda
       - backend
     restart: unless-stopped
     networks:
       - lotus-internal
+      - shared-services
 
   frontend:
     image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/frontend:${LOTUS_IMAGE_TAG:-latest}
@@ -168,6 +175,7 @@ services:
     restart: unless-stopped
     networks:
       - lotus-internal
+      - shared-services
 
   celery-beat:
     image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/backend:${LOTUS_IMAGE_TAG:-latest}
@@ -186,6 +194,7 @@ services:
       - redis
     networks:
       - lotus-internal
+      - shared-services
 
 volumes:
   pgdata_prod:

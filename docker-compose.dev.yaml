@@ -17,6 +17,10 @@ services:
     restart: unless-stopped
 
   redpanda:
+    # Opt-in: this stack normally reaches the central Redpanda in
+    # oracle-cloud-setup over the shared-services network.
+    # `docker compose --profile local-redpanda up` to run a bundled one instead.
+    profiles: ["local-redpanda"]
     image: docker.redpanda.com/redpandadata/redpanda:v22.2.2
     command:
       - redpanda start
@@ -76,6 +80,7 @@ services:
     networks:
       - default
       - caddy_net
+      - shared-services
 
   event-guidance:
     env_file:
@@ -88,9 +93,11 @@ services:
     depends_on:
       - db
       - redis
-      - redpanda
       - backend
     restart: unless-stopped
+    networks:
+      - default
+      - shared-services
 
   event-ingestion:
     container_name: lotus-event-ingestion
@@ -102,12 +109,12 @@ services:
     depends_on:
       - db
       - redis
-      - redpanda
       - backend
     restart: unless-stopped
     networks:
       - default
       - caddy_net
+      - shared-services
 
   frontend:
     container_name: lotus-frontend
@@ -147,6 +154,9 @@ services:
       - ./backend/metering_billing:/lotus/metering_billing
       - ./backend/api:/lotus/api
     restart: unless-stopped
+    networks:
+      - default
+      - shared-services
 
   celery-beat:
     env_file:
@@ -165,6 +175,9 @@ services:
       - celery
       - backend
       - redis
+    networks:
+      - default
+      - shared-services
 
 volumes:
   pgdata_dev:
@@ -176,3 +189,6 @@ networks:
   caddy_net:
     external: true
     name: caddy_net
+  shared-services:
+    external: true
+    name: shared-services
