@@ -1,7 +1,7 @@
 networks:
-  shared:
+  caddy_net:
     external: true
-    name: shared
+    name: caddy_net
   lotus-internal:
     driver: bridge
 
@@ -140,7 +140,7 @@ services:
     depends_on:
       - backend
     networks:
-      - shared
+      - caddy_net
       - lotus-internal  # needs both to reach backend/event-ingestion internally
 
   redis:

@@ -23,7 +23,7 @@ Deploy Lotus using pre-built images from GitHub Container Registry (GHCR). Image
 ## Prerequisites
 
 - Docker Engine 24+ and Docker Compose v2 (`docker compose` plugin, not `docker-compose`)
-- Caddy v2 running as a reverse proxy with access to a `shared` Docker network
+- Caddy v2 running as a reverse proxy with access to a `caddy_net` Docker network
 - A domain pointed at your server with HTTPS handled by Caddy
 - 4 GB RAM, 20 GB free disk
 
@@ -40,7 +40,7 @@ Internet (HTTPS)
       │ proxies to lotus-frontend:80
       │
 ┌─────▼──────────────────────────────────────────┐
-│  shared  (external Docker network)              │
+│  caddy_net  (external Docker network)           │
 │  frontend:80  ←────────────────────────────┐   │
 └────────────────────────────────────────────┼───┘
                                              │
@@ -62,7 +62,7 @@ Internet (HTTPS)
 └─────────────────────────────────────────────────┘
 ```
 
-Only `frontend` is on the `shared` network. Everything else is isolated inside `lotus-internal`.
+Only `frontend` is on the `caddy_net` network. Everything else is isolated inside `lotus-internal`.
 
 ---
 
@@ -207,18 +207,18 @@ export LOTUS_IMAGE_PULL_POLICY=always
 
 ## Step 3: Set Up the Shared Network
 
-Lotus's `frontend` service must join your existing `shared` Docker network so Caddy can reach it.
+Lotus's `frontend` service must join your existing `caddy_net` Docker network so Caddy can reach it.
 
 Check if it already exists:
 
 ```bash
-docker network ls | grep shared
+docker network ls | grep caddy_net
 ```
 
 If not, create it:
 
 ```bash
-docker network create shared
+docker network create caddy_net
 ```
 
 If your Caddy is managed by its own docker-compose file, declare the network there as external in that file:
@@ -226,13 +226,13 @@ If your Caddy is managed by its own docker-compose file, declare the network the
 ```yaml
 # your existing caddy docker-compose.yml
 networks:
-  shared:
+  caddy_net:
     driver: bridge
 
 services:
   caddy:
     networks:
-      - shared
+      - caddy_net
 ```
 
 Then recreate that stack so Caddy joins the network:
