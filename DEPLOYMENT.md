@@ -140,6 +140,7 @@ Open `env/.env.prod` and fill in every value marked `change_me`. The table below
 | `ADMIN_PASSWORD` | *(generated)* | Initial superuser password |
 | `VITE_API_URL` | `https://yourdomain.com/` | Must end with `/` — used by the frontend to reach the API |
 | `SVIX_JWT_SECRET` | *(generated)* | `openssl rand -hex 32` |
+| `FIELD_ENCRYPTION_KEY` | *(generated)* | `python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` — encrypts per-organization secrets at rest (e.g. Munim API keys, webhook secrets). Losing this key makes existing encrypted data unrecoverable. |
 
 #### Fixed values (do not change)
 
@@ -165,6 +166,8 @@ Open `env/.env.prod` and fill in every value marked `change_me`. The table below
 | `AWS_ACCESS_KEY_ID` | S3 file uploads |
 | `AWS_SECRET_ACCESS_KEY` | S3 file uploads |
 | `TAXJAR_API_KEY` | Tax calculation |
+| `VITE_NANGO_PK` | Nango public key — enables Nango-based integrations in the frontend |
+| `MUNIM_BASE_URL` | Munim API base URL (defaults to `https://api.munim.io` if unset) |
 
 #### Quick secret generation
 
@@ -172,6 +175,7 @@ Open `env/.env.prod` and fill in every value marked `change_me`. The table below
 echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)"
 echo "SECRET_KEY=$(openssl rand -hex 32)"
 echo "SVIX_JWT_SECRET=$(openssl rand -hex 32)"
+echo "FIELD_ENCRYPTION_KEY=$(python3 -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
 echo "ADMIN_PASSWORD=$(openssl rand -hex 12)"
 ```
 
