@@ -79,7 +79,12 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - caddy_net
+      # NOT caddy_net. Caddy only ever proxies to the frontend, and Compose
+      # publishes each service's *name* as a DNS alias on every network it
+      # joins — so putting this on the shared proxy network claimed the generic
+      # name "backend" there. The prod frontend also sits on caddy_net and
+      # resolves `backend:8000`, so it silently reached this dev container
+      # instead of its own, i.e. prod served dev's database.
       - shared-services
 
   event-guidance:
@@ -113,7 +118,9 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - caddy_net
+      # NOT caddy_net — same reason as backend above: it claimed the generic
+      # alias "event-ingestion" on the shared proxy network, which the prod
+      # frontend resolves for its ingestion upstream.
       - shared-services
 
   frontend:

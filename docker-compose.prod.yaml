@@ -147,6 +147,12 @@ services:
     depends_on:
       - backend
     networks:
+      # frontend is the ONLY service that may join caddy_net. Its nginx proxies
+      # to the bare names `backend:8000` and `event-ingestion:7998`, and Compose
+      # publishes every service's name as a DNS alias on each network it joins —
+      # so any other stack putting a service called `backend` on caddy_net makes
+      # that lookup ambiguous and can silently steer this stack at the wrong
+      # database. Keep everything else on lotus-internal / shared-services.
       - caddy_net
       - lotus-internal  # needs both to reach backend/event-ingestion internally
 
