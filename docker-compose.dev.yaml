@@ -123,7 +123,12 @@ services:
       # frontend resolves for its ingestion upstream.
       - shared-services-dev
 
-  frontend:
+  # Named dev-frontend, not frontend: both stacks' frontends must sit on
+  # caddy_net for Caddy to reach them, and Compose publishes each service's name
+  # as a DNS alias there. Two services called `frontend` made that name resolve
+  # to two containers. container_name stays lotus-frontend, so the Caddyfile and
+  # every `docker logs lotus-frontend` keep working unchanged.
+  dev-frontend:
     container_name: lotus-frontend
     restart: unless-stopped
     build:

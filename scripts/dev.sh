@@ -9,7 +9,7 @@ fi
 
 # Set Docker images and compose args
 DOCKER_IMAGES=("lotus-frontend:latest" "lotus-celery:latest" "lotus-backend:latest" "redis:7-alpine" "timescale/timescaledb-ha:latest")
-SERVICES=("frontend" "celery" "backend" "redis" "db")
+SERVICES=("dev-frontend" "celery" "backend" "redis" "db")
 DOCKER_COMPOSE_ARGS="-f docker-compose.dev.yaml --env-file env/.env.dev"
 
 
