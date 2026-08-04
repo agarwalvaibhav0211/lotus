@@ -18,7 +18,7 @@ services:
 
   redpanda:
     # Opt-in: this stack normally reaches the central Redpanda in
-    # oracle-cloud-setup over the shared-services network.
+    # oracle-cloud-setup over the shared-services-dev network.
     # `docker compose --profile local-redpanda up` to run a bundled one instead.
     profiles: ["local-redpanda"]
     image: docker.redpanda.com/redpandadata/redpanda:v22.2.2
@@ -85,7 +85,7 @@ services:
       # name "backend" there. The prod frontend also sits on caddy_net and
       # resolves `backend:8000`, so it silently reached this dev container
       # instead of its own, i.e. prod served dev's database.
-      - shared-services
+      - shared-services-dev
 
   event-guidance:
     env_file:
@@ -102,7 +102,7 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - shared-services
+      - shared-services-dev
 
   event-ingestion:
     container_name: lotus-event-ingestion
@@ -121,7 +121,7 @@ services:
       # NOT caddy_net — same reason as backend above: it claimed the generic
       # alias "event-ingestion" on the shared proxy network, which the prod
       # frontend resolves for its ingestion upstream.
-      - shared-services
+      - shared-services-dev
 
   frontend:
     container_name: lotus-frontend
@@ -163,7 +163,7 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - shared-services
+      - shared-services-dev
 
   celery-beat:
     env_file:
@@ -184,7 +184,7 @@ services:
       - redis
     networks:
       - default
-      - shared-services
+      - shared-services-dev
 
 volumes:
   pgdata_dev:
@@ -196,6 +196,8 @@ networks:
   caddy_net:
     external: true
     name: caddy_net
-  shared-services:
+  # Per-stack broker network. Each stack gets its own so that the identical
+  # service names in dev and prod can never resolve to each other.
+  shared-services-dev:
     external: true
-    name: shared-services
+    name: shared-services-dev

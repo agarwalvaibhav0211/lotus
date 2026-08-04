@@ -2,9 +2,11 @@ networks:
   caddy_net:
     external: true
     name: caddy_net
-  shared-services:
+  # Per-stack broker network. Each stack gets its own so that the identical
+  # service names in dev and prod can never resolve to each other.
+  shared-services-prod:
     external: true
-    name: shared-services
+    name: shared-services-prod
   lotus-internal:
     driver: bridge
 
@@ -43,7 +45,7 @@ services:
 
   redpanda:
     # Opt-in: this stack normally reaches the central Redpanda in
-    # oracle-cloud-setup over the shared-services network.
+    # oracle-cloud-setup over the shared-services-prod network.
     # `docker compose --profile local-redpanda up` to run a bundled one instead.
     profiles: ["local-redpanda"]
     image: docker.redpanda.com/redpandadata/redpanda:v22.2.2
@@ -90,7 +92,7 @@ services:
     restart: unless-stopped
     networks:
       - lotus-internal
-      - shared-services
+      - shared-services-prod
 
   event-guidance:
     image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/event-guidance:${LOTUS_IMAGE_TAG:-latest}
@@ -108,7 +110,7 @@ services:
     restart: unless-stopped
     networks:
       - lotus-internal
-      - shared-services
+      - shared-services-prod
 
   event-ingestion:
     image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/event-ingestion:${LOTUS_IMAGE_TAG:-latest}
@@ -127,7 +129,7 @@ services:
     restart: unless-stopped
     networks:
       - lotus-internal
-      - shared-services
+      - shared-services-prod
 
   frontend:
     image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/frontend:${LOTUS_IMAGE_TAG:-latest}
@@ -152,7 +154,7 @@ services:
       # publishes every service's name as a DNS alias on each network it joins —
       # so any other stack putting a service called `backend` on caddy_net makes
       # that lookup ambiguous and can silently steer this stack at the wrong
-      # database. Keep everything else on lotus-internal / shared-services.
+      # database. Keep everything else on lotus-internal / shared-services-prod.
       - caddy_net
       - lotus-internal  # needs both to reach backend/event-ingestion internally
 
@@ -181,7 +183,7 @@ services:
     restart: unless-stopped
     networks:
       - lotus-internal
-      - shared-services
+      - shared-services-prod
 
   celery-beat:
     image: ${LOTUS_IMAGE_REGISTRY:-ghcr.io/agarwalvaibhav0211/lotus}/backend:${LOTUS_IMAGE_TAG:-latest}
@@ -200,7 +202,7 @@ services:
       - redis
     networks:
       - lotus-internal
-      - shared-services
+      - shared-services-prod
 
 volumes:
   pgdata_prod:
