@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import "./PlanDetails.css";
-import { Typography } from "antd";
+import { Button, Typography } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import { FeatureType } from "../../../types/feature-type";
 import CopyText from "../../base/CopytoClipboard";
 import createShortenedText from "../../../helpers/createShortenedText";
@@ -8,14 +9,42 @@ import useMediaQuery from "../../../hooks/useWindowQuery";
 
 interface PlanFeaturesProps {
   features?: FeatureType[];
+  // When omitted, the card stays read-only (add-ons and custom plans).
+  onAddFeature?: () => void;
 }
 
-const PlanFeatures: FC<PlanFeaturesProps> = ({ features }) => {
+const PlanFeatures: FC<PlanFeaturesProps> = ({ features, onAddFeature }) => {
   const windowWidth = useMediaQuery();
+  const canAddFeature =
+    !!onAddFeature && !((import.meta as any).env.VITE_IS_DEMO === "true");
+
+  const addFeatureButton = (
+    <Button
+      key="add-feature"
+      htmlType="button"
+      type="primary"
+      onClick={onAddFeature}
+      id="add-feature-to-plan-button"
+      className="hover:!bg-primary-700"
+      style={{ background: "#C3986B", borderColor: "#C3986B" }}
+    >
+      <div className="flex items-center justify-between text-white">
+        <div>
+          <PlusOutlined className="!text-white w-12 h-12 cursor-pointer" />
+          Add Feature
+        </div>
+      </div>
+    </Button>
+  );
 
   return (
     <div className="min-h-[200px] mt-4 min-w-[246px] p-8 cursor-pointer font-main rounded-sm bg-card ">
-      <Typography.Title className="!text-[18px]">Features</Typography.Title>
+      <div className="flex items-center justify-between">
+        <Typography.Title className="!text-[18px] !mb-0">
+          Features
+        </Typography.Title>
+        {canAddFeature && addFeatureButton}
+      </div>
       <div className=" w-full h-[1.5px] mt-6 bg-card-divider mb-2" />
       <div className="grid gap-6 grid-cols-1 xl:grid-cols-4">
         {features && features.length > 0 ? (

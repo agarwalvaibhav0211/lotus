@@ -27,6 +27,7 @@ import { components } from "../../../gen-types";
 import ChevronDown from "../../base/ChevronDown";
 import DropdownComponent from "../../base/Dropdown/Dropdown";
 import AddCurrencyModal from "./AddCurrencyModal";
+import AddFeatureToPlanModal from "./AddFeatureToPlanModal";
 import DeleteVersionModal from "./DeleteVersionModal";
 
 interface SwitchVersionProps {
@@ -83,6 +84,7 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
     components["schemas"]["PlanDetail"]["versions"]
   >([]);
   const [triggerCurrencyModal, setTriggerCurrencyModal] = useState(false);
+  const [triggerFeatureModal, setTriggerFeatureModal] = useState(false);
   const selectRef = useRef<HTMLSelectElement | null>(null!);
   const [triggerDeleteModal, setTriggerDeleteModal] = useState(false);
   const [capitalizedState, setCapitalizedState] = useState<string>("");
@@ -154,7 +156,14 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
     },
   );
   useEffect(() => {
-    setSelectedVersion(plan.versions.find((x) => x.status === "active")!);
+    // Keep the version the user is looking at after a refetch. Snapping back to
+    // the active version would hide in-place edits (e.g. adding a feature to a
+    // non-active version) behind an apparent no-op.
+    setSelectedVersion(
+      (prev) =>
+        plan.versions.find((v) => v.version_id === prev?.version_id) ??
+        plan.versions.find((x) => x.status === "active")!,
+    );
   }, [plan]);
   useEffect(() => {
     setCapitalizedState(capitalize(selectedVersion!.status));
@@ -305,7 +314,10 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
           />
         </div>
         <div className="-mx-10">
-          <PlanFeatures features={selectedVersion?.features} />
+          <PlanFeatures
+            features={selectedVersion?.features}
+            onAddFeature={() => setTriggerFeatureModal(true)}
+          />
         </div>
         <div className="-mx-10">
           <PlanCustomerSubscriptions
@@ -327,6 +339,15 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
         showModal={triggerDeleteModal}
         setShowModal={(show) => setTriggerDeleteModal(show)}
       />
+      {selectedVersion && (
+        <AddFeatureToPlanModal
+          plan_id={plan.plan_id}
+          versions={versions}
+          selectedVersion={selectedVersion}
+          showModal={triggerFeatureModal}
+          setShowModal={(show) => setTriggerFeatureModal(show)}
+        />
+      )}
     </div>
   );
 };
