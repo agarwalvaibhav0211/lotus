@@ -8736,6 +8736,20 @@
         },
         "type": "object"
       },
+      "PatchedFeatureUpdateRequest": {
+        "properties": {
+          "feature_description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "feature_name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "PatchedInvoiceUpdateRequest": {
         "properties": {
           "payment_status": {

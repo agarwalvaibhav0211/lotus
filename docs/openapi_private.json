@@ -8736,6 +8736,20 @@
         },
         "type": "object"
       },
+      "PatchedFeatureUpdateRequest": {
+        "properties": {
+          "feature_description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "feature_name": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "PatchedInvoiceUpdateRequest": {
         "properties": {
           "payment_status": {
@@ -14812,6 +14826,65 @@
         },
         "responses": {
           "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureDetail"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "knoxTokenAuth": []
+          },
+          {
+            "OrganizationApiKeyAuth": [],
+            "TokenAuth": []
+          }
+        ],
+        "tags": [
+          "app"
+        ]
+      }
+    },
+    "/app/features/{feature_id}/": {
+      "patch": {
+        "operationId": "app_features_partial_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "feature_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedFeatureUpdateRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedFeatureUpdateRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchedFeatureUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
             "content": {
               "application/json": {
                 "schema": {

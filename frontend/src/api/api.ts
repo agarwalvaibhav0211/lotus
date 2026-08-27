@@ -86,7 +86,11 @@ import {
   UpdateOrganizationPPType,
   UpdateOrganizationType,
 } from "../types/account-type";
-import { FeatureType, CreateFeatureType } from "../types/feature-type";
+import {
+  FeatureType,
+  CreateFeatureType,
+  UpdateFeatureType,
+} from "../types/feature-type";
 import {
   CreateBacktestType,
   BacktestType,
@@ -535,6 +539,11 @@ export const Features = {
   getFeatures: (): Promise<FeatureType[]> => requests.get("app/features/"),
   createFeature: (post: CreateFeatureType): Promise<FeatureType> =>
     requests.post("app/features/", post),
+  updateFeature: (
+    feature_id: string,
+    patch: UpdateFeatureType
+  ): Promise<FeatureType> =>
+    requests.patch(`app/features/${feature_id}/`, patch),
 };
 
 export const Metrics = {

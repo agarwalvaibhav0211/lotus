@@ -8,3 +8,8 @@ export interface CreateFeatureType {
   feature_name: string;
   feature_description: string;
 }
+
+export interface UpdateFeatureType {
+  feature_name?: string;
+  feature_description?: string;
+}

@@ -36,6 +36,7 @@ from drf_spectacular.utils import (
     inline_serializer,
 )
 from metering_billing.exceptions import (
+    DuplicateFeature,
     DuplicateMetric,
     DuplicateWebhookEndpoint,
     InvalidOperation,
@@ -87,6 +88,7 @@ from metering_billing.serializers.model_serializers import (
     ExternalPlanLinkSerializer,
     FeatureCreateSerializer,
     FeatureDetailSerializer,
+    FeatureUpdateSerializer,
     InvoiceDetailSerializer,
     MetricCreateSerializer,
     MetricDetailSerializer,
@@ -122,6 +124,7 @@ from metering_billing.serializers.serializer_utils import (
     AddOnUUIDField,
     AddOnVersionUUIDField,
     AnalysisUUIDField,
+    FeatureUUIDField,
     MetricUUIDField,
     OrganizationUUIDField,
     PlanUUIDField,
@@ -770,19 +773,30 @@ class FeatureViewSet(
     PermissionPolicyMixin,
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
     viewsets.GenericViewSet,
 ):
     serializer_class = FeatureDetailSerializer
-    http_method_names = ["get", "post", "head"]
+    http_method_names = ["get", "post", "head", "patch"]
+    lookup_field = "feature_id"
     permission_classes_per_method = {
         "create": [IsAuthenticated & ValidOrganization],
+        "partial_update": [IsAuthenticated & ValidOrganization],
         "destroy": [IsAuthenticated & ValidOrganization],
     }
     queryset = Feature.objects.all()
 
+    def get_object(self):
+        string_uuid = self.kwargs[self.lookup_field]
+        uuid = FeatureUUIDField().to_internal_value(string_uuid)
+        self.kwargs[self.lookup_field] = uuid
+        return super().get_object()
+
     def get_serializer_class(self):
         if self.action == "create":
             return FeatureCreateSerializer
+        elif self.action == "partial_update":
+            return FeatureUpdateSerializer
         return FeatureDetailSerializer
 
     def get_queryset(self):
@@ -828,7 +842,36 @@ class FeatureViewSet(
         return Response(feature_data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
-        return serializer.save(organization=self.request.organization)
+        try:
+            return serializer.save(organization=self.request.organization)
+        except IntegrityError as e:
+            cause = e.__cause__
+            if "unique_feature" in str(cause):
+                raise DuplicateFeature(
+                    "A feature with the same name already exists for this organization. Please choose a different name."
+                )
+            raise ServerError(f"Unknown error occurred while creating feature: {e}")
+
+    @extend_schema(responses=FeatureDetailSerializer)
+    def partial_update(self, request, *args, **kwargs):
+        feature = self.get_object()
+        serializer = self.get_serializer(feature, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(
+            FeatureDetailSerializer(feature).data, status=status.HTTP_200_OK
+        )
+
+    def perform_update(self, serializer):
+        try:
+            return serializer.save()
+        except IntegrityError as e:
+            cause = e.__cause__
+            if "unique_feature" in str(cause):
+                raise DuplicateFeature(
+                    "A feature with the same name already exists for this organization. Please choose a different name."
+                )
+            raise ServerError(f"Unknown error occurred while updating feature: {e}")
 
 
 class PlanVersionViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):

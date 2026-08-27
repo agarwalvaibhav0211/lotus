@@ -81,6 +81,12 @@ class DuplicateMetric(APIException):
     default_code = "duplicate_resource"
 
 
+class DuplicateFeature(APIException):
+    status_code = 400
+    default_detail = "Feature with that name already exists"
+    default_code = "duplicate_resource"
+
+
 class DuplicateUser(APIException):
     status_code = 400
     default_detail = "User with that email already exists"

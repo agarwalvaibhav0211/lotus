@@ -22,6 +22,9 @@ const ViewFeatures: FC = () => {
   const [visible, setVisible] = useState<boolean>(false);
   const [featureState, setFeatureState] =
     useState<CreateFeatureType>(defaultFeatureState);
+  const [editingFeature, setEditingFeature] = useState<FeatureType | null>(
+    null
+  );
 
   const queryClient = useQueryClient();
 
@@ -53,20 +56,67 @@ const ViewFeatures: FC = () => {
       onSettled: () => {
         toast.dismiss();
       },
-    },
+    }
+  );
+
+  const updateMutation = useMutation(
+    ({ feature_id, patch }: { feature_id: string; patch: CreateFeatureType }) =>
+      Features.updateFeature(feature_id, patch),
+    {
+      onSuccess: () => {
+        setVisible(false);
+        setEditingFeature(null);
+        queryClient.invalidateQueries(["feature_list"]);
+        toast.success("Successfully updated feature", {
+          position: toast.POSITION.TOP_CENTER,
+        });
+      },
+      onMutate: () => {
+        toast.loading("Updating feature...", {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: false,
+        });
+      },
+      onError: (error: any) => {
+        toast.error(`Error updating feature: ${error.response.data.detail}`, {
+          position: toast.POSITION.TOP_CENTER,
+        });
+      },
+      onSettled: () => {
+        toast.dismiss();
+      },
+    }
   );
 
   const createFeatureButton = () => {
+    setEditingFeature(null);
     setFeatureState(defaultFeatureState);
+    setVisible(true);
+  };
+
+  const editFeatureButton = (feature: FeatureType) => {
+    setEditingFeature(feature);
+    setFeatureState({
+      feature_name: feature.feature_name,
+      feature_description: feature.feature_description ?? "",
+    });
     setVisible(true);
   };
 
   const onCancel = () => {
     setVisible(false);
+    setEditingFeature(null);
   };
 
   const onSave = () => {
-    mutation.mutate(featureState);
+    if (editingFeature) {
+      updateMutation.mutate({
+        feature_id: editingFeature.feature_id,
+        patch: featureState,
+      });
+    } else {
+      mutation.mutate(featureState);
+    }
   };
 
   return (
@@ -111,18 +161,38 @@ const ViewFeatures: FC = () => {
                 dataIndex: "feature_description",
                 key: "feature_description",
               },
+              {
+                title: "",
+                key: "actions",
+                width: 100,
+                render: (_, record: FeatureType) => (
+                  <Button
+                    type="link"
+                    className="!p-0"
+                    onClick={() => editFeatureButton(record)}
+                  >
+                    Edit
+                  </Button>
+                ),
+              },
             ]}
           />
         )}
         {isError && <div className=" text-danger">Something went wrong</div>}
       </div>
       <Modal
-        title="Create Feature"
+        title={editingFeature ? "Edit Feature" : "Create Feature"}
         visible={visible}
         onCancel={onCancel}
         onOk={onSave}
         okButtonProps={{ disabled: !featureState.feature_name.trim() }}
       >
+        {editingFeature && (
+          <div className="mb-4 text-sm text-gold">
+            Renaming applies everywhere this feature is used, including plan
+            versions already live with customers.
+          </div>
+        )}
         <div className="flex flex-col space-y-4">
           <div>
             <label className="block mb-1">Name</label>

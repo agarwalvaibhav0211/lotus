@@ -1140,6 +1140,26 @@ class FeatureCreateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
         fields = ("feature_name", "feature_description")
 
 
+class FeatureUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Feature
+        fields = ("feature_name", "feature_description")
+        extra_kwargs = {
+            "feature_name": {"required": False},
+            "feature_description": {"required": False},
+        }
+
+    def update(self, instance, validated_data):
+        instance.feature_name = validated_data.get(
+            "feature_name", instance.feature_name
+        )
+        instance.feature_description = validated_data.get(
+            "feature_description", instance.feature_description
+        )
+        instance.save()
+        return instance
+
+
 class RecurringChargeCreateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = RecurringCharge
@@ -1222,10 +1242,10 @@ class RecurringChargeCreateSerializer(TimezoneFieldMixin, serializers.ModelSeria
             raise serializers.ValidationError(
                 f"Invalid charge_behavior: {attrs.get('charge_behavior')}"
             )
-        attrs["invoicing_interval_unit"] = (
-            RecurringCharge.convert_length_label_to_value(
-                attrs.get("invoicing_interval_unit")
-            )
+        attrs[
+            "invoicing_interval_unit"
+        ] = RecurringCharge.convert_length_label_to_value(
+            attrs.get("invoicing_interval_unit")
         )
         attrs["reset_interval_unit"] = RecurringCharge.convert_length_label_to_value(
             attrs.get("reset_interval_unit")

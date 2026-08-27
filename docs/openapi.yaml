@@ -1072,7 +1072,7 @@ components:
           - NG
           - NI
           - NL
-          - NO
+          - 'NO'
           - NP
           - NR
           - NU
@@ -1606,7 +1606,7 @@ components:
           - NG
           - NI
           - NL
-          - NO
+          - 'NO'
           - NP
           - NR
           - NU
@@ -10266,6 +10266,16 @@ components:
           - US/Mountain
           - US/Pacific
           - UTC
+          type: string
+      type: object
+    PatchedFeatureUpdateRequest:
+      properties:
+        feature_description:
+          nullable: true
+          type: string
+        feature_name:
+          maxLength: 50
+          minLength: 1
           type: string
       type: object
     PatchedInvoiceUpdateRequest:
