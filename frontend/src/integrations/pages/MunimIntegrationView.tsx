@@ -56,12 +56,15 @@ const MunimIntegrationView: FC = () => {
         }
       },
       onError: () => {
-        toast.error("Failed to connect to Munim. Check that your API key is valid.", {
-          position: TOAST_POSITION,
-        });
+        toast.error(
+          "Failed to connect to Munim. Check that your API key is valid.",
+          {
+            position: TOAST_POSITION,
+          }
+        );
         setIsConnecting(false);
       },
-    },
+    }
   );
 
   const regenerateWebhookSecretMutation = useMutation(
@@ -79,10 +82,10 @@ const MunimIntegrationView: FC = () => {
       onError: () => {
         toast.error(
           "Failed to regenerate webhook secret. Make sure Munim is connected.",
-          { position: TOAST_POSITION },
+          { position: TOAST_POSITION }
         );
       },
-    },
+    }
   );
 
   const importCustomersMutation = useMutation(
@@ -94,7 +97,7 @@ const MunimIntegrationView: FC = () => {
       onError: () => {
         toast.error("Failed to Import Customers", { position: TOAST_POSITION });
       },
-    },
+    }
   );
 
   const updateGenCustomerInMunimSetting = useMutation(
@@ -123,7 +126,7 @@ const MunimIntegrationView: FC = () => {
           position: TOAST_POSITION,
         });
       },
-    },
+    }
   );
 
   const handleConnect = () => {

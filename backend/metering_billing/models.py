@@ -2081,7 +2081,8 @@ class InvoiceLineItem(models.Model):
     def save(self, *args, **kwargs):
         self.base = convert_to_two_decimal_places(self.base)
         self.amount = convert_to_two_decimal_places(
-            self.base + sum([adjustment.amount for adjustment in self.adjustments.all()])
+            self.base
+            + sum([adjustment.amount for adjustment in self.adjustments.all()])
         )
         super().save(*args, **kwargs)
 

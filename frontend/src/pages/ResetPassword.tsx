@@ -39,11 +39,11 @@ const ResetPassword: FC = () => {
           toast.error(
             Array.isArray(error.response.data.email)
               ? error.response.data.email[0]
-              : error.response.data.email,
+              : error.response.data.email
           );
         }
       },
-    },
+    }
   );
 
   const handleResetPassword = (event: React.FormEvent<FormElements>) => {

@@ -64,11 +64,9 @@ const AddFeatureToPlanModal = ({
   const [versionIds, setVersionIds] = useState<string[]>([]);
   const [featureIds, setFeatureIds] = useState<string[]>([]);
 
-  const { data: features, isLoading: featuresLoading } = useQuery<FeatureType[]>(
-    ["feature_list"],
-    () => Features.getFeatures(),
-    { enabled: showModal },
-  );
+  const { data: features, isLoading: featuresLoading } = useQuery<
+    FeatureType[]
+  >(["feature_list"], () => Features.getFeatures(), { enabled: showModal });
 
   // "all_versions" server-side means plan.versions, which includes custom
   // versions the Versions tab never shows (it fetches public_only). Fetch the
@@ -76,12 +74,12 @@ const AddFeatureToPlanModal = ({
   const { data: allVersionsPlan } = useQuery(
     ["plan_detail_all_versions", plan_id],
     () => Plan.getPlan(plan_id, "all"),
-    { enabled: showModal },
+    { enabled: showModal }
   );
 
   const authoritativeVersions: PlanVersionDetail[] = useMemo(
     () => [...((allVersionsPlan?.versions ?? versions) as PlanVersionDetail[])],
-    [allVersionsPlan, versions],
+    [allVersionsPlan, versions]
   );
 
   // The version pills collapse currency siblings into one chip, so "this
@@ -89,15 +87,17 @@ const AddFeatureToPlanModal = ({
   // currently displayed currency.
   const currencySiblings = useMemo(
     () =>
-      authoritativeVersions.filter((v) => v.version === selectedVersion.version),
-    [authoritativeVersions, selectedVersion],
+      authoritativeVersions.filter(
+        (v) => v.version === selectedVersion.version
+      ),
+    [authoritativeVersions, selectedVersion]
   );
 
   const targetVersions: PlanVersionDetail[] = useMemo(() => {
     if (scope === "all") return authoritativeVersions;
     if (scope === "specific")
       return authoritativeVersions.filter((v) =>
-        versionIds.includes(v.version_id),
+        versionIds.includes(v.version_id)
       );
     return currencySiblings;
   }, [scope, versionIds, authoritativeVersions, currencySiblings]);
@@ -110,7 +110,7 @@ const AddFeatureToPlanModal = ({
     () =>
       (features ?? []).map((feature) => {
         const covered = targetVersions.filter((v) =>
-          hasFeature(v, feature.feature_id),
+          hasFeature(v, feature.feature_id)
         ).length;
         const fullyCovered =
           targetVersions.length > 0 && covered === targetVersions.length;
@@ -126,7 +126,7 @@ const AddFeatureToPlanModal = ({
           disabled: fullyCovered,
         };
       }),
-    [features, targetVersions],
+    [features, targetVersions]
   );
 
   useEffect(() => {
@@ -185,13 +185,15 @@ const AddFeatureToPlanModal = ({
         }
 
         const versionCount =
-          scope === "all" ? authoritativeVersions.length : targetVersions.length;
+          scope === "all"
+            ? authoritativeVersions.length
+            : targetVersions.length;
 
         if (failed.length === 0) {
           toast.success(
             succeeded.length === 1
               ? `Added "${nameOf(succeeded[0])}" to ${versionCount} version(s)`
-              : `Added ${succeeded.length} features to ${versionCount} version(s)`,
+              : `Added ${succeeded.length} features to ${versionCount} version(s)`
           );
           setShowModal(false);
           return;
@@ -207,14 +209,14 @@ const AddFeatureToPlanModal = ({
           toast.error(
             `Added ${succeeded.length} of ${
               succeeded.length + failed.length
-            } features. Failed: ${failedNames}`,
+            } features. Failed: ${failedNames}`
           );
         }
       },
       onError: () => {
         toast.error("Could not add features to this plan");
       },
-    },
+    }
   );
 
   const submittable =
@@ -283,7 +285,7 @@ const AddFeatureToPlanModal = ({
         {singleVersionPlan ? (
           <div className="text-card-grey">
             {`This plan has one version (${versionLabel(
-              selectedVersion,
+              selectedVersion
             )}) — the feature will be added to it.`}
           </div>
         ) : (

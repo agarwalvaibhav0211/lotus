@@ -18,7 +18,7 @@ const fields = ["name", "plan_duration"];
 
 export const validate = async (
   form: FormInstance<any>,
-  type?: string,
+  type?: string
 ): Promise<boolean> => {
   try {
     await form.validateFields(fields);
@@ -98,7 +98,7 @@ const PlanInformation = ({ form, ...props }: StepProps) => {
                     >
                       <Radio.Group
                         disabled={props.disabledFields?.includes(
-                          "plan_duration",
+                          "plan_duration"
                         )}
                         onChange={(e) => {
                           if (e.target.value === "monthly") {
@@ -107,7 +107,7 @@ const PlanInformation = ({ form, ...props }: StepProps) => {
                             ]);
                             form.setFieldValue(
                               "usage_billing_frequency",
-                              "monthly",
+                              "monthly"
                             );
                           } else if (e.target.value === "quarterly") {
                             props.setAvailableBillingTypes([
@@ -116,7 +116,7 @@ const PlanInformation = ({ form, ...props }: StepProps) => {
                             ]);
                             form.setFieldValue(
                               "usage_billing_frequency",
-                              "quarterly",
+                              "quarterly"
                             );
                           } else {
                             props.setAvailableBillingTypes([
@@ -126,7 +126,7 @@ const PlanInformation = ({ form, ...props }: StepProps) => {
                             ]);
                             form.setFieldValue(
                               "usage_billing_frequency",
-                              "yearly",
+                              "yearly"
                             );
                           }
                         }}

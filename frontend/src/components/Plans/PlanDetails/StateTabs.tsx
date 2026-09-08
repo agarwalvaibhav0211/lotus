@@ -42,7 +42,7 @@ const StateTabs: FC<StateTabsProps> = ({
       onSuccess: () => {
         queryClient.invalidateQueries(["plan_detail"]);
       },
-    },
+    }
   );
 
   const setActiveModal = () => {

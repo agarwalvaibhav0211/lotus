@@ -41,7 +41,7 @@ const SelectElement = forwardRef<SelectRef, PropsWithChildren<SelectProps>>(
     >
       {children}
     </select>
-  ),
+  )
 );
 
 function SelectOption({ children, selected }: PropsWithChildren<SelectProps>) {

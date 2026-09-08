@@ -42,12 +42,12 @@ function EditPlanLoader({ type }: EditPlanLoaderProps) {
       if (type === "backtest") {
         setVersionIndex(
           plan.versions.findIndex(
-            (v) => v.version_id === replacementPlanVersion?.version_id,
-          ),
+            (v) => v.version_id === replacementPlanVersion?.version_id
+          )
         );
       } else if (type === "currency") {
         setVersionIndex(
-          plan.versions.findIndex((x) => x.version_id === versionId),
+          plan.versions.findIndex((x) => x.version_id === versionId)
         );
       } else {
         setVersionIndex(plan.versions.findIndex((x) => x.status === "active"));

@@ -194,7 +194,7 @@ const PlanCard: FC<PlanCardProps> = ({
                         const orgTags = [...plan_tags];
 
                         const planTagsFromOrg = orgTags.filter(
-                          (el) => el.tag_name === tag.tag_name,
+                          (el) => el.tag_name === tag.tag_name
                         );
                         const tags = [...planTags, ...planTagsFromOrg];
 

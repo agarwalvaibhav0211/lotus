@@ -57,7 +57,7 @@ const SetNewPassword: FC = () => {
 
         toast.error(error.response.data.message);
       },
-    },
+    }
   );
 
   const handleUpdatePassword = (event: React.FormEvent<FormElements>) => {

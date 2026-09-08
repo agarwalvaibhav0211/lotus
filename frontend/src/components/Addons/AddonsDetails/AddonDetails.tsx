@@ -28,7 +28,7 @@ const AddOnDetails: FC = () => {
   } = useQuery<components["schemas"]["AddOnDetail"]>(
     ["addon_detail", addOnId],
     () => AddOn.getAddOn(addOnId as string).then((res) => res),
-    { refetchOnMount: "always" },
+    { refetchOnMount: "always" }
   );
 
   return (

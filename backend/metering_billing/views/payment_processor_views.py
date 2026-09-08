@@ -34,7 +34,9 @@ class PaymentProcesorView(APIView):
             # whether this Lotus instance is self-hosted, unlike Stripe/Braintree's
             # OAuth flows which need to be disabled in self-hosted deployments.
             self_hosted = (
-                False if payment_processor_name == PAYMENT_PROCESSORS.MUNIM else SELF_HOSTED
+                False
+                if payment_processor_name == PAYMENT_PROCESSORS.MUNIM
+                else SELF_HOSTED
             )
             pp_response = {
                 "payment_provider_name": payment_processor_name,

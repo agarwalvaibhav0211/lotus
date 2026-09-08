@@ -4,20 +4,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0246_munimorganizationintegration_account_id_and_more'),
+        ("metering_billing", "0246_munimorganizationintegration_account_id_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='historicalinvoice',
-            name='paid_on',
-            field=models.DateTimeField(blank=True, help_text="The time the invoice's payment_status transitioned to paid.", null=True),
+            model_name="historicalinvoice",
+            name="paid_on",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="The time the invoice's payment_status transitioned to paid.",
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='invoice',
-            name='paid_on',
-            field=models.DateTimeField(blank=True, help_text="The time the invoice's payment_status transitioned to paid.", null=True),
+            model_name="invoice",
+            name="paid_on",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="The time the invoice's payment_status transitioned to paid.",
+                null=True,
+            ),
         ),
     ]

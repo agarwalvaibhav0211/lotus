@@ -5,20 +5,21 @@ import django_cryptography.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0247_add_invoice_paid_on'),
+        ("metering_billing", "0247_add_invoice_paid_on"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='munimorganizationintegration',
-            name='webhook_secret',
-            field=django_cryptography.fields.encrypt(models.TextField(blank=True, null=True)),
+            model_name="munimorganizationintegration",
+            name="webhook_secret",
+            field=django_cryptography.fields.encrypt(
+                models.TextField(blank=True, null=True)
+            ),
         ),
         migrations.AddField(
-            model_name='munimorganizationintegration',
-            name='webhook_secret_lookup',
+            model_name="munimorganizationintegration",
+            name="webhook_secret_lookup",
             field=models.CharField(blank=True, db_index=True, max_length=64, null=True),
         ),
     ]

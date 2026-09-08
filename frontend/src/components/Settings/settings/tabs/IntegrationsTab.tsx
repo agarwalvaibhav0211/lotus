@@ -34,8 +34,8 @@ const IntegrationsTab: FC = () => {
     ["PaymentProcessorIntegration"],
     () =>
       PaymentProcessorIntegration.getPaymentProcessorConnectionStatus().then(
-        (res) => res,
-      ),
+        (res) => res
+      )
   );
 
   const {
@@ -43,7 +43,7 @@ const IntegrationsTab: FC = () => {
     isLoading: crmLoading,
     refetch: refetchCrm,
   } = useQuery<CRMConnectionStatus[]>(["CRMIntegration"], () =>
-    CRM.getCRMConnectionStatus().then((res) => res),
+    CRM.getCRMConnectionStatus().then((res) => res)
   );
 
   const {
@@ -53,7 +53,7 @@ const IntegrationsTab: FC = () => {
   } = useQuery<string | undefined>(["CRMProviderLinkToken"], () =>
     CRM.getLinkToken()
       .then((res) => res.link_token)
-      .catch((err) => undefined),
+      .catch((err) => undefined)
   );
 
   const org = useGlobalStore((state) => state.org);
@@ -86,7 +86,7 @@ const IntegrationsTab: FC = () => {
   });
 
   const handleConnectWithPaymentProcessorClick = (
-    item: PaymentProcessorStatusType,
+    item: PaymentProcessorStatusType
   ) => {
     if (item.payment_provider_name === "munim") {
       navigate("/settings/integrations/munim");
@@ -99,7 +99,7 @@ const IntegrationsTab: FC = () => {
         toast.error("Nango Env Needed");
       } else {
         const this_org = org.linked_organizations?.filter(
-          (org) => org.current,
+          (org) => org.current
         )[0];
         var unique_config_key = "";
         if (this_org?.organization_type.toLowerCase() === "production") {
@@ -112,7 +112,7 @@ const IntegrationsTab: FC = () => {
           .auth(unique_config_key, item.connection_id)
           .then((result) => {
             toast.success(
-              `OAuth flow succeeded for provider "${result.providerConfigKey}"!`,
+              `OAuth flow succeeded for provider "${result.providerConfigKey}"!`
             );
             const inner_data: BraintreeConnectionRequestType = {
               nango_connected: true,
@@ -146,7 +146,7 @@ const IntegrationsTab: FC = () => {
               })
               .catch((inner_error) => {
                 toast.error(
-                  `There was an error in the OAuth flow for integration: ${error.message}`,
+                  `There was an error in the OAuth flow for integration: ${error.message}`
                 );
               });
           });
@@ -218,7 +218,7 @@ const IntegrationsTab: FC = () => {
                       `Failed to connect to ${
                         integrationsMap[crmItem.crm_provider_name.toLowerCase()]
                           .name
-                      }!`,
+                      }!`
                     );
                   }
                 }}

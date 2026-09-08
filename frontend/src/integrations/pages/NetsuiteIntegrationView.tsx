@@ -27,7 +27,7 @@ const NetsuiteIntegrationView: FC = () => {
     try {
       const response = await Netsuite.invoices(
         startDate?.toDate(),
-        endDate?.toDate(),
+        endDate?.toDate()
       );
       const csvUrl = response.url;
       downloadFile(csvUrl);
@@ -40,7 +40,7 @@ const NetsuiteIntegrationView: FC = () => {
     try {
       const response = await Netsuite.customers(
         startDate?.toDate(),
-        endDate?.toDate(),
+        endDate?.toDate()
       );
       const csvUrl = response.url;
       downloadFile(csvUrl);

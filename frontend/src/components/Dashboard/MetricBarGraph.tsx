@@ -27,8 +27,8 @@ function MetricBarGraph(props: { range: any }) {
       Metrics.getMetricUsage(
         props.range[0].format("YYYY-MM-DD"),
         props.range[1].format("YYYY-MM-DD"),
-        10,
-      ).then((res) => res),
+        10
+      ).then((res) => res)
     );
   const changeMetric = (value: string) => {
     const compressedArray: ChartDataType[] = [];

@@ -53,7 +53,7 @@ const CreateBacktest: FC = () => {
     isLoading,
     isError,
   } = useQuery<PlanType[]>(["plan_list"], () =>
-    Plan.getPlans().then((res) => res),
+    Plan.getPlans().then((res) => res)
   );
 
   const {
@@ -61,7 +61,7 @@ const CreateBacktest: FC = () => {
     isLoading: planDetailsLoading,
     isError: planDetailsError,
   } = useQuery<PlanDetailType>(["plan_details", planInFocus?.plan_id], () =>
-    Plan.getPlan(planInFocus?.plan_id || "11").then((res) => res),
+    Plan.getPlan(planInFocus?.plan_id || "11").then((res) => res)
   );
 
   const mutation = useMutation(
@@ -76,7 +76,7 @@ const CreateBacktest: FC = () => {
       onError: (e) => {
         toast.error("Error creating backtest");
       },
-    },
+    }
   );
 
   const runBacktest = () => {
@@ -157,7 +157,7 @@ const CreateBacktest: FC = () => {
   const addCurrentPlanVersion = (version_id: string) => {
     if (planDetails) {
       const current = planDetails.versions.find(
-        (version) => version.version_id === version_id,
+        (version) => version.version_id === version_id
       );
       if (current) {
         setCurrentPlanVersion(current);
@@ -168,7 +168,7 @@ const CreateBacktest: FC = () => {
   const addReplacementPlanVersion = (version_id: string) => {
     if (planDetails) {
       const replacement = planDetails.versions.find(
-        (version) => version.version_id === version_id,
+        (version) => version.version_id === version_id
       );
       if (replacement) {
         setReplacementPlanVersion(replacement);

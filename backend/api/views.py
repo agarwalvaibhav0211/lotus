@@ -2396,9 +2396,9 @@ def track_event(request):
             # If the datetime object is naive, replace its tzinfo with UTC
             tc = tc.replace(tzinfo=pytz.UTC)
         if not (now - relativedelta(days=30) <= tc <= now + relativedelta(days=1)):
-            bad_events[idempotency_id] = (
-                "Time created too far in the past or future. Events must be within 30 days before or 1 day ahead of current time."
-            )
+            bad_events[
+                idempotency_id
+            ] = "Time created too far in the past or future. Events must be within 30 days before or 1 day ahead of current time."
             continue
         data["time_created"] = tc.isoformat()
         try:

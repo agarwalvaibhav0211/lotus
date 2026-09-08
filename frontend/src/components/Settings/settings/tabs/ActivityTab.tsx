@@ -28,7 +28,7 @@ export default function ActivityStream() {
 
     {
       refetchOnMount: "always",
-    },
+    }
   );
   const queryClient = useQueryClient();
 
@@ -98,7 +98,7 @@ export default function ActivityStream() {
                       </h3>
                       <h3 className=" text-gray-500">
                         {dayjs(activityItem.timestamp).format(
-                          "YYYY/MM/DD HH:mm:ss",
+                          "YYYY/MM/DD HH:mm:ss"
                         )}
                       </h3>
                     </div>

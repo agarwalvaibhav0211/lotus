@@ -326,7 +326,9 @@ class TestAttachAddOn:
             .version_id,
             "quantity": 1,
         }
-        setup_dict["flat_fee_addon_spec"].flat_fee_invoicing_behavior_on_attach = (
+        setup_dict[
+            "flat_fee_addon_spec"
+        ].flat_fee_invoicing_behavior_on_attach = (
             AddOnSpecification.FlatFeeInvoicingBehaviorOnAttach.INVOICE_ON_SUBSCRIPTION_END
         )
         setup_dict["flat_fee_addon_spec"].save()
@@ -389,12 +391,14 @@ class TestAttachAddOn:
             .version_id,
             "quantity": 1,
         }
-        setup_dict["flat_fee_addon_spec"].flat_fee_invoicing_behavior_on_attach = (
+        setup_dict[
+            "flat_fee_addon_spec"
+        ].flat_fee_invoicing_behavior_on_attach = (
             AddOnSpecification.FlatFeeInvoicingBehaviorOnAttach.INVOICE_ON_SUBSCRIPTION_END
         )
-        setup_dict["flat_fee_addon_spec"].billing_frequency = (
-            AddOnSpecification.BillingFrequency.RECURRING
-        )
+        setup_dict[
+            "flat_fee_addon_spec"
+        ].billing_frequency = AddOnSpecification.BillingFrequency.RECURRING
         setup_dict["flat_fee_addon_spec"].save()
         sub = SubscriptionRecord.objects.first()
         response = setup_dict["client"].post(
@@ -688,12 +692,14 @@ class TestAttachAddOn:
             .version_id,
             "quantity": 3,
         }
-        setup_dict["flat_fee_addon_spec"].flat_fee_invoicing_behavior_on_attach = (
+        setup_dict[
+            "flat_fee_addon_spec"
+        ].flat_fee_invoicing_behavior_on_attach = (
             AddOnSpecification.FlatFeeInvoicingBehaviorOnAttach.INVOICE_ON_SUBSCRIPTION_END
         )
-        setup_dict["flat_fee_addon_spec"].billing_frequency = (
-            AddOnSpecification.BillingFrequency.RECURRING
-        )
+        setup_dict[
+            "flat_fee_addon_spec"
+        ].billing_frequency = AddOnSpecification.BillingFrequency.RECURRING
         setup_dict["flat_fee_addon_spec"].save()
         sub = SubscriptionRecord.objects.first()
         response = setup_dict["client"].post(

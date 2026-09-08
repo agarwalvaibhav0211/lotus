@@ -49,7 +49,7 @@ const ViewCustomers: FC = () => {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    },
+    }
   );
 
   const openCustomerModal = () => {

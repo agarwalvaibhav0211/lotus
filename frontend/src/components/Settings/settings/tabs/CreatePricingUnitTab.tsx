@@ -22,7 +22,7 @@ function CreatePricingUnit() {
           position: toast.POSITION.TOP_CENTER,
         });
       },
-    },
+    }
   );
 
   const submit = () => {

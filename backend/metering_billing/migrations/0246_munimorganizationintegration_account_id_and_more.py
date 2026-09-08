@@ -5,40 +5,66 @@ import django_cryptography.fields
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('metering_billing', '0245_simplify_munim_org_integration'),
+        ("metering_billing", "0245_simplify_munim_org_integration"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='munimorganizationintegration',
-            name='account_id',
+            model_name="munimorganizationintegration",
+            name="account_id",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='munimorganizationintegration',
-            name='account_name',
+            model_name="munimorganizationintegration",
+            name="account_name",
             field=models.TextField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='munimorganizationintegration',
-            name='api_key',
-            field=django_cryptography.fields.encrypt(models.TextField(blank=True, null=True)),
+            model_name="munimorganizationintegration",
+            name="api_key",
+            field=django_cryptography.fields.encrypt(
+                models.TextField(blank=True, null=True)
+            ),
         ),
         migrations.AlterField(
-            model_name='externalplanlink',
-            name='source',
-            field=models.CharField(choices=[('stripe', 'Stripe'), ('braintree', 'Braintree'), ('munim', 'Munim')], max_length=40),
+            model_name="externalplanlink",
+            name="source",
+            field=models.CharField(
+                choices=[
+                    ("stripe", "Stripe"),
+                    ("braintree", "Braintree"),
+                    ("munim", "Munim"),
+                ],
+                max_length=40,
+            ),
         ),
         migrations.AlterField(
-            model_name='historicalinvoice',
-            name='external_payment_obj_type',
-            field=models.CharField(blank=True, choices=[('stripe', 'Stripe'), ('braintree', 'Braintree'), ('munim', 'Munim')], max_length=40, null=True),
+            model_name="historicalinvoice",
+            name="external_payment_obj_type",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("stripe", "Stripe"),
+                    ("braintree", "Braintree"),
+                    ("munim", "Munim"),
+                ],
+                max_length=40,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='invoice',
-            name='external_payment_obj_type',
-            field=models.CharField(blank=True, choices=[('stripe', 'Stripe'), ('braintree', 'Braintree'), ('munim', 'Munim')], max_length=40, null=True),
+            model_name="invoice",
+            name="external_payment_obj_type",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("stripe", "Stripe"),
+                    ("braintree", "Braintree"),
+                    ("munim", "Munim"),
+                ],
+                max_length=40,
+                null=True,
+            ),
         ),
     ]

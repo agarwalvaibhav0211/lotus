@@ -65,7 +65,7 @@ function TargetCustomerForm({ ...props }: Props) {
                       <Option value={customer.customer_id}>
                         {customer.customer_name}
                       </Option>
-                    )),
+                    ))
                   )}
                 </Select>
               </Form.Item>

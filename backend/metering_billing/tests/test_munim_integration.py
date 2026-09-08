@@ -883,9 +883,7 @@ class TestMunimWebhookEndpoint:
         invoice = self._make_invoice(org, customer)
 
         client = APIClient()
-        with patch(
-            "metering_billing.views.webhook_views.kafka_producer"
-        ) as mock_kafka:
+        with patch("metering_billing.views.webhook_views.kafka_producer") as mock_kafka:
             response = self._post(
                 client,
                 "correct-secret",
@@ -922,9 +920,7 @@ class TestMunimWebhookEndpoint:
         )
 
         client = APIClient()
-        with patch(
-            "metering_billing.views.webhook_views.kafka_producer"
-        ) as mock_kafka:
+        with patch("metering_billing.views.webhook_views.kafka_producer") as mock_kafka:
             response = self._post(
                 client,
                 "correct-secret",

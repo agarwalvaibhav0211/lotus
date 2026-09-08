@@ -34,13 +34,14 @@ export interface MetricType {
   custom_sql?: string;
 }
 
-export interface CreateMetricType extends Omit<
-  MetricType,
-  | "metric_id"
-  | "usage_aggregation_type"
-  | "billable_aggregation_type"
-  | "event_name"
-> {
+export interface CreateMetricType
+  extends Omit<
+    MetricType,
+    | "metric_id"
+    | "usage_aggregation_type"
+    | "billable_aggregation_type"
+    | "event_name"
+  > {
   usage_aggregation_type?: string;
   billable_aggregation_type?: string;
   event_name?: string;

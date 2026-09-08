@@ -72,7 +72,7 @@ const VersionInformation = ({ form, ...props }: StepProps) => {
                             />
                           </Form.Item>{" "}
                           {["quarterly", "yearly"].includes(
-                            form.getFieldValue("plan_duration"),
+                            form.getFieldValue("plan_duration")
                           ) && (
                             <>
                               of{" "}
@@ -95,7 +95,7 @@ const VersionInformation = ({ form, ...props }: StepProps) => {
                             </>
                           )}
                           {["monthly"].includes(
-                            form.getFieldValue("plan_duration"),
+                            form.getFieldValue("plan_duration")
                           ) && "of the Month"}
                         </Radio>
                         <Radio value="subscription_aligned">
@@ -149,7 +149,7 @@ const VersionInformation = ({ form, ...props }: StepProps) => {
                         }
                         onChange={(value) => {
                           const selectedCurrency = props.allCurrencies.find(
-                            (currency) => currency.code === value,
+                            (currency) => currency.code === value
                           );
                           if (selectedCurrency) {
                             props.setSelectedCurrency(selectedCurrency);
@@ -211,7 +211,7 @@ const VersionInformation = ({ form, ...props }: StepProps) => {
                               <Select.Option value={customer.customer_id}>
                                 {customer.customer_name}
                               </Select.Option>
-                            )),
+                            ))
                           )}
                         </Select>
                       </Form.Item>

@@ -37,7 +37,7 @@ function CreateCustomerForm(props: {
           .map((item) => item.payment_provider_name);
         setPaymentProviders(connectedProviders);
       },
-    },
+    }
   );
   return (
     <Modal

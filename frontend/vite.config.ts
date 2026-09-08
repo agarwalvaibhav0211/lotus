@@ -9,7 +9,9 @@ import tsconfigPaths from "vite-tsconfig-paths";
 // serve its own source files instead of Django swallowing them.
 function bypassSourceRequests(req: import("http").IncomingMessage) {
   const path = (req.url || "").split("?")[0];
-  if (/\.(ts|tsx|js|jsx|css|less|scss|json|svg|png|jpg|jpeg|gif|ico)$/.test(path)) {
+  if (
+    /\.(ts|tsx|js|jsx|css|less|scss|json|svg|png|jpg|jpeg|gif|ico)$/.test(path)
+  ) {
     return path;
   }
 }

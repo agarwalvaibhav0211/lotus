@@ -51,7 +51,7 @@ const BreadCrumbs = ({ items, activeItem, onItemClick }: Props) => (
             </div>
           )}
         </>
-      )),
+      ))
     )}
   </div>
 );
