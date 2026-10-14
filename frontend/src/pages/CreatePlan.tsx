@@ -4,7 +4,7 @@
 import { Button, Col, Form, Modal, Row } from "antd";
 // @ts-ignore
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import clsx from "clsx";
@@ -67,6 +67,17 @@ function CreatePlan() {
   const [priceAdjustmentType, setPriceAdjustmentType] =
     useState<string>("none");
   const navigate = useNavigate();
+  const location = useLocation();
+  const duplicateFrom = (
+    location.state as
+      | {
+          duplicateFrom?: {
+            plan: components["schemas"]["PlanDetail"];
+            version: components["schemas"]["PlanDetail"]["versions"][0];
+          };
+        }
+      | undefined
+  )?.duplicateFrom;
   const [componentsData, setComponentsData] = useState<CreateComponent[]>([]);
   const [form] = Form.useForm();
   const [planFeatures, setPlanFeatures] = useState<FeatureType[]>([]);
@@ -96,14 +107,59 @@ function CreatePlan() {
     if (!allCurrencies?.length) {
       Organization.get().then((res) => {
         setAllCurrencies(res[0].available_currencies);
-        setSelectedCurrency(res[0].default_currency);
-        if (res[0].default_currency) {
+        const currency = duplicateFrom
+          ? duplicateFrom.version.currency
+          : res[0].default_currency;
+        setSelectedCurrency(currency);
+        if (currency) {
           form.setFieldsValue({
-            plan_currency: res[0].default_currency.code,
+            plan_currency: currency.code,
           });
         }
       });
     }
+  }, []);
+
+  // prefill the form when arriving here to duplicate an existing plan
+  useEffect(() => {
+    if (!duplicateFrom) {
+      return;
+    }
+    const { plan: sourcePlan, version: sourceVersion } = duplicateFrom;
+    const adjustmentType =
+      sourceVersion.price_adjustment?.price_adjustment_type;
+
+    form.setFieldsValue({
+      name: `${sourcePlan.plan_name} (Yearly)`,
+      plan_duration: "yearly",
+      localized_name: sourceVersion.localized_name,
+      usage_billing_frequency: "yearly",
+      price_adjustment_type: adjustmentType ?? "none",
+      price_adjustment_amount: sourceVersion.price_adjustment
+        ? Math.abs(sourceVersion.price_adjustment.price_adjustment_amount)
+        : undefined,
+    });
+    setPriceAdjustmentType(adjustmentType ?? "none");
+    setComponentsData(
+      sourceVersion.components.map((component, idx) => ({
+        id: idx,
+        metric_id: component.billable_metric.metric_id,
+        tiers: component.tiers,
+        reset_interval_unit: component.reset_interval_unit || null,
+        reset_interval_count: component.reset_interval_count,
+        invoicing_interval_unit: component.invoicing_interval_unit || null,
+        invoicing_interval_count: component.invoicing_interval_count,
+        prepaid_charge: component.prepaid_charge ?? undefined,
+      }))
+    );
+    setRecurringCharges(sourceVersion.recurring_charges);
+    setPlanFeatures(sourceVersion.features);
+    toast.info(
+      "Prefilled from the existing plan — update the price and duration, then publish.",
+      { position: toast.POSITION.TOP_CENTER }
+    );
+    // only run once, on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const mutation = useMutation(

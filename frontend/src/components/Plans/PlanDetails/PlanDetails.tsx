@@ -13,7 +13,7 @@ import {
   useQueryClient,
   UseQueryResult,
 } from "@tanstack/react-query";
-import { PlusOutlined } from "@ant-design/icons";
+import { CopyOutlined, PlusOutlined } from "@ant-design/icons";
 import { toast } from "react-toastify";
 import { PageLayout } from "../../base/PageLayout";
 import SwitchVersions from "./SwitchVersions";
@@ -241,6 +241,28 @@ const PlanDetails: FC = () => {
           }
           backIcon
           extra={[
+            <Button
+              onClick={() => {
+                const sourceVersion =
+                  plan.versions.find((v) => v.status === "active") ??
+                  plan.versions[0];
+                navigate("/create-plan", {
+                  state: { duplicateFrom: { plan, version: sourceVersion } },
+                });
+              }}
+              type="primary"
+              size="large"
+              key="duplicate-plan"
+              className="hover:!bg-primary-700"
+              style={{ background: "#FAFAFA", borderColor: "#FAFAFA" }}
+            >
+              <div className="flex items-center justify-between text-black">
+                <div>
+                  <CopyOutlined className="w-12 h-12 cursor-pointer" />
+                  Duplicate Plan
+                </div>
+              </div>
+            </Button>,
             <Button
               onClick={navigateCreateCustomPlan}
               type="primary"
