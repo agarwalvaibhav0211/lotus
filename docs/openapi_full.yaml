@@ -5811,6 +5811,75 @@ components:
       - token
       - user
       type: object
+    DisplaySection:
+      properties:
+        description:
+          nullable: true
+          readOnly: true
+          type: string
+        name:
+          readOnly: true
+          type: string
+        section_id:
+          type: string
+        sort_order:
+          readOnly: true
+          type: integer
+      required:
+      - description
+      - name
+      - section_id
+      - sort_order
+      type: object
+    DisplaySectionCreateRequest:
+      properties:
+        description:
+          nullable: true
+          type: string
+        name:
+          maxLength: 100
+          minLength: 1
+          type: string
+        sort_order:
+          maximum: 2147483647
+          minimum: -2147483648
+          type: integer
+      required:
+      - name
+      type: object
+    DisplaySectionDetail:
+      properties:
+        description:
+          nullable: true
+          readOnly: true
+          type: string
+        name:
+          readOnly: true
+          type: string
+        section_id:
+          type: string
+        sort_order:
+          readOnly: true
+          type: integer
+      required:
+      - description
+      - name
+      - section_id
+      - sort_order
+      type: object
+    DisplaySectionUpdate:
+      properties:
+        description:
+          nullable: true
+          type: string
+        name:
+          maxLength: 100
+          type: string
+        sort_order:
+          maximum: 2147483647
+          minimum: -2147483648
+          type: integer
+      type: object
     DraftInvoice:
       properties:
         amount:
@@ -6011,6 +6080,13 @@ components:
       type: object
     Feature:
       properties:
+        display_order:
+          readOnly: true
+          type: integer
+        display_section:
+          allOf:
+          - $ref: '#/components/schemas/DisplaySection'
+          nullable: true
         feature_description:
           nullable: true
           readOnly: true
@@ -6021,6 +6097,8 @@ components:
           readOnly: true
           type: string
       required:
+      - display_order
+      - display_section
       - feature_description
       - feature_id
       - feature_name
@@ -6061,6 +6139,14 @@ components:
       type: object
     FeatureCreateRequest:
       properties:
+        display_order:
+          maximum: 2147483647
+          minimum: -2147483648
+          type: integer
+        display_section_id:
+          format: uuid
+          nullable: true
+          type: string
         feature_description:
           nullable: true
           type: string
@@ -6073,6 +6159,13 @@ components:
       type: object
     FeatureDetail:
       properties:
+        display_order:
+          readOnly: true
+          type: integer
+        display_section:
+          allOf:
+          - $ref: '#/components/schemas/DisplaySection'
+          nullable: true
         feature_description:
           nullable: true
           readOnly: true
@@ -6083,6 +6176,8 @@ components:
           readOnly: true
           type: string
       required:
+      - display_order
+      - display_section
       - feature_description
       - feature_id
       - feature_name
@@ -6397,6 +6492,10 @@ components:
           items:
             format: uuid
             type: string
+          type: array
+        highlights:
+          items:
+            $ref: '#/components/schemas/PlanVersionHighlightInputRequest'
           type: array
         localized_name:
           nullable: true
@@ -7594,6 +7693,43 @@ components:
           nullable: true
           readOnly: true
           type: string
+        display_description:
+          description: One-line description shown on pricing page comparison tables.
+          nullable: true
+          readOnly: true
+          type: string
+        display_format:
+          description: |-
+            How this metric's tier prices should be worded. Null means the metric is not shown on pricing pages.
+
+            * `percentage` - Percentage
+            * `per_unit` - Per Unit
+          enum:
+          - percentage
+          - per_unit
+          - 
+          nullable: true
+          readOnly: true
+          type: string
+        display_name:
+          description: Seller-facing label for this metric on pricing pages. Falls
+            back to the metric's name when null.
+          nullable: true
+          readOnly: true
+          type: string
+        display_order:
+          readOnly: true
+          type: integer
+        display_section:
+          allOf:
+          - $ref: '#/components/schemas/DisplaySection'
+          nullable: true
+        display_unit:
+          description: For 'percentage' format, what the percentage is of. For 'per_unit'
+            format, the singular unit noun.
+          nullable: true
+          readOnly: true
+          type: string
         event_name:
           description: Name of the event that this metric is tracking.
           readOnly: true
@@ -7700,6 +7836,12 @@ components:
       - aggregation_type
       - categorical_filters
       - custom_sql
+      - display_description
+      - display_format
+      - display_name
+      - display_order
+      - display_section
+      - display_unit
       - event_name
       - event_type
       - granularity
@@ -7806,6 +7948,49 @@ components:
         custom_sql:
           description: A custom SQL query that can be used to define the metric. Please
             refer to our documentation for more information.
+          nullable: true
+          type: string
+          writeOnly: true
+        display_description:
+          description: One-line description shown on pricing page comparison tables.
+          nullable: true
+          type: string
+          writeOnly: true
+        display_format:
+          description: |-
+            How this metric's tier prices should be worded. Null means the metric is not shown on pricing pages.
+
+            * `percentage` - Percentage
+            * `per_unit` - Per Unit
+          enum:
+          - percentage
+          - per_unit
+          - ''
+          - 
+          nullable: true
+          type: string
+          writeOnly: true
+        display_name:
+          description: Seller-facing label for this metric on pricing pages. Falls
+            back to the metric's name when null.
+          maxLength: 100
+          nullable: true
+          type: string
+          writeOnly: true
+        display_order:
+          maximum: 2147483647
+          minimum: -2147483648
+          type: integer
+          writeOnly: true
+        display_section_id:
+          format: uuid
+          nullable: true
+          type: string
+          writeOnly: true
+        display_unit:
+          description: For 'percentage' format, what the percentage is of. For 'per_unit'
+            format, the singular unit noun.
+          maxLength: 50
           nullable: true
           type: string
           writeOnly: true
@@ -7974,6 +8159,43 @@ components:
           nullable: true
           readOnly: true
           type: string
+        display_description:
+          description: One-line description shown on pricing page comparison tables.
+          nullable: true
+          readOnly: true
+          type: string
+        display_format:
+          description: |-
+            How this metric's tier prices should be worded. Null means the metric is not shown on pricing pages.
+
+            * `percentage` - Percentage
+            * `per_unit` - Per Unit
+          enum:
+          - percentage
+          - per_unit
+          - 
+          nullable: true
+          readOnly: true
+          type: string
+        display_name:
+          description: Seller-facing label for this metric on pricing pages. Falls
+            back to the metric's name when null.
+          nullable: true
+          readOnly: true
+          type: string
+        display_order:
+          readOnly: true
+          type: integer
+        display_section:
+          allOf:
+          - $ref: '#/components/schemas/DisplaySection'
+          nullable: true
+        display_unit:
+          description: For 'percentage' format, what the percentage is of. For 'per_unit'
+            format, the singular unit noun.
+          nullable: true
+          readOnly: true
+          type: string
         event_name:
           description: Name of the event that this metric is tracking.
           readOnly: true
@@ -8097,6 +8319,12 @@ components:
       required:
       - categorical_filters
       - custom_sql
+      - display_description
+      - display_format
+      - display_name
+      - display_order
+      - display_section
+      - display_unit
       - event_name
       - event_type
       - granularity
@@ -8126,6 +8354,43 @@ components:
     MetricUpdate:
       properties:
         billable_metric_name:
+          nullable: true
+          type: string
+        display_description:
+          description: One-line description shown on pricing page comparison tables.
+          nullable: true
+          type: string
+        display_format:
+          description: |-
+            How this metric's tier prices should be worded. Null means the metric is not shown on pricing pages.
+
+            * `percentage` - Percentage
+            * `per_unit` - Per Unit
+          enum:
+          - percentage
+          - per_unit
+          - ''
+          - 
+          nullable: true
+          type: string
+        display_name:
+          description: Seller-facing label for this metric on pricing pages. Falls
+            back to the metric's name when null.
+          maxLength: 100
+          nullable: true
+          type: string
+        display_order:
+          maximum: 2147483647
+          minimum: -2147483648
+          type: integer
+        display_section_id:
+          format: uuid
+          nullable: true
+          type: string
+        display_unit:
+          description: For 'percentage' format, what the percentage is of. For 'per_unit'
+            format, the singular unit noun.
+          maxLength: 50
           nullable: true
           type: string
         status:
@@ -10268,8 +10533,30 @@ components:
           - UTC
           type: string
       type: object
+    PatchedDisplaySectionUpdateRequest:
+      properties:
+        description:
+          nullable: true
+          type: string
+        name:
+          maxLength: 100
+          minLength: 1
+          type: string
+        sort_order:
+          maximum: 2147483647
+          minimum: -2147483648
+          type: integer
+      type: object
     PatchedFeatureUpdateRequest:
       properties:
+        display_order:
+          maximum: 2147483647
+          minimum: -2147483648
+          type: integer
+        display_section_id:
+          format: uuid
+          nullable: true
+          type: string
         feature_description:
           nullable: true
           type: string
@@ -10292,6 +10579,43 @@ components:
     PatchedMetricUpdateRequest:
       properties:
         billable_metric_name:
+          nullable: true
+          type: string
+        display_description:
+          description: One-line description shown on pricing page comparison tables.
+          nullable: true
+          type: string
+        display_format:
+          description: |-
+            How this metric's tier prices should be worded. Null means the metric is not shown on pricing pages.
+
+            * `percentage` - Percentage
+            * `per_unit` - Per Unit
+          enum:
+          - percentage
+          - per_unit
+          - ''
+          - 
+          nullable: true
+          type: string
+        display_name:
+          description: Seller-facing label for this metric on pricing pages. Falls
+            back to the metric's name when null.
+          maxLength: 100
+          nullable: true
+          type: string
+        display_order:
+          maximum: 2147483647
+          minimum: -2147483648
+          type: integer
+        display_section_id:
+          format: uuid
+          nullable: true
+          type: string
+        display_unit:
+          description: For 'percentage' format, what the percentage is of. For 'per_unit'
+            format, the singular unit noun.
+          maxLength: 50
           nullable: true
           type: string
         status:
@@ -11278,6 +11602,10 @@ components:
           format: date-time
           nullable: true
           type: string
+        highlights:
+          items:
+            $ref: '#/components/schemas/PlanVersionHighlightInputRequest'
+          type: array
         localized_name:
           nullable: true
           type: string
@@ -11824,6 +12152,11 @@ components:
           minimum: 0
           readOnly: true
           type: number
+        highlights:
+          items:
+            $ref: '#/components/schemas/PlanVersionHighlightItem'
+          readOnly: true
+          type: array
         localized_name:
           nullable: true
           readOnly: true
@@ -11886,6 +12219,7 @@ components:
       - features
       - flat_fee_billing_type
       - flat_rate
+      - highlights
       - localized_name
       - plan_name
       - price_adjustment
@@ -11915,6 +12249,10 @@ components:
           items:
             format: uuid
             type: string
+          type: array
+        highlights:
+          items:
+            $ref: '#/components/schemas/PlanVersionHighlightInputRequest'
           type: array
         localized_name:
           nullable: true
@@ -11996,6 +12334,11 @@ components:
           items:
             $ref: '#/components/schemas/Feature'
           type: array
+        highlights:
+          items:
+            $ref: '#/components/schemas/PlanVersionHighlightItem'
+          readOnly: true
+          type: array
         localized_name:
           nullable: true
           readOnly: true
@@ -12059,6 +12402,7 @@ components:
       - created_on
       - currency
       - features
+      - highlights
       - localized_name
       - plan_id
       - plan_name
@@ -12070,6 +12414,55 @@ components:
       - transition_to
       - version
       - version_id
+      type: object
+    PlanVersionHighlightInput:
+      properties:
+        id:
+          type: string
+        kind:
+          description: |-
+            * `feature` - feature
+            * `metric` - metric
+          enum:
+          - feature
+          - metric
+          type: string
+      required:
+      - id
+      - kind
+      type: object
+    PlanVersionHighlightInputRequest:
+      properties:
+        id:
+          minLength: 1
+          type: string
+        kind:
+          description: |-
+            * `feature` - feature
+            * `metric` - metric
+          enum:
+          - feature
+          - metric
+          type: string
+      required:
+      - id
+      - kind
+      type: object
+    PlanVersionHighlightItem:
+      properties:
+        id:
+          type: string
+        kind:
+          description: |-
+            * `feature` - feature
+            * `metric` - metric
+          enum:
+          - feature
+          - metric
+          type: string
+      required:
+      - id
+      - kind
       type: object
     PlanVersionHistoricalSubscription:
       properties:
@@ -12131,6 +12524,10 @@ components:
           format: date-time
           nullable: true
           type: string
+        highlights:
+          items:
+            $ref: '#/components/schemas/PlanVersionHighlightInput'
+          type: array
         localized_name:
           nullable: true
           type: string
@@ -16518,6 +16915,103 @@ paths:
       - OrganizationApiKeyAuth: []
         TokenAuth: []
       - {}
+      tags:
+      - app
+  /app/display_sections/:
+    get:
+      operationId: app_display_sections_list
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DisplaySectionDetail'
+                type: array
+          description: ''
+      security:
+      - knoxTokenAuth: []
+      - OrganizationApiKeyAuth: []
+        TokenAuth: []
+      tags:
+      - app
+    post:
+      operationId: app_display_sections_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DisplaySectionCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DisplaySectionCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DisplaySectionCreateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisplaySectionDetail'
+          description: ''
+      security:
+      - knoxTokenAuth: []
+      - OrganizationApiKeyAuth: []
+        TokenAuth: []
+      tags:
+      - app
+  /app/display_sections/{section_id}/:
+    delete:
+      operationId: app_display_sections_destroy
+      parameters:
+      - in: path
+        name: section_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: No response body
+      security:
+      - knoxTokenAuth: []
+      - OrganizationApiKeyAuth: []
+        TokenAuth: []
+      tags:
+      - app
+    patch:
+      operationId: app_display_sections_partial_update
+      parameters:
+      - in: path
+        name: section_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDisplaySectionUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDisplaySectionUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDisplaySectionUpdateRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DisplaySectionUpdate'
+          description: ''
+      security:
+      - knoxTokenAuth: []
+      - OrganizationApiKeyAuth: []
+        TokenAuth: []
       tags:
       - app
   /app/events/:

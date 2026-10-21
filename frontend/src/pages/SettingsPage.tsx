@@ -8,6 +8,7 @@ import TeamTab from "../components/Settings/settings/tabs/TeamTab";
 import { PageLayout } from "../components/base/PageLayout";
 import GeneralTab from "../components/Settings/settings/tabs/GeneralTab";
 import CreatePricingUnit from "../components/Settings/settings/tabs/CreatePricingUnitTab";
+import DisplaySectionsTab from "../components/Settings/settings/tabs/DisplaySectionsTab";
 
 const tabItems = [
   {
@@ -29,6 +30,10 @@ const tabItems = [
   {
     key: "developer-settings",
     tab: "Developer Settings",
+  },
+  {
+    key: "display-sections",
+    tab: "Display Sections",
   },
   // {
   //   key: "create-pricing-units",
@@ -66,6 +71,8 @@ const SettingsPage: FC = () => {
         return <DeveloperTab />;
       case "Create Pricing Units":
         return <CreatePricingUnit />;
+      case "Display Sections":
+        return <DisplaySectionsTab />;
       default:
         return <GeneralTab />;
     }

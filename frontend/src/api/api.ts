@@ -76,6 +76,7 @@ import {
   MetricUsage,
   MetricType,
   CreateMetricType,
+  UpdateMetricDisplayType,
 } from "../types/metric-type";
 import { EventPages } from "../types/event-type";
 import { DemoSignupProps } from "../pages/DemoSignup";
@@ -91,6 +92,11 @@ import {
   CreateFeatureType,
   UpdateFeatureType,
 } from "../types/feature-type";
+import {
+  DisplaySectionType,
+  CreateDisplaySectionType,
+  UpdateDisplaySectionType,
+} from "../types/display-section-type";
 import {
   CreateBacktestType,
   BacktestType,
@@ -320,6 +326,11 @@ export const Plan = {
     post: PlanVersionUpdateDescriptionType
   ): Promise<PlanVersionUpdateDescriptionType> =>
     requests.patch(`app/plan_versions/${version_id}/`, post),
+  updatePlanVersionHighlights: (
+    version_id: string,
+    highlights: components["schemas"]["PlanVersionHighlightItem"][]
+  ): Promise<unknown> =>
+    requests.patch(`app/plan_versions/${version_id}/`, { highlights }),
   replacePlanVersionLater: (
     version_id: string,
     post: ReplaceLaterType
@@ -546,6 +557,22 @@ export const Features = {
     requests.patch(`app/features/${feature_id}/`, patch),
 };
 
+export const DisplaySections = {
+  getDisplaySections: (): Promise<DisplaySectionType[]> =>
+    requests.get("app/display_sections/"),
+  createDisplaySection: (
+    post: CreateDisplaySectionType
+  ): Promise<DisplaySectionType> =>
+    requests.post("app/display_sections/", post),
+  updateDisplaySection: (
+    section_id: string,
+    patch: UpdateDisplaySectionType
+  ): Promise<DisplaySectionType> =>
+    requests.patch(`app/display_sections/${section_id}/`, patch),
+  deleteDisplaySection: (section_id: string): Promise<object> =>
+    requests.delete(`app/display_sections/${section_id}/`),
+};
+
 export const Metrics = {
   getMetricUsage: (
     start_date: string,
@@ -562,6 +589,10 @@ export const Metrics = {
     requests.delete(`app/metrics/${id}`),
   archiveMetric: (id: string): Promise<object> =>
     requests.patch(`app/metrics/${id}/`, { status: "archived" }),
+  updateMetric: (
+    id: string,
+    patch: UpdateMetricDisplayType
+  ): Promise<MetricType> => requests.patch(`app/metrics/${id}/`, patch),
 };
 
 interface SearchEventPreviewsParams {

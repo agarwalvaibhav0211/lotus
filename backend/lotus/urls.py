@@ -33,6 +33,7 @@ from metering_billing.views.model_views import (
     BacktestViewSet,
     CustomerBalanceAdjustmentViewSet,
     CustomerViewSet,
+    DisplaySectionViewSet,
     EventViewSet,
     ExternalPlanLinkViewSet,
     FeatureViewSet,
@@ -79,6 +80,7 @@ router.register(r"metrics", MetricViewSet, basename="metric")
 router.register(r"subscriptions", SubscriptionViewSet, basename="subscription")
 router.register(r"invoices", InvoiceViewSet, basename="invoice")
 router.register(r"features", FeatureViewSet, basename="feature")
+router.register(r"display_sections", DisplaySectionViewSet, basename="display_section")
 router.register(r"webhooks", WebhookViewSet, basename="webhook")
 router.register(r"backtests", BacktestViewSet, basename="backtest")
 router.register(r"analysis", AnalysisViewSet, basename="analysis")

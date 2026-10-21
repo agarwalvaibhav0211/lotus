@@ -1,10 +1,15 @@
-import { Modal, Tag, Button } from "antd";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Modal, Tag, Button, Input, InputNumber, Select } from "antd";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import React, { FC } from "react";
+import React, { FC, useState } from "react";
 import { format } from "sql-formatter";
-import { MetricType } from "../../types/metric-type";
-import { Metrics } from "../../api/api";
+import {
+  MetricType,
+  MetricDisplayFormats,
+  UpdateMetricDisplayType,
+} from "../../types/metric-type";
+import { DisplaySectionType } from "../../types/display-section-type";
+import { Metrics, DisplaySections } from "../../api/api";
 import { colorMap } from "./MetricTable";
 import createShortenedText from "../../helpers/createShortenedText";
 import CopyText from "../base/CopytoClipboard";
@@ -28,6 +33,20 @@ const MetricDetails: FC<MetricDetailsProps> = ({ metric, onclose }) => {
   const queryClient = useQueryClient();
   const windowWidth = useMediaQuery();
 
+  const [displayState, setDisplayState] = useState<UpdateMetricDisplayType>({
+    display_name: metric.display_name ?? "",
+    display_description: metric.display_description ?? "",
+    display_format: metric.display_format ?? null,
+    display_unit: metric.display_unit ?? "",
+    display_section_id: metric.display_section?.section_id ?? null,
+    display_order: metric.display_order ?? 0,
+  });
+
+  const { data: sections } = useQuery<DisplaySectionType[]>(
+    ["display_section_list"],
+    () => DisplaySections.getDisplaySections().then((res) => res)
+  );
+
   const formattedSQL = metric.custom_sql
     ? format(metric.custom_sql, { language: "postgresql" })
     : "";
@@ -42,6 +61,22 @@ const MetricDetails: FC<MetricDetailsProps> = ({ metric, onclose }) => {
 
       onError: (error: any) => {
         toast.error(error.response.data.detail);
+      },
+    }
+  );
+
+  const displayMutation = useMutation(
+    (patch: UpdateMetricDisplayType) =>
+      Metrics.updateMetric(metric.metric_id, patch),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["metric_list"]);
+        toast.success("Updated pricing page display settings");
+      },
+      onError: (error: any) => {
+        toast.error(
+          error.response?.data?.detail ?? "Failed to update display settings"
+        );
       },
     }
   );
@@ -60,7 +95,14 @@ const MetricDetails: FC<MetricDetailsProps> = ({ metric, onclose }) => {
         >
           Archive
         </Button>,
-        <Button key="submit" type="default" onClick={onclose}>
+        <Button
+          key="save-display"
+          type="primary"
+          onClick={() => displayMutation.mutate(displayState)}
+        >
+          Save Pricing Page Display
+        </Button>,
+        <Button key="close" type="default" onClick={onclose}>
           Close
         </Button>,
       ]}
@@ -177,6 +219,103 @@ const MetricDetails: FC<MetricDetailsProps> = ({ metric, onclose }) => {
             </div>
           </div>
         )}
+        <div className="mt-6 pt-4 border-t border-solid border-[#EAEAEB]">
+          <b>Pricing page display</b>
+          <div className="grid grid-cols-2 gap-4 mt-2">
+            <div>
+              <label className="block mb-1">Display name</label>
+              <Input
+                placeholder={metric.metric_name}
+                value={displayState.display_name ?? ""}
+                onChange={(e) =>
+                  setDisplayState({
+                    ...displayState,
+                    display_name: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Format</label>
+              <Select
+                style={{ width: "100%" }}
+                allowClear
+                placeholder="None"
+                value={displayState.display_format ?? undefined}
+                onChange={(value) =>
+                  setDisplayState({
+                    ...displayState,
+                    display_format: value ?? null,
+                  })
+                }
+                options={MetricDisplayFormats.map((displayFormat) => ({
+                  label:
+                    displayFormat === "percentage"
+                      ? "Percentage"
+                      : "Per unit",
+                  value: displayFormat,
+                }))}
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Unit</label>
+              <Input
+                placeholder='e.g. "sales" or "SMS"'
+                value={displayState.display_unit ?? ""}
+                onChange={(e) =>
+                  setDisplayState({
+                    ...displayState,
+                    display_unit: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Section</label>
+              <Select
+                style={{ width: "100%" }}
+                allowClear
+                placeholder="None"
+                value={displayState.display_section_id ?? undefined}
+                onChange={(value) =>
+                  setDisplayState({
+                    ...displayState,
+                    display_section_id: value ?? null,
+                  })
+                }
+                options={(sections ?? []).map((section) => ({
+                  label: section.name,
+                  value: section.section_id,
+                }))}
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block mb-1">Description</label>
+              <Input.TextArea
+                value={displayState.display_description ?? ""}
+                onChange={(e) =>
+                  setDisplayState({
+                    ...displayState,
+                    display_description: e.target.value,
+                  })
+                }
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Order within section</label>
+              <InputNumber
+                style={{ width: "100%" }}
+                value={displayState.display_order}
+                onChange={(value) =>
+                  setDisplayState({
+                    ...displayState,
+                    display_order: value ?? 0,
+                  })
+                }
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </Modal>
   );

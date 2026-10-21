@@ -46,6 +46,7 @@ from metering_billing.models import (
     Analysis,
     APIToken,
     Backtest,
+    DisplaySection,
     Event,
     ExternalPlanLink,
     Feature,
@@ -84,6 +85,9 @@ from metering_billing.serializers.model_serializers import (
     CustomerSummarySerializer,
     CustomerUpdateSerializer,
     CustomerWithRevenueSerializer,
+    DisplaySectionCreateSerializer,
+    DisplaySectionDetailSerializer,
+    DisplaySectionUpdateSerializer,
     EventDetailSerializer,
     ExternalPlanLinkSerializer,
     FeatureCreateSerializer,
@@ -124,6 +128,7 @@ from metering_billing.serializers.serializer_utils import (
     AddOnUUIDField,
     AddOnVersionUUIDField,
     AnalysisUUIDField,
+    DisplaySectionUUIDField,
     FeatureUUIDField,
     MetricUUIDField,
     OrganizationUUIDField,
@@ -767,6 +772,67 @@ class MetricViewSet(PermissionPolicyMixin, viewsets.ModelViewSet):
                 raise DuplicateMetric(error_message)
             else:
                 raise ServerError(f"Unknown error occurred while creating metric: {e}")
+
+
+class DisplaySectionViewSet(
+    PermissionPolicyMixin,
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    serializer_class = DisplaySectionDetailSerializer
+    http_method_names = ["get", "post", "head", "patch", "delete"]
+    lookup_field = "section_id"
+    permission_classes_per_method = {
+        "create": [IsAuthenticated & ValidOrganization],
+        "partial_update": [IsAuthenticated & ValidOrganization],
+        "destroy": [IsAuthenticated & ValidOrganization],
+    }
+    queryset = DisplaySection.objects.all()
+
+    def get_object(self):
+        string_uuid = self.kwargs[self.lookup_field]
+        uuid = DisplaySectionUUIDField().to_internal_value(string_uuid)
+        self.kwargs[self.lookup_field] = uuid
+        return super().get_object()
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return DisplaySectionCreateSerializer
+        elif self.action == "partial_update":
+            return DisplaySectionUpdateSerializer
+        return DisplaySectionDetailSerializer
+
+    def get_queryset(self):
+        organization = self.request.organization
+        return DisplaySection.objects.filter(organization=organization)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({"organization": self.request.organization})
+        return context
+
+    @extend_schema(responses=DisplaySectionDetailSerializer)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance = serializer.save(organization=self.request.organization)
+        return Response(
+            DisplaySectionDetailSerializer(instance).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    @extend_schema(responses=DisplaySectionDetailSerializer)
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(
+            DisplaySectionDetailSerializer(instance).data, status=status.HTTP_200_OK
+        )
 
 
 class FeatureViewSet(

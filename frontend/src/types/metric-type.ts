@@ -1,3 +1,5 @@
+import { DisplaySectionType } from "./display-section-type";
+
 export const TimePeriods = [
   "milliseconds",
   "seconds",
@@ -17,6 +19,9 @@ export type MetricCategory = (typeof MetricCategories)[number];
 const EventTypes = ["delta", "total"] as const;
 export type EventType = (typeof EventTypes)[number];
 
+export const MetricDisplayFormats = ["percentage", "per_unit"] as const;
+export type MetricDisplayFormat = (typeof MetricDisplayFormats)[number];
+
 export interface MetricType {
   metric_id: string;
   event_name: string;
@@ -32,6 +37,21 @@ export interface MetricType {
   is_cost_metric: boolean;
   proration?: TimePeriodType;
   custom_sql?: string;
+  display_name?: string | null;
+  display_description?: string | null;
+  display_format?: MetricDisplayFormat | null;
+  display_unit?: string | null;
+  display_section?: DisplaySectionType | null;
+  display_order?: number;
+}
+
+export interface UpdateMetricDisplayType {
+  display_name?: string | null;
+  display_description?: string | null;
+  display_format?: MetricDisplayFormat | null;
+  display_unit?: string | null;
+  display_section_id?: string | null;
+  display_order?: number;
 }
 
 export interface CreateMetricType

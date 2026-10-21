@@ -31,6 +31,11 @@ class METRIC_AGGREGATION(models.TextChoices):
     AVERAGE = ("average", _("Average"))
 
 
+class METRIC_DISPLAY_FORMAT(models.TextChoices):
+    PERCENTAGE = ("percentage", _("Percentage"))
+    PER_UNIT = ("per_unit", _("Per Unit"))
+
+
 class PRICE_ADJUSTMENT_TYPE(models.TextChoices):
     PERCENTAGE = ("percentage", _("Percentage"))
     FIXED = ("fixed", _("Fixed"))

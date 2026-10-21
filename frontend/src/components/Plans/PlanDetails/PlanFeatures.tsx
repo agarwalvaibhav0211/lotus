@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import "./PlanDetails.css";
-import { Button, Typography } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { Button, Tooltip, Typography } from "antd";
+import { PlusOutlined, StarFilled, StarOutlined } from "@ant-design/icons";
 import { FeatureType } from "../../../types/feature-type";
 import CopyText from "../../base/CopytoClipboard";
 import createShortenedText from "../../../helpers/createShortenedText";
@@ -11,12 +11,23 @@ interface PlanFeaturesProps {
   features?: FeatureType[];
   // When omitted, the card stays read-only (add-ons and custom plans).
   onAddFeature?: () => void;
+  // Feature ids in highlight order; position is shown as the badge number.
+  highlightedFeatureIds?: string[];
+  onToggleHighlight?: (feature_id: string) => void;
+  highlightPending?: boolean;
 }
 
-const PlanFeatures: FC<PlanFeaturesProps> = ({ features, onAddFeature }) => {
+const PlanFeatures: FC<PlanFeaturesProps> = ({
+  features,
+  onAddFeature,
+  highlightedFeatureIds = [],
+  onToggleHighlight,
+  highlightPending = false,
+}) => {
   const windowWidth = useMediaQuery();
-  const canAddFeature =
-    !!onAddFeature && !((import.meta as any).env.VITE_IS_DEMO === "true");
+  const isDemo = (import.meta as any).env.VITE_IS_DEMO === "true";
+  const canAddFeature = !!onAddFeature && !isDemo;
+  const canToggleHighlight = !!onToggleHighlight && !isDemo;
 
   const addFeatureButton = (
     <Button
@@ -48,30 +59,81 @@ const PlanFeatures: FC<PlanFeaturesProps> = ({ features, onAddFeature }) => {
       <div className=" w-full h-[1.5px] mt-6 bg-card-divider mb-2" />
       <div className="grid gap-6 grid-cols-1 xl:grid-cols-4">
         {features && features.length > 0 ? (
-          features.map((feature) => (
-            <div
-              key={feature.feature_id}
-              className="pt-2 pb-4 bg-primary-50 mt-2  mb-2 p-4 min-h-[152px]"
-            >
-              <div className="text-base text-card-text">
-                <div>{feature.feature_name}</div>
-                <div className="flex gap-1 text-card-grey font-menlo">
-                  {" "}
-                  <div>
-                    {createShortenedText(
-                      feature.feature_id,
-                      windowWidth >= 2500
+          features.map((feature) => {
+            const highlightIndex = highlightedFeatureIds.indexOf(
+              feature.feature_id
+            );
+            const isHighlighted = highlightIndex !== -1;
+            return (
+              <div
+                key={feature.feature_id}
+                className="pt-2 pb-4 bg-primary-50 mt-2  mb-2 p-4 min-h-[152px]"
+              >
+                <div className="text-base text-card-text">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>{feature.feature_name}</div>
+                    {(canToggleHighlight || isHighlighted) && (
+                      <Tooltip
+                        title={
+                          isHighlighted
+                            ? `Highlight #${
+                                highlightIndex + 1
+                              } on the pricing page${
+                                canToggleHighlight ? " — click to remove" : ""
+                              }`
+                            : "Highlight on the pricing page"
+                        }
+                      >
+                        <Button
+                          type="text"
+                          size="small"
+                          aria-label={
+                            isHighlighted
+                              ? "Remove highlight"
+                              : "Mark as highlight"
+                          }
+                          disabled={!canToggleHighlight || highlightPending}
+                          onClick={() =>
+                            onToggleHighlight?.(feature.feature_id)
+                          }
+                          className="!flex items-center gap-1 !px-1"
+                        >
+                          {isHighlighted ? (
+                            <>
+                              <StarFilled style={{ color: "#C3986B" }} />
+                              <span className="text-xs text-gold">
+                                {highlightIndex + 1}
+                              </span>
+                            </>
+                          ) : (
+                            <StarOutlined className="text-card-grey" />
+                          )}
+                        </Button>
+                      </Tooltip>
                     )}
                   </div>
-                  <CopyText showIcon onlyIcon textToCopy={feature.feature_id} />
+                  <div className="flex gap-1 text-card-grey font-menlo">
+                    {" "}
+                    <div>
+                      {createShortenedText(
+                        feature.feature_id,
+                        windowWidth >= 2500
+                      )}
+                    </div>
+                    <CopyText
+                      showIcon
+                      onlyIcon
+                      textToCopy={feature.feature_id}
+                    />
+                  </div>
+                </div>
+                <div />
+                <div className="text-card-grey">
+                  {feature.feature_description}
                 </div>
               </div>
-              <div />
-              <div className="text-card-grey">
-                {feature.feature_description}
-              </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="text-card-grey">No features added</div>
         )}

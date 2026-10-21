@@ -25,7 +25,7 @@ from django.core.validators import (
 from django.db import connection, models
 from django.db.models import Count, F, FloatField, Q, Sum
 from django.db.models.constraints import CheckConstraint, UniqueConstraint
-from django.db.models.functions import Cast, Coalesce
+from django.db.models.functions import Cast, Coalesce, Lower
 from django.utils.translation import gettext_lazy as _
 from django_cryptography.fields import encrypt
 from metering_billing.exceptions.exceptions import (
@@ -59,6 +59,7 @@ from metering_billing.utils.enums import (
     FLAT_FEE_BEHAVIOR,
     INVOICE_CHARGE_TIMING_TYPE,
     METRIC_AGGREGATION,
+    METRIC_DISPLAY_FORMAT,
     METRIC_GRANULARITY,
     METRIC_STATUS,
     METRIC_TYPE,
@@ -1235,6 +1236,40 @@ class Metric(models.Model):
         help_text="A custom SQL query that can be used to define the metric. Please refer to our documentation for more information.",
     )
 
+    # pricing page display
+    display_name = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text="Seller-facing label for this metric on pricing pages. Falls back to the metric's name when null.",
+    )
+    display_description = models.TextField(
+        null=True,
+        blank=True,
+        help_text="One-line description shown on pricing page comparison tables.",
+    )
+    display_format = models.CharField(
+        max_length=20,
+        choices=METRIC_DISPLAY_FORMAT.choices,
+        null=True,
+        blank=True,
+        help_text="How this metric's tier prices should be worded. Null means the metric is not shown on pricing pages.",
+    )
+    display_unit = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="For 'percentage' format, what the percentage is of. For 'per_unit' format, the singular unit noun.",
+    )
+    display_section = models.ForeignKey(
+        "DisplaySection",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="metrics",
+    )
+    display_order = models.IntegerField(default=0)
+
     # filters
     numeric_filters = models.ManyToManyField(NumericFilter, blank=True)
     categorical_filters = models.ManyToManyField(CategoricalFilter, blank=True)
@@ -1846,6 +1881,29 @@ class PlanComponent(models.Model):
         return results
 
 
+class DisplaySection(models.Model):
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="display_sections"
+    )
+    section_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    sort_order = models.IntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower("name"),
+                "organization",
+                name="unique_display_section_name_per_org",
+            )
+        ]
+        ordering = ["sort_order", "name"]
+
+    def __str__(self):
+        return str(self.name)
+
+
 class Feature(models.Model):
     feature_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     organization = models.ForeignKey(
@@ -1853,6 +1911,14 @@ class Feature(models.Model):
     )
     feature_name = models.CharField(max_length=50, blank=False)
     feature_description = models.TextField(blank=True, null=True)
+    display_section = models.ForeignKey(
+        DisplaySection,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="features",
+    )
+    display_order = models.IntegerField(default=0)
 
     class Meta:
         constraints = [
@@ -2582,6 +2648,51 @@ class AddOnSpecification(models.Model):
             AddOnSpecification.FlatFeeInvoicingBehaviorOnAttach.INVOICE_ON_SUBSCRIPTION_END.label: AddOnSpecification.FlatFeeInvoicingBehaviorOnAttach.INVOICE_ON_SUBSCRIPTION_END.value,
         }
         return mapping.get(label, label)
+
+
+class PlanVersionHighlight(models.Model):
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="plan_version_highlights"
+    )
+    plan_version = models.ForeignKey(
+        "PlanVersion", on_delete=models.CASCADE, related_name="highlights"
+    )
+    feature = models.ForeignKey(
+        Feature, on_delete=models.CASCADE, null=True, blank=True, related_name="+"
+    )
+    metric = models.ForeignKey(
+        Metric, on_delete=models.CASCADE, null=True, blank=True, related_name="+"
+    )
+    order = models.IntegerField()
+
+    class Meta:
+        constraints = [
+            CheckConstraint(
+                check=(
+                    Q(feature__isnull=False, metric__isnull=True)
+                    | Q(feature__isnull=True, metric__isnull=False)
+                ),
+                name="highlight_exactly_one_of_feature_or_metric",
+            ),
+            UniqueConstraint(
+                fields=["plan_version", "order"],
+                name="unique_highlight_order_per_version",
+            ),
+            UniqueConstraint(
+                fields=["plan_version", "feature"],
+                condition=Q(feature__isnull=False),
+                name="unique_highlight_feature_per_version",
+            ),
+            UniqueConstraint(
+                fields=["plan_version", "metric"],
+                condition=Q(metric__isnull=False),
+                name="unique_highlight_metric_per_version",
+            ),
+        ]
+        ordering = ["order"]
+
+    def __str__(self):
+        return f"highlight #{self.order} on {self.plan_version}"
 
 
 class Plan(models.Model):

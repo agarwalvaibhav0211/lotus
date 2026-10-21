@@ -1,5 +1,5 @@
 import React, { FC, useState } from "react";
-import { Button, Modal, Input, Table } from "antd";
+import { Button, Modal, Input, InputNumber, Select, Table } from "antd";
 import {
   useQuery,
   UseQueryResult,
@@ -7,8 +7,9 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { Features } from "../api/api";
+import { Features, DisplaySections } from "../api/api";
 import { CreateFeatureType, FeatureType } from "../types/feature-type";
+import { DisplaySectionType } from "../types/display-section-type";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { PageLayout } from "../components/base/PageLayout";
 import { PlusOutlined } from "@ant-design/icons";
@@ -16,6 +17,8 @@ import { PlusOutlined } from "@ant-design/icons";
 const defaultFeatureState: CreateFeatureType = {
   feature_name: "",
   feature_description: "",
+  display_section_id: null,
+  display_order: 0,
 };
 
 const ViewFeatures: FC = () => {
@@ -31,6 +34,12 @@ const ViewFeatures: FC = () => {
   const { data, isLoading, isError }: UseQueryResult<FeatureType[]> = useQuery<
     FeatureType[]
   >(["feature_list"], () => Features.getFeatures().then((res) => res));
+
+  const { data: sections }: UseQueryResult<DisplaySectionType[]> = useQuery<
+    DisplaySectionType[]
+  >(["display_section_list"], () =>
+    DisplaySections.getDisplaySections().then((res) => res)
+  );
 
   const mutation = useMutation(
     (post: CreateFeatureType) => Features.createFeature(post),
@@ -99,6 +108,8 @@ const ViewFeatures: FC = () => {
     setFeatureState({
       feature_name: feature.feature_name,
       feature_description: feature.feature_description ?? "",
+      display_section_id: feature.display_section?.section_id ?? null,
+      display_order: feature.display_order ?? 0,
     });
     setVisible(true);
   };
@@ -162,6 +173,14 @@ const ViewFeatures: FC = () => {
                 key: "feature_description",
               },
               {
+                title: "Section",
+                key: "display_section",
+                render: (_, record: FeatureType) =>
+                  record.display_section?.name ?? (
+                    <span className="text-gray-400">Unsectioned</span>
+                  ),
+              },
+              {
                 title: "",
                 key: "actions",
                 width: 100,
@@ -214,6 +233,38 @@ const ViewFeatures: FC = () => {
                 setFeatureState({
                   ...featureState,
                   feature_description: e.target.value,
+                })
+              }
+            />
+          </div>
+          <div>
+            <label className="block mb-1">Section</label>
+            <Select
+              style={{ width: "100%" }}
+              allowClear
+              placeholder="None"
+              value={featureState.display_section_id ?? undefined}
+              onChange={(value) =>
+                setFeatureState({
+                  ...featureState,
+                  display_section_id: value ?? null,
+                })
+              }
+              options={(sections ?? []).map((section) => ({
+                label: section.name,
+                value: section.section_id,
+              }))}
+            />
+          </div>
+          <div>
+            <label className="block mb-1">Order within section</label>
+            <InputNumber
+              style={{ width: "100%" }}
+              value={featureState.display_order}
+              onChange={(value) =>
+                setFeatureState({
+                  ...featureState,
+                  display_order: value ?? 0,
                 })
               }
             />

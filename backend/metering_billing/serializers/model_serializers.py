@@ -10,12 +10,14 @@ from django.core.cache import cache
 from django.db.models import DecimalField, F, Q, Sum
 from metering_billing.aggregation.billable_metrics import METRIC_HANDLER_MAP
 from metering_billing.exceptions import DuplicateOrganization, ServerError
+from metering_billing.exceptions.exceptions import DuplicateDisplaySection
 from metering_billing.models import (
     AddOnSpecification,
     Address,
     APIToken,
     ComponentFixedCharge,
     Customer,
+    DisplaySection,
     ExternalPlanLink,
     Feature,
     Invoice,
@@ -25,6 +27,7 @@ from metering_billing.models import (
     Plan,
     PlanComponent,
     PlanVersion,
+    PlanVersionHighlight,
     PriceAdjustment,
     PriceTier,
     PricingUnit,
@@ -40,6 +43,8 @@ from metering_billing.models import (
     WebhookTrigger,
 )
 from metering_billing.serializers.serializer_utils import (
+    FeatureUUIDField,
+    MetricUUIDField,
     OrganizationUUIDField,
     PlanUUIDField,
     PlanVersionUUIDField,
@@ -53,6 +58,8 @@ from metering_billing.utils import now_utc
 from metering_billing.utils.enums import (
     BATCH_ROUNDING_TYPE,
     MAKE_PLAN_VERSION_ACTIVE_TYPE,
+    METRIC_AGGREGATION,
+    METRIC_DISPLAY_FORMAT,
     METRIC_STATUS,
     ORGANIZATION_STATUS,
     PAYMENT_PROCESSORS,
@@ -752,7 +759,28 @@ class MetricUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
         fields = (
             "billable_metric_name",
             "status",
+            "display_name",
+            "display_description",
+            "display_format",
+            "display_unit",
+            "display_section_id",
+            "display_order",
         )
+        extra_kwargs = {
+            "display_name": {"required": False, "allow_null": True},
+            "display_description": {"required": False, "allow_null": True},
+            "display_format": {"required": False, "allow_null": True},
+            "display_unit": {"required": False, "allow_null": True},
+            "display_order": {"required": False},
+        }
+
+    display_section_id = SlugRelatedFieldWithOrganization(
+        slug_field="section_id",
+        source="display_section",
+        queryset=DisplaySection.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
     def validate(self, data):
         data = super().validate(data)
@@ -769,6 +797,16 @@ class MetricUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"Cannot archive metric. It is currently used in the following plan versions: {', '.join(active_plan_versions_with_metric)}"
             )
+        display_format = data.get("display_format", self.instance.display_format)
+        display_unit = data.get("display_unit", self.instance.display_unit)
+        _validate_display_format_requires_unit(display_format, display_unit)
+        if (
+            display_format == METRIC_DISPLAY_FORMAT.PERCENTAGE
+            and self.instance.billable_aggregation_type != METRIC_AGGREGATION.SUM
+        ):
+            raise serializers.ValidationError(
+                "display_format can only be 'percentage' on a metric that sums a numeric property (billable_aggregation_type='sum')."
+            )
         return data
 
     def update(self, instance, validated_data):
@@ -776,6 +814,24 @@ class MetricUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
             "billable_metric_name", instance.billable_metric_name
         )
         instance.status = validated_data.get("status", instance.status)
+        instance.display_name = validated_data.get(
+            "display_name", instance.display_name
+        )
+        instance.display_description = validated_data.get(
+            "display_description", instance.display_description
+        )
+        instance.display_format = validated_data.get(
+            "display_format", instance.display_format
+        )
+        instance.display_unit = validated_data.get(
+            "display_unit", instance.display_unit
+        )
+        instance.display_section = validated_data.get(
+            "display_section", instance.display_section
+        )
+        instance.display_order = validated_data.get(
+            "display_order", instance.display_order
+        )
         instance.save()
         if instance.status == METRIC_STATUS.ARCHIVED:
             METRIC_HANDLER_MAP[instance.metric_type].archive_metric(instance)
@@ -810,6 +866,12 @@ class MetricCreateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
             "custom_sql",
             "categorical_filters",
             "numeric_filters",
+            "display_name",
+            "display_description",
+            "display_format",
+            "display_unit",
+            "display_section_id",
+            "display_order",
         )
         extra_kwargs = {
             "event_name": {"write_only": True, "required": False, "allow_blank": False},
@@ -834,16 +896,47 @@ class MetricCreateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
             },
             "categorical_filters": {"write_only": True, "required": False},
             "numeric_filters": {"write_only": True, "required": False},
+            "display_name": {"write_only": True, "required": False, "allow_null": True},
+            "display_description": {
+                "write_only": True,
+                "required": False,
+                "allow_null": True,
+            },
+            "display_format": {
+                "write_only": True,
+                "required": False,
+                "allow_null": True,
+            },
+            "display_unit": {"write_only": True, "required": False, "allow_null": True},
+            "display_order": {"write_only": True, "required": False},
         }
 
     metric_name = serializers.CharField(source="billable_metric_name")
     numeric_filters = NumericFilterDetailSerializer(many=True, required=False)
     categorical_filters = CategoricalFilterDetailSerializer(many=True, required=False)
+    display_section_id = SlugRelatedFieldWithOrganization(
+        slug_field="section_id",
+        source="display_section",
+        queryset=DisplaySection.objects.all(),
+        write_only=True,
+        required=False,
+        allow_null=True,
+    )
 
     def validate(self, data):
         data = super().validate(data)
         metric_type = data["metric_type"]
         data = METRIC_HANDLER_MAP[metric_type].validate_data(data)
+        display_format = data.get("display_format")
+        display_unit = data.get("display_unit")
+        _validate_display_format_requires_unit(display_format, display_unit)
+        if (
+            display_format == METRIC_DISPLAY_FORMAT.PERCENTAGE
+            and data.get("billable_aggregation_type") != METRIC_AGGREGATION.SUM
+        ):
+            raise serializers.ValidationError(
+                "display_format can only be 'percentage' on a metric that sums a numeric property (billable_aggregation_type='sum')."
+            )
         return data
 
     def create(self, validated_data):
@@ -1084,13 +1177,92 @@ class ProductSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
         fields = ("name", "description", "product_id", "status")
 
 
+class PlanVersionHighlightInputSerializer(serializers.Serializer):
+    kind = serializers.ChoiceField(choices=["feature", "metric"])
+    id = serializers.CharField()
+
+
+def set_plan_version_highlights(organization, plan_version, highlights_data):
+    """
+    Replaces the full set of highlights on `plan_version` with `highlights_data`,
+    a list of {"kind": "feature"|"metric", "id": "<prefixed id>"}, in order.
+    Raises serializers.ValidationError (400) if an id doesn't belong to this
+    organization, isn't in this version's own features/components, or is
+    listed more than once.
+    """
+    feature_pk_and_uuid_by_uuid = {
+        feature_id: pk
+        for feature_id, pk in plan_version.features.values_list("feature_id", "pk")
+    }
+    metric_pk_by_uuid = {
+        metric_id: pk
+        for metric_id, pk in plan_version.plan_components.filter(
+            billable_metric__isnull=False
+        ).values_list("billable_metric__metric_id", "billable_metric__pk")
+    }
+
+    seen = set()
+    highlights = []
+    for idx, item in enumerate(highlights_data):
+        kind = item["kind"]
+        raw_id = item["id"]
+        if kind == "feature":
+            try:
+                uuid_val = FeatureUUIDField().to_internal_value(raw_id)
+            except ValidationError:
+                raise serializers.ValidationError(
+                    f"'{raw_id}' is not a valid feature id."
+                )
+            pk = feature_pk_and_uuid_by_uuid.get(uuid_val)
+            if pk is None:
+                raise serializers.ValidationError(
+                    f"Highlight references feature '{raw_id}', which is not among this plan version's features."
+                )
+            key = ("feature", uuid_val)
+            kwargs = {"feature_id": pk}
+        else:
+            try:
+                uuid_val = MetricUUIDField().to_internal_value(raw_id)
+            except ValidationError:
+                raise serializers.ValidationError(
+                    f"'{raw_id}' is not a valid metric id."
+                )
+            pk = metric_pk_by_uuid.get(uuid_val)
+            if pk is None:
+                raise serializers.ValidationError(
+                    f"Highlight references metric '{raw_id}', which is not among this plan version's components."
+                )
+            key = ("metric", uuid_val)
+            kwargs = {"metric_id": pk}
+        if key in seen:
+            raise serializers.ValidationError(
+                f"'{raw_id}' is highlighted more than once."
+            )
+        seen.add(key)
+        highlights.append(
+            PlanVersionHighlight(
+                organization=organization,
+                plan_version=plan_version,
+                order=idx,
+                **kwargs,
+            )
+        )
+
+    plan_version.highlights.all().delete()
+    if highlights:
+        PlanVersionHighlight.objects.bulk_create(highlights)
+
+
 class PlanVersionUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = PlanVersion
-        fields = ("localized_name", "active_from", "active_to")
+        fields = ("localized_name", "active_from", "active_to", "highlights")
         extra_kwargs = {
             "localized_name": {"required": False},
+            "highlights": {"write_only": True, "required": False},
         }
+
+    highlights = PlanVersionHighlightInputSerializer(many=True, required=False)
 
     def update(self, instance, validated_data):
         new_nab = validated_data.get("active_from", instance.active_from)
@@ -1107,6 +1279,10 @@ class PlanVersionUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerialize
             "localized_name", instance.localized_name
         )
         instance.save()
+        if "highlights" in validated_data:
+            set_plan_version_highlights(
+                instance.organization, instance, validated_data["highlights"]
+            )
         return instance
 
 
@@ -1134,20 +1310,110 @@ class PriceAdjustmentSerializer(TimezoneFieldMixin, serializers.ModelSerializer)
     price_adjustment_name = serializers.CharField(default="")
 
 
+def _validate_display_format_requires_unit(display_format, display_unit):
+    if display_format and not display_unit:
+        raise serializers.ValidationError(
+            "display_unit is required whenever display_format is set."
+        )
+
+
+class DisplaySectionDetailSerializer(api_serializers.DisplaySectionSerializer):
+    class Meta(api_serializers.DisplaySectionSerializer.Meta):
+        fields = api_serializers.DisplaySectionSerializer.Meta.fields
+
+
+class DisplaySectionCreateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
+    class Meta:
+        model = DisplaySection
+        fields = ("name", "description", "sort_order")
+        extra_kwargs = {
+            "description": {"required": False, "allow_null": True},
+            "sort_order": {"required": False},
+        }
+
+    def validate_name(self, value):
+        org = self.context["organization"]
+        if DisplaySection.objects.filter(organization=org, name__iexact=value).exists():
+            raise DuplicateDisplaySection(
+                f"A display section named '{value}' already exists for this organization."
+            )
+        return value
+
+
+class DisplaySectionUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
+    class Meta:
+        model = DisplaySection
+        fields = ("name", "description", "sort_order")
+        extra_kwargs = {
+            "name": {"required": False},
+            "description": {"required": False, "allow_null": True},
+            "sort_order": {"required": False},
+        }
+
+    def validate_name(self, value):
+        org = self.context["organization"]
+        if (
+            DisplaySection.objects.filter(organization=org, name__iexact=value)
+            .exclude(pk=self.instance.pk)
+            .exists()
+        ):
+            raise DuplicateDisplaySection(
+                f"A display section named '{value}' already exists for this organization."
+            )
+        return value
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get("name", instance.name)
+        instance.description = validated_data.get("description", instance.description)
+        instance.sort_order = validated_data.get("sort_order", instance.sort_order)
+        instance.save()
+        return instance
+
+
 class FeatureCreateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = Feature
-        fields = ("feature_name", "feature_description")
+        fields = (
+            "feature_name",
+            "feature_description",
+            "display_section_id",
+            "display_order",
+        )
+        extra_kwargs = {
+            "display_order": {"required": False},
+        }
+
+    display_section_id = SlugRelatedFieldWithOrganization(
+        slug_field="section_id",
+        source="display_section",
+        queryset=DisplaySection.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
 
 class FeatureUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = Feature
-        fields = ("feature_name", "feature_description")
+        fields = (
+            "feature_name",
+            "feature_description",
+            "display_section_id",
+            "display_order",
+        )
         extra_kwargs = {
             "feature_name": {"required": False},
             "feature_description": {"required": False},
+            "display_order": {"required": False},
         }
+
+    display_section_id = SlugRelatedFieldWithOrganization(
+        slug_field="section_id",
+        source="display_section",
+        queryset=DisplaySection.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
     def update(self, instance, validated_data):
         instance.feature_name = validated_data.get(
@@ -1155,6 +1421,12 @@ class FeatureUpdateSerializer(TimezoneFieldMixin, serializers.ModelSerializer):
         )
         instance.feature_description = validated_data.get(
             "feature_description", instance.feature_description
+        )
+        instance.display_section = validated_data.get(
+            "display_section", instance.display_section
+        )
+        instance.display_order = validated_data.get(
+            "display_order", instance.display_order
         )
         instance.save()
         return instance
@@ -1264,6 +1536,7 @@ class PlanVersionCreateSerializer(TimezoneFieldMixin, serializers.ModelSerialize
             "recurring_charges",
             "components",
             "features",
+            "highlights",
             "price_adjustment",
             "day_anchor",
             "month_anchor",
@@ -1279,6 +1552,7 @@ class PlanVersionCreateSerializer(TimezoneFieldMixin, serializers.ModelSerialize
             "recurring_charges": {"write_only": True},
             "components": {"write_only": True},
             "features": {"write_only": True},
+            "highlights": {"write_only": True, "required": False},
             "price_adjustment": {"write_only": True},
             "day_anchor": {"write_only": True},
             "month_anchor": {"write_only": True},
@@ -1313,6 +1587,7 @@ class PlanVersionCreateSerializer(TimezoneFieldMixin, serializers.ModelSerialize
         many=True,
         required=False,
     )
+    highlights = PlanVersionHighlightInputSerializer(many=True, required=False)
     price_adjustment = PriceAdjustmentSerializer(required=False)
     plan_id = SlugRelatedFieldWithOrganization(
         slug_field="plan_id",
@@ -1360,6 +1635,7 @@ class PlanVersionCreateSerializer(TimezoneFieldMixin, serializers.ModelSerialize
         components_data = validated_data.pop("components", [])
         recurring_charge_data = validated_data.pop("recurring_charges", [])
         features = validated_data.pop("features", [])
+        highlights_data = validated_data.pop("highlights", None)
         target_customers = validated_data.pop("target_customers", [])
         price_adjustment_data = validated_data.pop("price_adjustment", None)
         make_active = validated_data.pop("make_active", False)
@@ -1401,6 +1677,8 @@ class PlanVersionCreateSerializer(TimezoneFieldMixin, serializers.ModelSerialize
             assert type(charges[0]) is RecurringCharge
         for f in features:
             billing_plan.features.add(f)
+        if highlights_data is not None:
+            set_plan_version_highlights(org, billing_plan, highlights_data)
         if price_adjustment_data:
             price_adjustment_data["organization"] = org
             try:

@@ -110,6 +110,7 @@ class SlugRelatedFieldWithOrganization(serializers.SlugRelatedField):
     def to_internal_value(self, data):
         from metering_billing.models import (
             CustomerBalanceAdjustment,
+            DisplaySection,
             Feature,
             Invoice,
             Metric,
@@ -123,6 +124,8 @@ class SlugRelatedFieldWithOrganization(serializers.SlugRelatedField):
             data = BalanceAdjustmentUUIDField().to_internal_value(data)
         elif self.queryset.model is Metric:
             data = MetricUUIDField().to_internal_value(data)
+        elif self.queryset.model is DisplaySection:
+            data = DisplaySectionUUIDField().to_internal_value(data)
         elif self.queryset.model is Plan:
             try:
                 data = PlanUUIDField().to_internal_value(data)
@@ -149,6 +152,7 @@ class SlugRelatedFieldWithOrganization(serializers.SlugRelatedField):
     def to_representation(self, obj):
         from metering_billing.models import (
             CustomerBalanceAdjustment,
+            DisplaySection,
             Feature,
             Invoice,
             Metric,
@@ -163,6 +167,8 @@ class SlugRelatedFieldWithOrganization(serializers.SlugRelatedField):
             return BalanceAdjustmentUUIDField().to_representation(obj.adjustment_id)
         elif isinstance(obj, Metric):
             return MetricUUIDField().to_representation(obj.metric_id)
+        elif isinstance(obj, DisplaySection):
+            return DisplaySectionUUIDField().to_representation(obj.section_id)
         elif isinstance(obj, Plan) and obj.is_addon is False:
             return PlanUUIDField().to_representation(obj.plan_id)
         elif isinstance(obj, Plan) and obj.is_addon is True:
@@ -327,3 +333,9 @@ class WebhookSecretUUIDField(UUIDPrefixField):
 class AddOnUUIDField(UUIDPrefixField):
     def __init__(self, *args, **kwargs):
         super().__init__("addon_", *args, **kwargs)
+
+
+@extend_schema_field(serializers.RegexField(regex=r"section_[0-9a-f]{32}"))
+class DisplaySectionUUIDField(UUIDPrefixField):
+    def __init__(self, *args, **kwargs):
+        super().__init__("section_", *args, **kwargs)

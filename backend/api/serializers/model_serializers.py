@@ -18,6 +18,7 @@ from metering_billing.models import (
     ComponentFixedCharge,
     Customer,
     CustomerBalanceAdjustment,
+    DisplaySection,
     Event,
     ExternalPlanLink,
     Feature,
@@ -44,6 +45,7 @@ from metering_billing.serializers.serializer_utils import (
     AddOnUUIDField,
     BalanceAdjustmentUUIDField,
     ConvertEmptyStringToNullMixin,
+    DisplaySectionUUIDField,
     FeatureUUIDField,
     InvoiceUUIDField,
     MetricUUIDField,
@@ -968,6 +970,27 @@ class LightweightMetricSerializer(
     metric_name = serializers.CharField(source="billable_metric_name")
 
 
+class DisplaySectionSerializer(
+    ConvertEmptyStringToNullMixin, TimezoneFieldMixin, serializers.ModelSerializer
+):
+    class Meta:
+        model = DisplaySection
+        fields = (
+            "section_id",
+            "name",
+            "description",
+            "sort_order",
+        )
+        extra_kwargs = {
+            "section_id": {"required": True, "read_only": True},
+            "name": {"required": True, "read_only": True},
+            "description": {"required": True, "read_only": True, "allow_null": True},
+            "sort_order": {"required": True, "read_only": True},
+        }
+
+    section_id = DisplaySectionUUIDField()
+
+
 class MetricSerializer(
     ConvertEmptyStringToNullMixin, TimezoneFieldMixin, serializers.ModelSerializer
 ):
@@ -987,6 +1010,12 @@ class MetricSerializer(
             "is_cost_metric",
             "custom_sql",
             "proration",
+            "display_name",
+            "display_description",
+            "display_format",
+            "display_unit",
+            "display_section",
+            "display_order",
         )
         extra_kwargs = {
             "metric_id": {"required": True, "read_only": True, "allow_blank": False},
@@ -1017,6 +1046,24 @@ class MetricSerializer(
             "is_cost_metric": {"required": True, "read_only": True},
             "custom_sql": {"required": True, "read_only": True},
             "proration": {"required": True, "read_only": True},
+            "display_name": {"required": True, "read_only": True, "allow_null": True},
+            "display_description": {
+                "required": True,
+                "read_only": True,
+                "allow_null": True,
+            },
+            "display_format": {
+                "required": True,
+                "read_only": True,
+                "allow_null": True,
+            },
+            "display_unit": {"required": True, "read_only": True, "allow_null": True},
+            "display_section": {
+                "required": True,
+                "read_only": True,
+                "allow_null": True,
+            },
+            "display_order": {"required": True, "read_only": True},
         }
 
     metric_id = MetricUUIDField()
@@ -1028,6 +1075,7 @@ class MetricSerializer(
     )
     metric_name = serializers.CharField(source="billable_metric_name")
     aggregation_type = serializers.CharField(source="usage_aggregation_type")
+    display_section = DisplaySectionSerializer(allow_null=True)
 
 
 class FeatureSerializer(
@@ -1039,6 +1087,8 @@ class FeatureSerializer(
             "feature_id",
             "feature_name",
             "feature_description",
+            "display_section",
+            "display_order",
         )
         extra_kwargs = {
             "feature_id": {
@@ -1047,9 +1097,16 @@ class FeatureSerializer(
             },
             "feature_name": {"required": True, "read_only": True},
             "feature_description": {"required": True, "read_only": True},
+            "display_section": {
+                "required": True,
+                "read_only": True,
+                "allow_null": True,
+            },
+            "display_order": {"required": True, "read_only": True},
         }
 
     feature_id = FeatureUUIDField()
+    display_section = DisplaySectionSerializer(allow_null=True)
 
 
 class PriceTierSerializer(
@@ -1270,6 +1327,11 @@ class RecurringChargeSerializer(
         return obj.get_reset_interval_unit_display()
 
 
+class PlanVersionHighlightItemSerializer(serializers.Serializer):
+    kind = serializers.ChoiceField(choices=["feature", "metric"])
+    id = serializers.CharField()
+
+
 @extend_schema_serializer(
     deprecate_fields=[
         "usage_billing_frequency",
@@ -1288,6 +1350,7 @@ class PlanVersionSerializer(
             "recurring_charges",
             "components",
             "features",
+            "highlights",
             "price_adjustment",
             "version",
             "status",
@@ -1310,6 +1373,7 @@ class PlanVersionSerializer(
             "components": {"required": True, "read_only": True},
             "recurring_charges": {"required": True, "read_only": True},
             "features": {"required": True, "read_only": True},
+            "highlights": {"required": True, "read_only": True},
             "price_adjustment": {
                 "required": True,
                 "allow_null": True,
@@ -1333,6 +1397,7 @@ class PlanVersionSerializer(
     version_id = PlanVersionUUIDField(read_only=True)
     components = PlanComponentSerializer(many=True, source="plan_components")
     features = FeatureSerializer(many=True)
+    highlights = serializers.SerializerMethodField()
     recurring_charges = serializers.SerializerMethodField()
     price_adjustment = PriceAdjustmentSerializer(allow_null=True)
     plan_name = serializers.SerializerMethodField()
@@ -1349,6 +1414,27 @@ class PlanVersionSerializer(
 
     def get_plan_name(self, obj) -> serializers.CharField():
         return str(obj)
+
+    def get_highlights(self, obj) -> PlanVersionHighlightItemSerializer(many=True):
+        highlights = []
+        for h in obj.highlights.all().select_related("feature", "metric"):
+            if h.feature_id is not None:
+                highlights.append(
+                    {
+                        "kind": "feature",
+                        "id": FeatureUUIDField().to_representation(
+                            h.feature.feature_id
+                        ),
+                    }
+                )
+            else:
+                highlights.append(
+                    {
+                        "kind": "metric",
+                        "id": MetricUUIDField().to_representation(h.metric.metric_id),
+                    }
+                )
+        return highlights
 
     def get_status(
         self, obj

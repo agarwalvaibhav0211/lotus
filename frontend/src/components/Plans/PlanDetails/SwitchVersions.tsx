@@ -16,6 +16,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, Select, Menu } from "antd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 import { PlanType } from "../../../types/plan-type";
 import PlanComponents, { PlanInfo, PlanSummary } from "./PlanComponent";
 import PlanFeatures from "./PlanFeatures";
@@ -155,6 +156,44 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
       },
     }
   );
+  const highlightMutation = useMutation(
+    ({
+      version_id,
+      highlights,
+    }: {
+      version_id: string;
+      highlights: components["schemas"]["PlanVersionHighlightItem"][];
+    }) => Plan.updatePlanVersionHighlights(version_id, highlights),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["plan_list"]);
+        queryClient.invalidateQueries(["plan_detail", plan.plan_id]);
+        refetch();
+      },
+      onError: (error: any) => {
+        toast.error(
+          error.response?.data?.detail ?? "Failed to update highlights"
+        );
+      },
+    }
+  );
+  const currentHighlights = selectedVersion?.highlights ?? [];
+  const toggleFeatureHighlight = (feature_id: string) => {
+    if (!selectedVersion) return;
+    const isHighlighted = currentHighlights.some(
+      (h) => h.kind === "feature" && h.id === feature_id
+    );
+    // The PATCH replaces the whole list, so metric highlights are carried over.
+    const next = isHighlighted
+      ? currentHighlights.filter(
+          (h) => !(h.kind === "feature" && h.id === feature_id)
+        )
+      : [...currentHighlights, { kind: "feature" as const, id: feature_id }];
+    highlightMutation.mutate({
+      version_id: selectedVersion.version_id,
+      highlights: next,
+    });
+  };
   useEffect(() => {
     // Keep the version the user is looking at after a refetch. Snapping back to
     // the active version would hide in-place edits (e.g. adding a feature to a
@@ -317,6 +356,11 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
           <PlanFeatures
             features={selectedVersion?.features}
             onAddFeature={() => setTriggerFeatureModal(true)}
+            highlightedFeatureIds={currentHighlights
+              .filter((h) => h.kind === "feature")
+              .map((h) => h.id)}
+            onToggleHighlight={toggleFeatureHighlight}
+            highlightPending={highlightMutation.isLoading}
           />
         </div>
         <div className="-mx-10">
