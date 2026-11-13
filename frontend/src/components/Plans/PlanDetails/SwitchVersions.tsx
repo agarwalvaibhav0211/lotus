@@ -178,22 +178,21 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
     }
   );
   const currentHighlights = selectedVersion?.highlights ?? [];
-  const toggleFeatureHighlight = (feature_id: string) => {
+  const toggleHighlight = (kind: "feature" | "metric", id: string) => {
     if (!selectedVersion) return;
     const isHighlighted = currentHighlights.some(
-      (h) => h.kind === "feature" && h.id === feature_id
+      (h) => h.kind === kind && h.id === id
     );
-    // The PATCH replaces the whole list, so metric highlights are carried over.
+    // The PATCH replaces the whole list, so the other highlights are carried over.
     const next = isHighlighted
-      ? currentHighlights.filter(
-          (h) => !(h.kind === "feature" && h.id === feature_id)
-        )
-      : [...currentHighlights, { kind: "feature" as const, id: feature_id }];
+      ? currentHighlights.filter((h) => !(h.kind === kind && h.id === id))
+      : [...currentHighlights, { kind, id }];
     highlightMutation.mutate({
       version_id: selectedVersion.version_id,
       highlights: next,
     });
   };
+  const highlightedIds = currentHighlights.map((h) => h.id);
   useEffect(() => {
     // Keep the version the user is looking at after a refetch. Snapping back to
     // the active version would hide in-place edits (e.g. adding a feature to a
@@ -350,16 +349,21 @@ const SwitchVersions: FC<SwitchVersionProps> = ({
             components={selectedVersion?.components}
             alerts={selectedVersion?.alerts}
             plan_version_id={selectedVersion!.version_id}
+            highlightedIds={highlightedIds}
+            onToggleHighlight={(metric_id) =>
+              toggleHighlight("metric", metric_id)
+            }
+            highlightPending={highlightMutation.isLoading}
           />
         </div>
         <div className="-mx-10">
           <PlanFeatures
             features={selectedVersion?.features}
             onAddFeature={() => setTriggerFeatureModal(true)}
-            highlightedFeatureIds={currentHighlights
-              .filter((h) => h.kind === "feature")
-              .map((h) => h.id)}
-            onToggleHighlight={toggleFeatureHighlight}
+            highlightedIds={highlightedIds}
+            onToggleHighlight={(feature_id) =>
+              toggleHighlight("feature", feature_id)
+            }
             highlightPending={highlightMutation.isLoading}
           />
         </div>

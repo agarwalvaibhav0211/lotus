@@ -39,6 +39,7 @@ import { AlertType, CreateAlertType } from "../../../types/alert-type";
 import { Plan } from "../../../api/api";
 import { components } from "../../../gen-types";
 import StateTabs from "./StateTabs";
+import HighlightStar from "./HighlightStar";
 
 interface PlanComponentsProps {
   components?: components["schemas"]["PlanDetail"]["versions"][0]["components"];
@@ -46,6 +47,10 @@ interface PlanComponentsProps {
   refetch: VoidFunction;
   alerts?: components["schemas"]["PlanDetail"]["versions"][0]["alerts"];
   plan_version_id: string;
+  // The version's highlighted ids (features and metrics) in order; position is the badge number.
+  highlightedIds?: string[];
+  onToggleHighlight?: (metric_id: string) => void;
+  highlightPending?: boolean;
 }
 
 const findAlertForComponent = (
@@ -599,7 +604,12 @@ const PlanComponents: FC<PlanComponentsProps> = ({
   refetch,
   alerts,
   plan_version_id,
+  highlightedIds = [],
+  onToggleHighlight,
+  highlightPending = false,
 }) => {
+  const isDemo = (import.meta as any).env.VITE_IS_DEMO === "true";
+  const canToggleHighlight = !!onToggleHighlight && !isDemo;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [alertThreshold, setAlertThreshold] = useState(0);
   const [isCreateAlert, setIsCreateAlert] = useState(true);
@@ -720,8 +730,18 @@ const PlanComponents: FC<PlanComponentsProps> = ({
                 key={index}
               >
                 <div className="flex items-center justify-between">
-                  <div className=" text-base text-card-text align-middle">
+                  <div className="flex items-center gap-1 text-base text-card-text align-middle">
                     <div> {component.billable_metric.metric_name}</div>
+                    <HighlightStar
+                      highlightIndex={highlightedIds.indexOf(
+                        component.billable_metric.metric_id
+                      )}
+                      canToggle={canToggleHighlight}
+                      pending={highlightPending}
+                      onToggle={() =>
+                        onToggleHighlight?.(component.billable_metric.metric_id)
+                      }
+                    />
                   </div>
                   <div>
                     {returnInvoicingIntervalText(

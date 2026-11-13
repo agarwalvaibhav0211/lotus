@@ -1,18 +1,19 @@
 import React, { FC } from "react";
 import "./PlanDetails.css";
-import { Button, Tooltip, Typography } from "antd";
-import { PlusOutlined, StarFilled, StarOutlined } from "@ant-design/icons";
+import { Button, Typography } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import { FeatureType } from "../../../types/feature-type";
 import CopyText from "../../base/CopytoClipboard";
 import createShortenedText from "../../../helpers/createShortenedText";
 import useMediaQuery from "../../../hooks/useWindowQuery";
+import HighlightStar from "./HighlightStar";
 
 interface PlanFeaturesProps {
   features?: FeatureType[];
   // When omitted, the card stays read-only (add-ons and custom plans).
   onAddFeature?: () => void;
-  // Feature ids in highlight order; position is shown as the badge number.
-  highlightedFeatureIds?: string[];
+  // The version's highlighted ids (features and metrics) in order; position is the badge number.
+  highlightedIds?: string[];
   onToggleHighlight?: (feature_id: string) => void;
   highlightPending?: boolean;
 }
@@ -20,7 +21,7 @@ interface PlanFeaturesProps {
 const PlanFeatures: FC<PlanFeaturesProps> = ({
   features,
   onAddFeature,
-  highlightedFeatureIds = [],
+  highlightedIds = [],
   onToggleHighlight,
   highlightPending = false,
 }) => {
@@ -60,10 +61,7 @@ const PlanFeatures: FC<PlanFeaturesProps> = ({
       <div className="grid gap-6 grid-cols-1 xl:grid-cols-4">
         {features && features.length > 0 ? (
           features.map((feature) => {
-            const highlightIndex = highlightedFeatureIds.indexOf(
-              feature.feature_id
-            );
-            const isHighlighted = highlightIndex !== -1;
+            const highlightIndex = highlightedIds.indexOf(feature.feature_id);
             return (
               <div
                 key={feature.feature_id}
@@ -72,45 +70,12 @@ const PlanFeatures: FC<PlanFeaturesProps> = ({
                 <div className="text-base text-card-text">
                   <div className="flex items-start justify-between gap-2">
                     <div>{feature.feature_name}</div>
-                    {(canToggleHighlight || isHighlighted) && (
-                      <Tooltip
-                        title={
-                          isHighlighted
-                            ? `Highlight #${
-                                highlightIndex + 1
-                              } on the pricing page${
-                                canToggleHighlight ? " — click to remove" : ""
-                              }`
-                            : "Highlight on the pricing page"
-                        }
-                      >
-                        <Button
-                          type="text"
-                          size="small"
-                          aria-label={
-                            isHighlighted
-                              ? "Remove highlight"
-                              : "Mark as highlight"
-                          }
-                          disabled={!canToggleHighlight || highlightPending}
-                          onClick={() =>
-                            onToggleHighlight?.(feature.feature_id)
-                          }
-                          className="!flex items-center gap-1 !px-1"
-                        >
-                          {isHighlighted ? (
-                            <>
-                              <StarFilled style={{ color: "#C3986B" }} />
-                              <span className="text-xs text-gold">
-                                {highlightIndex + 1}
-                              </span>
-                            </>
-                          ) : (
-                            <StarOutlined className="text-card-grey" />
-                          )}
-                        </Button>
-                      </Tooltip>
-                    )}
+                    <HighlightStar
+                      highlightIndex={highlightIndex}
+                      canToggle={canToggleHighlight}
+                      pending={highlightPending}
+                      onToggle={() => onToggleHighlight?.(feature.feature_id)}
+                    />
                   </div>
                   <div className="flex gap-1 text-card-grey font-menlo">
                     {" "}
