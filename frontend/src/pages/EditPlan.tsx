@@ -228,9 +228,9 @@ function EditPlan({ type, plan, versionIndex }: Props) {
     setFeatureVisible(true);
   };
 
-  const removeFeature = (featureName: string) => {
+  const removeFeature = (feature_id: string) => {
     setPlanFeatures(
-      planFeatures.filter((item) => item.feature_name !== featureName)
+      planFeatures.filter((item) => item.feature_id !== feature_id)
     );
   };
 
@@ -389,6 +389,17 @@ function EditPlan({ type, plan, versionIndex }: Props) {
           }
         }
 
+        // Highlights drive the pricing cards, so a new version keeps the source's, minus any whose feature or metric was removed.
+        const highlights = (
+          plan.versions[versionIndex].highlights ?? []
+        ).filter((highlight) =>
+          highlight.kind === "feature"
+            ? featureIdList.includes(highlight.id)
+            : usagecomponentslist.some(
+                (component) => component.metric_id === highlight.id
+              )
+        );
+
         if (values.usage_billing_frequency === "yearly") {
           values.usage_billing_frequency = "end_of_period";
         }
@@ -455,6 +466,7 @@ function EditPlan({ type, plan, versionIndex }: Props) {
             transition_to_plan_id: values.transition_to_plan_id,
             components: usagecomponentslist,
             features: featureIdList,
+            highlights,
             localized_name: values.localized_name ?? null,
             usage_billing_frequency: values.usage_billing_frequency,
             make_active: activeVersion,

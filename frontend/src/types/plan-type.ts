@@ -84,6 +84,7 @@ export interface CreatePlanVersionType {
   currency_code?: string;
   version: number;
   target_customer_ids?: string[];
+  highlights?: components["schemas"]["PlanVersionHighlightItem"][];
 }
 
 export interface CreateInitialVersionType extends CreatePlanVersionType {
