@@ -740,9 +740,13 @@ def generate_one_off_invoice(
     currency,
     issue_date=None,
     due_date=None,
+    mark_paid=False,
 ):
     """
     Generate a one-off invoice for a customer, outside of the subscription billing flow.
+
+    If mark_paid is True the invoice is recorded as already paid (e.g. payment was
+    collected out of band), so it is not pushed to a payment processor for collection.
     """
     from metering_billing.models import (
         Invoice,
@@ -785,11 +789,22 @@ def generate_one_off_invoice(
             )
 
     finalize_invoice_amount(invoice, draft=False)
+    if mark_paid and invoice.payment_status != Invoice.PaymentStatus.PAID:
+        # Saving the status change sets paid_on and fires the invoice.paid webhook.
+        invoice.payment_status = Invoice.PaymentStatus.PAID
+        invoice.save()
 
+    # No-op for paid invoices: there is nothing left to collect.
     generate_external_payment_obj(invoice)
     invoice_created_webhook(invoice, organization)
     if kafka_producer:
         kafka_producer.produce_invoice(invoice)
+        if mark_paid:
+            kafka_producer.produce_invoice_pay_in_full(
+                invoice=invoice,
+                payment_date=invoice.paid_on,
+                source="lotus_out_of_band",
+            )
 
     return invoice
 

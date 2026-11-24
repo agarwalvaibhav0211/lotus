@@ -2551,6 +2551,16 @@ class OneOffInvoiceCreateSerializer(
     issue_date = serializers.DateTimeField(required=False)
     due_date = serializers.DateTimeField(required=False)
     line_items = OneOffInvoiceLineItemCreateSerializer(many=True, required=True)
+    payment_status = serializers.ChoiceField(
+        choices=[INVOICE_STATUS_ENUM.PAID, INVOICE_STATUS_ENUM.UNPAID],
+        required=False,
+        default=INVOICE_STATUS_ENUM.UNPAID,
+        help_text=(
+            "Set to 'paid' to record an invoice whose payment was already "
+            "collected outside Lotus. Paid invoices are not sent to a payment "
+            "processor."
+        ),
+    )
 
     def validate_line_items(self, value):
         if len(value) < 1:
@@ -2575,6 +2585,7 @@ class OneOffInvoiceCreateSerializer(
             currency=validated_data["currency"],
             issue_date=validated_data.get("issue_date"),
             due_date=validated_data.get("due_date"),
+            mark_paid=validated_data["payment_status"] == INVOICE_STATUS_ENUM.PAID,
         )
 
 

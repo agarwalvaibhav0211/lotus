@@ -451,6 +451,51 @@ class TestOneOffInvoice:
         assert response.status_code == status.HTTP_201_CREATED
         mock_send.assert_called_once()
 
+    def test_create_one_off_invoice_as_paid(self, invoice_test_common_setup):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        setup_dict["customer"].payment_provider = "stripe"
+        setup_dict["customer"].save()
+        payload = {
+            "customer_id": setup_dict["customer"].customer_id,
+            "currency_code": "USD",
+            "payment_status": "paid",
+            "line_items": [{"name": "Setup fee", "amount": "100.00"}],
+        }
+        with mock.patch(
+            "metering_billing.models.invoice_paid_webhook"
+        ) as mock_paid_webhook:
+            response = setup_dict["client"].post(
+                reverse("invoice-list"),
+                data=json.dumps(payload, cls=DjangoJSONEncoder),
+                content_type="application/json",
+            )
+        assert response.status_code == status.HTTP_201_CREATED
+        invoice = Invoice.objects.get(
+            invoice_id=response.data["invoice_id"].removeprefix("invoice_")
+        )
+        assert invoice.payment_status == Invoice.PaymentStatus.PAID
+        assert invoice.paid_on is not None
+        assert invoice.amount == Decimal("100.00")
+        assert invoice.external_payment_obj_id is None
+        mock_paid_webhook.assert_called_once()
+
+    def test_create_one_off_invoice_invalid_payment_status(
+        self, invoice_test_common_setup
+    ):
+        setup_dict = invoice_test_common_setup(auth_method="api_key")
+        payload = {
+            "customer_id": setup_dict["customer"].customer_id,
+            "currency_code": "USD",
+            "payment_status": "voided",
+            "line_items": [{"name": "Setup fee", "amount": "100.00"}],
+        }
+        response = setup_dict["client"].post(
+            reverse("invoice-list"),
+            data=json.dumps(payload, cls=DjangoJSONEncoder),
+            content_type="application/json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_get_and_send_created_invoice(self, invoice_test_common_setup):
         setup_dict = invoice_test_common_setup(auth_method="api_key")
         payload = {

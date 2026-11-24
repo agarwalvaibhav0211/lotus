@@ -1,4 +1,12 @@
-import { Button, DatePicker, Form, Input, InputNumber, Modal } from "antd";
+import {
+  Button,
+  Checkbox,
+  DatePicker,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+} from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -55,6 +63,7 @@ function CreateOneOffInvoice({
           due_date: values.due_date
             ? dayjs(values.due_date).toISOString()
             : undefined,
+          payment_status: values.mark_paid ? "paid" : "unpaid",
           line_items: (values.line_items ?? []).map((li) => ({
             name: li.name,
             quantity: li.quantity ?? undefined,
@@ -90,6 +99,7 @@ function CreateOneOffInvoice({
             pricing_unit_code: null,
             issue_date: null,
             due_date: null,
+            mark_paid: false,
             line_items: [
               { name: "", quantity: null, amount: null, tax_rate: null },
             ],
@@ -126,6 +136,13 @@ function CreateOneOffInvoice({
               <DatePicker
                 onChange={(data) => form.setFieldValue("due_date", dayjs(data))}
               />
+            </Form.Item>
+            <Form.Item
+              name="mark_paid"
+              valuePropName="checked"
+              tooltip="Payment was already collected outside Lotus. The invoice won't be sent to a payment processor."
+            >
+              <Checkbox>Mark as paid</Checkbox>
             </Form.Item>
           </div>
           <div className="p-4">

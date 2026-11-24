@@ -76,5 +76,6 @@ export interface CreateOneOffInvoiceType {
   currency_code: string;
   issue_date?: string;
   due_date?: string;
+  payment_status?: "paid" | "unpaid";
   line_items: CreateOneOffInvoiceLineItemType[];
 }

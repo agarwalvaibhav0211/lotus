@@ -4378,6 +4378,15 @@ export interface components {
       /** Format: date-time */
       issueDate?: string;
       lineItems: (components["schemas"]["OneOffInvoiceLineItemCreateRequest"])[];
+      /**
+       * @description Set to 'paid' to record an invoice whose payment was already collected outside Lotus. Paid invoices are not sent to a payment processor.
+       * 
+       * * `paid` - paid
+       * * `unpaid` - unpaid 
+       * @default unpaid 
+       * @enum {string}
+       */
+      paymentStatus?: "paid" | "unpaid";
     };
     OneOffInvoiceLineItemCreateRequest: {
       /** Format: double */

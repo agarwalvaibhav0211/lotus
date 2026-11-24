@@ -8521,6 +8521,17 @@ components:
           items:
             $ref: '#/components/schemas/OneOffInvoiceLineItemCreateRequest'
           type: array
+        payment_status:
+          default: unpaid
+          description: |-
+            Set to 'paid' to record an invoice whose payment was already collected outside Lotus. Paid invoices are not sent to a payment processor.
+
+            * `paid` - paid
+            * `unpaid` - unpaid
+          enum:
+          - paid
+          - unpaid
+          type: string
       required:
       - currency_code
       - customer_id
