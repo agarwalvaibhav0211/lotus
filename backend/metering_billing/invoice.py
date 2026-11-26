@@ -464,7 +464,10 @@ def apply_plan_discounts(invoice):
                 == PRICE_ADJUSTMENT_TYPE.PERCENTAGE
             ):
                 for line_item in invoice.line_items.filter(associated_plan_version=pv):
-                    discount_amount = pv.price_adjustment.apply(line_item.base)
+                    # apply() returns the discounted price; the adjustment is the difference
+                    discount_amount = (
+                        pv.price_adjustment.apply(line_item.base) - line_item.base
+                    )
                     InvoiceLineItemAdjustment.objects.create(
                         invoice_line_item=line_item,
                         adjustment_type=InvoiceLineItemAdjustment.AdjustmentType.PLAN_ADJUSTMENT,
@@ -608,7 +611,14 @@ def apply_taxes(invoice, customer, organization, draft):
             continue
 
         for line_item in invoice.line_items.filter(associated_subscription_record=sr):
-            tax_amount = line_item.base * (tax_rate / Decimal(100))
+            # tax the price after any per-line plan discount, not the pre-discount base
+            plan_discount = sum(
+                a.amount
+                for a in line_item.adjustments.filter(
+                    adjustment_type=InvoiceLineItemAdjustment.AdjustmentType.PLAN_ADJUSTMENT
+                )
+            )
+            tax_amount = (line_item.base + plan_discount) * (tax_rate / Decimal(100))
             InvoiceLineItemAdjustment.objects.create(
                 invoice_line_item=line_item,
                 adjustment_type=InvoiceLineItemAdjustment.AdjustmentType.SALES_TAX,
